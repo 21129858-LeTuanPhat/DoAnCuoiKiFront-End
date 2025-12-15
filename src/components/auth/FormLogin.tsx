@@ -9,7 +9,7 @@ export default function FormLogin() {
                 <p className='font-bold text-center mb-3'>Đăng nhập tài khoản</p>
 
                 <form className="rounded px-8 pt-6 pb-8 mb-4  border-t-2" >
-                    <div className="mb-6">
+                    <div className="mb-5">
                         <label className="block text-gray-700 text-sm font-bold mb-2" >
                             Tên đăng nhập
                         </label>
@@ -42,9 +42,6 @@ export default function FormLogin() {
                     &copy;2025 Acme Corp. All rights reserved.
                 </p>
             </div >
-
-
-
         </>
     )
 }
