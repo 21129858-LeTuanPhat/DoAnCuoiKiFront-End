@@ -1,2 +1,3 @@
-const abc = 'This is a utility file';
-export default abc;
+
+export const BASE_URL = 'wss://chat.longapp.site/chat/chat'
+

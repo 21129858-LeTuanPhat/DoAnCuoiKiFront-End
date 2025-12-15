@@ -1,2 +1,3 @@
-const useDebounce = () => {};
-export default useDebounce;
+
+
+export const store = ''
