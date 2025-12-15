@@ -9,7 +9,7 @@ function Home() {
             <aside className="hidden md:block flex-[2.5]">
                 <SideBar />
             </aside>
-            <main className="flex-[7.5]  flex flex-col bg-[#f0f4fa] max-h-full shadow-[0_4px_6px_-1px_rgba(0,0,0,0.2)]">
+            <main className="flex-[7.5] hidden md:block  flex flex-col bg-[#f0f4fa] shadow-[0_4px_6px_-1px_rgba(0,0,0,0.2)]">
                 <Header />
                 <MainContent />
                 <Footer />

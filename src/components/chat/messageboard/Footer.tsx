@@ -2,12 +2,12 @@ import { ImagePlus, Smile, Send } from 'lucide-react';
 
 function Footer() {
     return (
-        <footer className="bg-white h-[65px] rounded-bl-lg">
-            <div className="flex items-center h-full">
+        <footer className="bg-white h-[65px] rounded-bl-lg ">
+            <div className="flex items-center h-full ">
                 <div>
                     <ImagePlus className="cursor-pointer mt-2 mb-2 ml-4 mr-8 h-[21.5px]" />
                 </div>
-                <div className="rounded-2xl border flex-[5] flex items-center">
+                <div className="rounded-2xl border flex-[5] flex items-center my-1">
                     <input
                         type="text"
                         placeholder="Soạn tin nhắn ..."
