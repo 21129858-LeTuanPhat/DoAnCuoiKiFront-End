@@ -1,22 +1,47 @@
 import React from 'react'
+import '../../assets/css/index.css'
+import { Link } from 'react-router-dom'
 
 export default function FormLogin() {
     return (
         <>
-            <form className="max-w-sm mx-auto">
-                <div className="mb-5">
-                    <label className="block mb-2.5 text-sm font-medium text-heading">Your email</label>
-                    <input type="email" id="email" className="bg-neutral-secondary-medium border border-default-medium text-heading text-sm rounded-base focus:ring-brand focus:border-brand block w-full px-3 py-2.5 shadow-xs placeholder:text-body" placeholder="name@flowbite.com" required />
-                </div>
-                <div className="mb-5">
-                    <label className="block mb-2.5 text-sm font-medium text-heading">Your password</label>
-                    <input type="password" id="password" className="bg-neutral-secondary-medium border border-default-medium text-heading text-sm rounded-base focus:ring-brand focus:border-brand block w-full px-3 py-2.5 shadow-xs placeholder:text-body" placeholder="••••••••" required />
-                </div>
-                <label className="flex items-center mb-5">
-                    <input id="remember" type="checkbox" value="" className="w-4 h-4 border border-default-medium rounded-xs bg-neutral-secondary-medium focus:ring-2 focus:ring-brand-soft" required />
-                </label>
-                <button type="submit" className="text-white bg-brand box-border border border-transparent hover:bg-brand-strong focus:ring-4 focus:ring-brand-medium shadow-xs font-medium leading-5 rounded-base text-sm px-4 py-2.5 focus:outline-none">Submit</button>
-            </form>
+            <div className=" w-1/3 p-3 bg-white shadow-md rounded-md" >
+                <p className='font-bold text-center mb-3'>Đăng nhập tài khoản</p>
+
+                <form className="rounded px-8 pt-6 pb-8 mb-4  border-t-2" >
+                    <div className="mb-6">
+                        <label className="block text-gray-700 text-sm font-bold mb-2" >
+                            Tên đăng nhập
+                        </label>
+                        <input className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" id="username" type="text" placeholder="Tên đăng nhập" />
+                    </div>
+                    <div className="mb-8">
+                        <label className="block text-gray-700 text-sm font-bold mb-2">
+                            Mật khẩu
+                        </label>
+                        <input className="shadow appearance-none border border-red-500 rounded w-full py-2 px-3 text-gray-700 mb-3 leading-tight focus:outline-none focus:shadow-outline" id="password" type="password" placeholder="********" />
+                        {/* <p className="text-red-500 text-xs italic">Please choose a password.</p> */}
+                        <div className="flex justify-end">
+                            <Link to="/registry" className="text-blue-500 text-sm hover:underline">
+                                Đăng kí tài khoản?
+                            </Link>
+                        </div>
+                    </div>
+
+                    <div className="flex items-center justify-between">
+
+                        <button className="inline-block align-baseline font-bold text-sm text-blue-500 ">
+                            Quên mật khẩu
+                        </button>
+                        <button className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline" type="button">
+                            Đăng nhập
+                        </button>
+                    </div>
+                </form>
+                <p className="text-center text-gray-500 text-xs">
+                    &copy;2025 Acme Corp. All rights reserved.
+                </p>
+            </div >
 
 
 
