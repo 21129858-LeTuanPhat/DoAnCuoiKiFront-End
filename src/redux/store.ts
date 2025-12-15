@@ -1,5 +1,3 @@
-import { configureStore } from "@reduxjs/toolkit";
+const store = {}; // Placeholder for Redux store setup
 
-
-export const store = ''
-
+export default store;
