@@ -1,5 +1,4 @@
 import React from 'react';
-import './index.css';
 import { BrowserRouter, Route, Routes } from 'react-router-dom';
 import SignInPage from './pages/SignInPage';
 import Home from './pages/ChatAppPage';
@@ -15,7 +14,6 @@ function App() {
             </BrowserRouter>
         </>
     );
-
 }
 
 export default App;
