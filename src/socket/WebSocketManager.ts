@@ -1,10 +1,10 @@
-import { WSMessage } from '../model/index';
+import { WSMessage } from '../model/WSMessage';
 class WebSocketManager {
     private static webSocketManager: WebSocketManager;
 
     private socket: WebSocket | null = null;
 
-    private lastMessage: WSMessage | null = null;
+    private listeners: ((msg: WSMessage) => void)[] = [];
 
     private constructor() {}
 
@@ -23,9 +23,12 @@ class WebSocketManager {
             console.log('WebSocket connected');
         };
         this.socket.onmessage = (event) => {
-            let msg = JSON.parse(event.data);
-            this.lastMessage = msg;
-            console.log('Received message:', msg);
+            try {
+                const msg = JSON.parse(event.data) as WSMessage;
+                this.listeners.forEach((cb) => cb(msg));
+            } catch {
+                console.error('Invalid WS message', event.data);
+            }
         };
         this.socket.onerror = (err) => {
             console.log('lỗi:', err);
@@ -36,20 +39,11 @@ class WebSocketManager {
         };
     }
 
-    /**?
-     * const ws = WebSocketManager.getInstance();
-        ws.connect("ws://localhost:8080/ws");
-
-    setTimeout(() => {
-      const msg = ws.getMessage<ChatPayload>();
-    
-      if (msg?.type === "NEW_MESSAGE") {
-        console.log(msg.payload.content);
-      }
-    }, 1000);
-     */
-    public getMessage<T = any>(): WSMessage<T> | null {
-        return this.lastMessage;
+    public onMessage(cb: (msg: WSMessage) => void) {
+        this.listeners.push(cb);
+        return () => {
+            this.listeners = this.listeners.filter((l) => l !== cb);
+        };
     }
 
     public sendMessage(message: string): void {
@@ -60,3 +54,38 @@ class WebSocketManager {
         }
     }
 }
+export default WebSocketManager;
+
+/*
+const ws = WebSocketManager.getInstance();
+ws.connect("ws://localhost:8080/ws");
+
+const off = ws.onMessage((msg) => {
+    if (msg.status === 'success' && msg.event === 'REGISTER') {
+        TS biết msg.data là string
+        console.log(msg.data);
+    }
+
+    if (msg.status === 'success' && msg.event === 'LOGIN') {
+        console.log(msg.data.RE_LOGIN_CODE);
+    }
+
+    if (msg.status === 'error') {
+        console.error(msg.mes);
+    }
+});
+
+
+
+useEffect(() => {
+    const off = ws.onMessage(msg => {
+        if (msg.status === 'success' && msg.event === 'LOGIN') {
+            setToken(msg.data.RE_LOGIN_CODE);
+        }
+    });
+
+    return off; // unsubscribe khi unmount
+}, []);
+
+
+*/
