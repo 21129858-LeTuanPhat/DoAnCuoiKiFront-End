@@ -4,6 +4,7 @@ type EventPayloadMap = {
     LOGIN: { RE_LOGIN_CODE: string };
     RE_LOGIN: { RE_LOGIN_CODE: string };
     GET_USER_LIST: {};
+    CHECK_USER: boolean;
 };
 
 type SuccessMessage<K extends keyof EventPayloadMap> = {
