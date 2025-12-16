@@ -46,6 +46,22 @@ class WebSocketManager {
         };
     }
 
+    public connect2(url: string): Promise<void> {
+        return new Promise((resolve) => {
+            if (this.socket?.readyState === WebSocket.OPEN) {
+                resolve();
+                return;
+            }
+
+            this.socket = new WebSocket(url);
+            this.socket.onopen = () => {
+                console.log('WebSocket connected');
+                resolve();
+            };
+            this.socket.onmessage = (e) => this.listeners.forEach((cb) => cb(JSON.parse(e.data)));
+        });
+    }
+
     public onMessage(cb: (msg: WSMessage) => void) {
         this.listeners.push(cb);
         return () => {
@@ -54,6 +70,7 @@ class WebSocketManager {
     }
 
     public sendMessage(message: string): void {
+        console.log('Sending message:', message);
         if (this.socket && this.socket.readyState === WebSocket.OPEN) {
             this.socket.send(message);
         } else {

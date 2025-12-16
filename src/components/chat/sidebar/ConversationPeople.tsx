@@ -1,7 +1,11 @@
 import { Plus } from 'lucide-react';
 import ConversationItem from './ConversationItem';
+import { useEffect } from 'react';
+import WebSocketManager from '../../../socket/WebSocketManager';
+import { useState } from 'react';
+import { User } from '../../../model/User';
 
-function ConversationPeople() {
+function ConversationPeople({ users }: { users: User[] }) {
     return (
         <>
             <div className="flex flex-col w-full">
@@ -11,9 +15,9 @@ function ConversationPeople() {
                 </div>
 
                 <div className="flex flex-col gap-3 mt-5">
-                    <ConversationItem />
-                    <ConversationItem />
-                    <ConversationItem />
+                    {users.map((user) => (
+                        <ConversationItem user={user} />
+                    ))}
                 </div>
             </div>
         </>
