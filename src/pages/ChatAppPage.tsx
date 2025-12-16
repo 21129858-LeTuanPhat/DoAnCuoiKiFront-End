@@ -1,3 +1,6 @@
+import Footer from '../components/chat/messageboard/Footer';
+import Header from '../components/chat/messageboard/Header';
+import MainContent from '../components/chat/messageboard/MainContent';
 import SideBar from '../components/chat/sidebar/SideBar';
 
 function Home() {
@@ -6,10 +9,10 @@ function Home() {
             <aside className="hidden md:block flex-[2.5]">
                 <SideBar />
             </aside>
-            <main className="flex-[7.5]  flex flex-col bg-white">
-                <header className="bg-gray-400">Header</header>
-                <section className="bg-blue-400">Main Content</section>
-                <footer className="bg-gray-400">Footer</footer>
+            <main className="flex-[7.5] hidden md:block  flex flex-col bg-[#f0f4fa] shadow-[0_4px_6px_-1px_rgba(0,0,0,0.2)]">
+                <Header />
+                <MainContent />
+                <Footer />
             </main>
         </div>
     );

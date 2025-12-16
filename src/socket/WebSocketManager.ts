@@ -16,9 +16,16 @@ class WebSocketManager {
     }
 
     public connect(url: string): void {
-        if (!this.socket) {
-            this.socket = new WebSocket(url);
+        // chặn connect trùng (StrictMode, re-render)
+        if (
+            this.socket &&
+            (this.socket.readyState === WebSocket.OPEN || this.socket.readyState === WebSocket.CONNECTING)
+        ) {
+            return;
         }
+
+        this.socket = new WebSocket(url);
+
         this.socket.onopen = () => {
             console.log('WebSocket connected');
         };
@@ -69,6 +76,11 @@ class WebSocketManager {
         } else {
             console.log('WebSocket is not connected.');
         }
+    }
+    public disconnect(): void {
+        if (!this.socket) return;
+        this.socket.close();
+        this.socket = null;
     }
 }
 export default WebSocketManager;
