@@ -9,15 +9,12 @@ function SideBar() {
     const [users, setUsers] = useState<User[]>([]);
     useEffect(() => {
         const ws = WebSocketManager.getInstance();
-
-        const off = ws.onMessage((msg) => {
-            console.log('msg:', JSON.stringify(msg, null, 2));
+        const offGetUserList = ws.onMessage('GET_USER_LIST', (msg) => {
             if (msg.status == 'success' && msg.event == 'GET_USER_LIST') {
-                console.log('IF');
+                ws.unSubcribe('GET_USER_LIST');
                 setUsers(msg.data as User[]);
             }
         });
-
         ws.sendMessage(
             JSON.stringify({
                 action: 'onchat',
@@ -26,8 +23,6 @@ function SideBar() {
                 },
             }),
         );
-
-        return off;
     }, []);
 
     return (

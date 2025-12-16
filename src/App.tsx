@@ -1,47 +1,12 @@
 
-import './index.css';
-import React, { useEffect, useState } from 'react';
 import { BrowserRouter, Route, Routes } from 'react-router-dom';
 import SignInPage from './pages/SignInPage';
 import Home from './pages/ChatAppPage';
 import WebSocketManager from './socket/WebSocketManager';
-import SignUpPage from './pages/SignUpPage';
+
+import { useState, useEffect } from 'react';
 
 function App() {
-    const [ready, setReady] = useState(false);
-    useEffect(() => {
-        const ws = WebSocketManager.getInstance();
-        ws.connect2('wss://chat.longapp.site/chat/chat')
-            .then(() => {
-                ws.sendMessage(
-                    JSON.stringify({
-                        action: 'onchat',
-                        data: {
-                            event: 'LOGIN',
-                            data: {
-                                user: 'phucabc',
-                                pass: '123',
-                            },
-                        },
-                    }),
-                );
-
-                ws.onMessage((mes) => {
-                    if (mes.status === 'success' && mes.event === 'LOGIN') {
-                        console.log('Login successful:', mes.data);
-                        setReady(true);
-                    }
-                });
-            })
-            .catch(() => {
-                console.error('WS connect failed');
-            });
-    }, []);
-
-    if (!ready) {
-        return <div className="h-screen flex items-center justify-center">Đang kết nối server...</div>;
-    }
-
     return (
         <>
             <BrowserRouter>
