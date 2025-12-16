@@ -1,14 +1,14 @@
 
 import './index.css';
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { BrowserRouter, Route, Routes } from 'react-router-dom';
 import SignInPage from './pages/SignInPage';
 import Home from './pages/ChatAppPage';
 import WebSocketManager from './socket/WebSocketManager';
+import SignUpPage from './pages/SignUpPage';
 
 function App() {
     const [ready, setReady] = useState(false);
-
     useEffect(() => {
         const ws = WebSocketManager.getInstance();
         ws.connect2('wss://chat.longapp.site/chat/chat')
@@ -48,6 +48,7 @@ function App() {
                 <Routes>
                     <Route path="/login" element={<SignInPage></SignInPage>}></Route>
                     <Route path="/" element={<Home></Home>}></Route>
+                    <Route path='/registry' element={<SignUpPage></SignUpPage>}></Route>
                 </Routes>
             </BrowserRouter>
         </>
