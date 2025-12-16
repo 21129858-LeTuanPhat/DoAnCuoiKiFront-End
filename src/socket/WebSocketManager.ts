@@ -6,7 +6,7 @@ class WebSocketManager {
     private socket: WebSocket | null = null;
 
     private listeners: Map<string, (msg: WSMessage) => void> = new Map();
-    private constructor() {}
+    private constructor() { }
 
     public static getInstance(): WebSocketManager {
         if (!WebSocketManager.webSocketManager) {
