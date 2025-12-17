@@ -10,3 +10,10 @@ export interface UserLogin {
     username: string,
     password: string
 }
+
+
+export interface UserRegistry {
+    username: string,
+    password: string
+
+}
