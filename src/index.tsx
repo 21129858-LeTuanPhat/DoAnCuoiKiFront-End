@@ -6,9 +6,9 @@ import SocketWrap from './socket/SocketWrap';
 const root = ReactDOM.createRoot(document.getElementById('root') as HTMLElement);
 root.render(
     // <React.StrictMode>
-    <SocketWrap>
-        <App />
-    </SocketWrap>,
+    // <SocketWrap>
+    <App />
+    // </SocketWrap>,
     // </React.StrictMode>,
 );
 
