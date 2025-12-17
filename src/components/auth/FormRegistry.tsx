@@ -1,9 +1,12 @@
 import React, { useState } from 'react'
-import { Link } from 'react-router-dom'
-import { UserRegistry } from '../../model/User'
+import { Link, useNavigate } from 'react-router-dom'
+import { UserLogin, UserRegistry } from '../../model/User'
+import { registryWS } from '../../socket/UserWS'
+import RegistryModal from '../modal/RegistryModal'
+import LoadingModal from '../modal/LoadingModal'
 
 
-type FormRegistry = {
+type FormRegistryInterface = {
     username: string,
     password: string,
     rePassword: string
@@ -14,12 +17,11 @@ interface ErrorInterface {
     rePassword: string
 }
 export default function FormRegistry() {
-
-    const [user, setUser] = useState<UserRegistry | null>(null)
-    const [formRegistry, setFormRegistry] = useState<FormRegistry>({ username: '', password: '', rePassword: '' })
+    const [loading, setLoading] = useState<boolean>(false)
+    const [openModal, setOpenModal] = useState<boolean>(false)
+    const [formRegistry, setFormRegistry] = useState<FormRegistryInterface>({ username: '', password: '', rePassword: '' })
     const [error, setError] = useState<ErrorInterface>({ username: '', password: '', rePassword: '' })
-
-
+    const [response, setResponse] = useState<string>('')
     const handleForm = () => {
         setError({ username: '', password: '', rePassword: '' })
         const regex = /^(?=.*[a-z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/
@@ -50,18 +52,27 @@ export default function FormRegistry() {
         return isValue
     }
 
-    const submitForm = (e: React.FormEvent<HTMLFormElement>) => {
+    const submitForm = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault()
         if (handleForm()) {
-            console.log('submit form')
-        }
-        else {
-            console.log('chưa submit')
+            const user: UserRegistry = { username: formRegistry.username, password: formRegistry.password }
+            setLoading(true)
+            const response = await registryWS(user)
+            setLoading(false)
+            if (response.status === 'success') {
+                setOpenModal(true)
+            }
+            else {
+                setResponse(response.message)
+            }
         }
     }
-
     return (
         <>
+            {
+                openModal && (<RegistryModal openModal={openModal}></RegistryModal>)
+            }
+            <LoadingModal open={loading} />
             <div className=" w-1/3 p-3 bg-white shadow-md rounded-md" >
                 <p className='font-bold text-center mb-3'>Đăng kí tài khoản</p>
                 <form className="rounded px-8 pt-6 pb-8 mb-4  border-t-2" onSubmit={(e) => submitForm(e)} >
@@ -69,9 +80,12 @@ export default function FormRegistry() {
                         <label className="block text-gray-700 text-sm font-bold mb-2" >
                             Tên đăng nhập
                         </label>
-                        <input onChange={e => setFormRegistry(form => ({ ...form, username: e.target.value }))} className={`shadow appearance-none border ${error.username ? 'border-red-500' : ''} rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline`} id="username" type="text" placeholder="Tên đăng nhập" />
+                        <input onChange={e => setFormRegistry(form => ({ ...form, username: e.target.value }))} className={`shadow appearance-none border ${error.username || response ? 'border-red-500' : ''} rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline`} id="username" type="text" placeholder="Tên đăng nhập" />
                         {
                             error.username && (<p className="text-red-500 text-xs italic mt-1 ">{error.username}</p>)
+                        }
+                        {
+                            response && (<p className="text-red-500 text-sm italic mt-1 ">{response}</p>)
                         }
                     </div>
                     <div className="mb-5">

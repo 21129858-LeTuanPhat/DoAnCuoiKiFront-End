@@ -6,8 +6,6 @@ import { UserStar } from 'lucide-react';
 import { loginWS } from '../../socket/UserWS';
 import { CircularProgress } from '@mui/material';
 
-
-
 interface FormLoginProps {
     user: UserLogin,
     setUser: React.Dispatch<React.SetStateAction<UserLogin>>
