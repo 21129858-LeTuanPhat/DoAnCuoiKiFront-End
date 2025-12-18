@@ -1,5 +1,5 @@
 import { PanelLeft } from 'lucide-react';
-function Header() {
+function Header({ username }: { username: string }) {
     return (
         <header className="bg-white h-[72px]  rounded-tl-lg block">
             <div className="flex items-center h-full">
@@ -13,7 +13,7 @@ function Header() {
                         className="rounded-full object-cover w-10 mx-2 h-[36px] "
                     />
                 </div>
-                <h3 className="mx-2 h-[36px] text-[23px] font-semibold ">Nhóm Backend Dev</h3>
+                <h3 className="mx-2 h-[36px] text-[23px] font-semibold ">{username}</h3>
             </div>
         </header>
     );

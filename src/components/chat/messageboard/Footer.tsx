@@ -1,8 +1,8 @@
 import { ImagePlus, Smile, Send } from 'lucide-react';
 import HeadlessTippy from '@tippyjs/react/headless';
-import EmojiPicker, { EmojiClickData, EmojiStyle } from 'emoji-picker-react';
+import EmojiPicker, { EmojiClickData } from 'emoji-picker-react';
 import { useState } from 'react';
-function Footer() {
+function Footer({ username }: { username: string }) {
     const [message, setMessage] = useState('');
     const handleEmojiClick = (emojiData: EmojiClickData) => {
         setMessage((prev) => prev + emojiData.emoji);
@@ -16,13 +16,19 @@ function Footer() {
                 <div>
                     <ImagePlus className="cursor-pointer mt-2 mb-2 ml-4 mr-8 h-[21.5px]" />
                 </div>
-                <div className="rounded-2xl border flex-[5] flex items-center my-1">
+                <div
+                    className="flex-[5] flex items-center my-1
+                     rounded-2xl
+                     border-2 border-gray-300
+                     transition-colors duration-200 ease-linear
+                     focus-within:border-purple-400"
+                >
                     <input
                         value={message}
                         type="text"
                         placeholder="Soạn tin nhắn ..."
                         className="flex-[8] p-2 border-none outline-none 
-                        bg-transparent"
+                        bg-transparent "
                         onChange={handleMessage}
                     />
                     <button className="p-2">
@@ -30,13 +36,13 @@ function Footer() {
                             interactive
                             render={(attrs) => {
                                 return (
-                                    <div tabIndex={-1} {...attrs}>
+                                    <div tabIndex={-1} {...attrs} className="mr-12">
                                         <EmojiPicker onEmojiClick={handleEmojiClick} />
                                     </div>
                                 );
                             }}
                         >
-                            <Smile className="cursor-pointer" />
+                            <Smile className="cursor-pointer rounded-full hover:bg-purple-400 hover:text-white" />
                         </HeadlessTippy>
                     </button>
                 </div>
