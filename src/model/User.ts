@@ -15,5 +15,4 @@ export interface UserLogin {
 export interface UserRegistry {
     username: string,
     password: string
-
 }

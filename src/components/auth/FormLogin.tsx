@@ -5,6 +5,8 @@ import { UserLogin } from '../../model/User';
 import { UserStar } from 'lucide-react';
 import { loginWS } from '../../socket/UserWS';
 import { CircularProgress } from '@mui/material';
+import { useDispatch } from 'react-redux'
+import { userAction, logOut } from '../../redux/userReducer'
 
 interface FormLoginProps {
     user: UserLogin,
@@ -33,6 +35,7 @@ export default function FormLogin({ user, setUser }: FormLoginProps) {
         }
         return isValid
     }
+    const dispatch = useDispatch()
     const submitForm = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault()
         if (handleForm()) {
@@ -43,7 +46,10 @@ export default function FormLogin({ user, setUser }: FormLoginProps) {
                 setResponseLogin(responeWS.message)
                 return
             }
-            navigate('/')
+            if (responeWS.username && responeWS.reCode) {
+                dispatch(userAction({ username: responeWS.username, reCode: responeWS.reCode }))
+                navigate('/')
+            }
         }
     }
     if (loading) {
