@@ -1,6 +1,13 @@
-function ConversationItem({ user }: { user: any }) {
+function ConversationItem({ user, isActive, onClick }: any) {
     return (
-        <div className="w-full px-4 py-2 rounded-xl bg-white shadow-sm transition-shadow hover:shadow-md hover:cursor-pointer flex">
+        <div
+            onClick={onClick}
+            className={
+                isActive
+                    ? 'w-full px-4 py-2 rounded-xl bg-white shadow-sm transition-shadow border border-purple-500 hover:shadow-md hover:cursor-pointer flex'
+                    : 'w-full px-4 py-2 rounded-xl bg-white shadow-sm transition-shadow hover:shadow-md hover:cursor-pointer flex'
+            }
+        >
             <img
                 src="https://tse3.mm.bing.net/th/id/OIP.cGz8NopJvAgdkioxkugKoQHaHa?pid=Api&P=0&h=220"
                 alt=""

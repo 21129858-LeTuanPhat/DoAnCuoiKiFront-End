@@ -1,5 +1,5 @@
 import { Sun, Moon } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 
 function Moji() {
     const [dark, setDark] = useState(false);

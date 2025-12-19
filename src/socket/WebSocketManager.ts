@@ -1,4 +1,3 @@
-import { ClockFading } from 'lucide-react';
 import { WSMessage } from '../model/WSMessage';
 class WebSocketManager {
     private static webSocketManager: WebSocketManager;
@@ -42,7 +41,6 @@ class WebSocketManager {
     }
 
     public onMessage(event: string, cb: (msg: WSMessage) => void) {
-        if (this.listeners.get(event)) return;
         this.listeners.set(event, cb);
     }
 
