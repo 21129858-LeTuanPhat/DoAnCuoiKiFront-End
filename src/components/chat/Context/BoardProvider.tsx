@@ -8,9 +8,10 @@ const BoardContext = createContext<BoardContextType | null>(null);
 function BoardProvider({ children }: BoardProviderProps) {
     const [selectedUser, setSelectedUser] = useState<string>('');
     const [listMessage, setListMessage] = useState<ChatMessage[]>([]);
+    const [type, setType] = useState<string>('');
 
     return (
-        <BoardContext.Provider value={{ selectedUser, setSelectedUser, listMessage, setListMessage }}>
+        <BoardContext.Provider value={{ selectedUser, setSelectedUser, listMessage, setListMessage, type, setType }}>
             {children}
         </BoardContext.Provider>
     );

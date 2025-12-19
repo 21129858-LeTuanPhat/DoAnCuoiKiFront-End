@@ -6,7 +6,7 @@ import { ChatMessage } from '../../../model/ChatMessage';
 function MainContent({ username }: any) {
     const [page, setPage] = useState<number>(1);
     const divRef = useRef<HTMLDivElement>(null);
-    const { listMessage, setListMessage } = useBoardContext();
+    const { listMessage, setListMessage, type } = useBoardContext();
     const oldScrollHeightRef = useRef(0);
     useEffect(() => {
         setListMessage([]);
@@ -15,42 +15,84 @@ function MainContent({ username }: any) {
     useEffect(() => {
         console.log('e2');
         const ws = WebSocketManager.getInstance();
-        ws.onMessage('GET_PEOPLE_CHAT_MES', (msg) => {
-            if (msg.status === 'success') {
-                if (msg.event === 'GET_PEOPLE_CHAT_MES') {
-                    oldScrollHeightRef.current = divRef.current?.scrollHeight || 0;
-                    setListMessage((prev) => {
-                        const newList = [...msg.data].reverse().concat(prev);
-                        return newList;
-                    });
-                } else if (msg.event === 'SEND_CHAT') {
-                    oldScrollHeightRef.current = divRef.current?.scrollHeight || 0;
-                    const newMessage: ChatMessage = {
-                        id: msg.data.id,
-                        name: msg.data.name,
-                        type: msg.data.tpye,
-                        to: msg.data.to,
-                        mes: decodeURIComponent(msg.data.mes),
-                        createAt: new Date().toISOString(),
-                    };
-                    setListMessage((prev) => [...prev, newMessage]);
+        if (type === 'people') {
+            ws.onMessage('GET_PEOPLE_CHAT_MES', (msg) => {
+                if (msg.status === 'success') {
+                    if (msg.event === 'GET_PEOPLE_CHAT_MES') {
+                        oldScrollHeightRef.current = divRef.current?.scrollHeight || 0;
+                        setListMessage((prev) => {
+                            const newList = [...msg.data].reverse().concat(prev);
+                            return newList;
+                        });
+                    } else if (msg.event === 'SEND_CHAT') {
+                        oldScrollHeightRef.current = divRef.current?.scrollHeight || 0;
+                        const newMessage: ChatMessage = {
+                            id: msg.data.id,
+                            name: msg.data.name,
+                            type: msg.data.tpye,
+                            to: msg.data.to,
+                            mes: decodeURIComponent(msg.data.mes),
+                            createAt: new Date().toISOString(),
+                        };
+                        setListMessage((prev) => [...prev, newMessage]);
+                    }
                 }
-            }
-        });
-        ws.sendMessage(
-            JSON.stringify({
-                action: 'onchat',
-                data: {
-                    event: 'GET_PEOPLE_CHAT_MES',
+            });
+            ws.sendMessage(
+                JSON.stringify({
+                    action: 'onchat',
                     data: {
-                        name: username,
-                        page: page,
+                        event: 'GET_PEOPLE_CHAT_MES',
+                        data: {
+                            name: username,
+                            page: page,
+                        },
                     },
-                },
-            }),
-        );
+                }),
+            );
+        } else if (type === 'room') {
+            ws.onMessage('GET_ROOM_CHAT_MES', (msg) => {
+                if (msg.status === 'success') {
+                    if (msg.event === 'GET_ROOM_CHAT_MES') {
+                        oldScrollHeightRef.current = divRef.current?.scrollHeight || 0;
+                        setListMessage((prev) => {
+                            const newList = [...msg.data.chatData].reverse().concat(prev);
+                            return newList;
+                        });
+                    } else if (msg.event === 'SEND_CHAT') {
+                        oldScrollHeightRef.current = divRef.current?.scrollHeight || 0;
+                        const newMessage: ChatMessage = {
+                            id: msg.data.id,
+                            name: msg.data.name,
+                            type: msg.data.tpye,
+                            to: msg.data.to,
+                            mes: decodeURIComponent(msg.data.mes),
+                            createAt: new Date().toISOString(),
+                        };
+                        setListMessage((prev) => [...prev, newMessage]);
+                    }
+                }
+            });
+            ws.sendMessage(
+                JSON.stringify({
+                    action: 'onchat',
+                    data: {
+                        event: 'GET_ROOM_CHAT_MES',
+                        data: {
+                            name: username,
+                            page: page,
+                        },
+                    },
+                }),
+            );
+        }
+
         return () => {
-            ws.unSubcribe('GET_PEOPLE_CHAT_MES');
+            if (type === 'people') {
+                ws.unSubcribe('GET_PEOPLE_CHAT_MES');
+            } else if (type === 'room') {
+                ws.unSubcribe('GET_ROOM_CHAT_MES');
+            }
         };
     }, [page]);
     useEffect(() => {
