@@ -1,6 +1,8 @@
 import { Search } from 'lucide-react';
 import { User } from '../../../model/User';
 import { useState } from 'react';
+import WebSocketManager from '../../../socket/WebSocketManager';
+import { WSMessage } from '../../../model/WSMessage';
 
 function SearchBar() {
     const [open, setOpen] = useState(false);
@@ -18,16 +20,32 @@ function SearchBar() {
 
 function SearchUserModal({ onClose }: { onClose: () => void }) {
     const [keyword, setKeyword] = useState('');
-    const [users, setUsers] = useState<User[]>([]);
+    const webSocket = WebSocketManager.getInstance();
 
-    const handleSearch = (value: string) => {
-        setKeyword(value);
+    const users: User[] = [
+        { id: '1', name: 'taiabc', type: 0 },
+        { id: '2', name: 'john_doe', type: 0 },
+        { id: '3', name: 'jane_smith', type: 0 },
+    ];
+    const handleSearch = (e: any) => {
+        setKeyword(e.target.value);
+        webSocket.onMessage((msg: WSMessage) => {
+            if (msg.status === 'success') {
+                alert('Tìm thấy người dùng!');
+            }
+        });
 
-        // Demo data
-        setUsers([
-            { id: '1', name: 'Nguyễn Văn A', type: 0 },
-            { id: '2', name: 'Trần Thị B', type: 0 },
-        ]);
+        webSocket.sendMessage(
+            JSON.stringify({
+                action: 'onchat',
+                data: {
+                    event: 'CHECK_USER',
+                    data: {
+                        user: 'ti',
+                    },
+                },
+            }),
+        );
     };
 
     const sendInvite = (user: User) => {
@@ -46,20 +64,21 @@ function SearchUserModal({ onClose }: { onClose: () => void }) {
                     </button>
                 </div>
 
-                {/* Search input */}
-                <input
-                    type="text"
-                    value={keyword}
-                    onChange={(e) => handleSearch(e.target.value)}
-                    placeholder="Nhập tên hoặc email..."
-                    className="
-            w-full px-4 py-2 mb-3
-            border rounded-lg
-            focus:outline-none focus:ring-2 focus:ring-blue-500
-          "
-                />
+                <div className="flex gap-2 mb-2">
+                    <input
+                        type="text"
+                        placeholder="Nhập tên hoặc email..."
+                        className="
+                        flex-1 px-4 py-2 mb-3
+                        border rounded-lg
+                        focus:outline-none focus:ring-2 focus:ring-blue-500
+                    "
+                    />
+                    <button className="bg-blue-600  rounded-lg text-white px-4 py-2 mb-3 " onClick={handleSearch}>
+                        Search
+                    </button>
+                </div>
 
-                {/* Result list */}
                 <div className="max-h-60 overflow-y-auto space-y-2">
                     {users.map((user) => (
                         <div
