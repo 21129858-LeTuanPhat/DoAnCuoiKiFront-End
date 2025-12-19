@@ -1,7 +1,12 @@
-import React from 'react';
+import React, { useState } from 'react';
 import FormLogin from '../components/auth/FormLogin';
 import '../index.css';
+import { UserLogin } from '../model/User';
+import { ClipLoader } from "react-spinners";
+import { CircularProgress } from '@mui/material'
 export default function SignInPage() {
+    const [user, setUser] = useState<UserLogin>({ username: '', password: '' })
+    console.log('hello login')
     return (
         <>
             <div className="login-layout w-full" style={{ backgroundColor: '#e8f3ff', height: '100vh' }}>
@@ -16,9 +21,10 @@ export default function SignInPage() {
                     </div>
                 </div>
                 <div className="flex justify-center">
-                    <FormLogin></FormLogin>
+                    <FormLogin user={user} setUser={setUser}
+                    ></FormLogin>
                 </div>
-            </div>
+            </div >
         </>
     );
 }

@@ -1,8 +1,9 @@
+
+
 import { BrowserRouter, Route, Routes } from 'react-router-dom';
 import SignInPage from './pages/SignInPage';
 import Home from './pages/ChatAppPage';
-import WebSocketManager from './socket/WebSocketManager';
-import { useState, useEffect } from 'react';
+import SignUpPage from './pages/SignUpPage';
 
 function App() {
     return (
@@ -11,10 +12,10 @@ function App() {
                 <Routes>
                     <Route path="/login" element={<SignInPage></SignInPage>}></Route>
                     <Route path="/" element={<Home></Home>}></Route>
+                    <Route path='/registry' element={<SignUpPage></SignUpPage>}></Route>
                 </Routes>
             </BrowserRouter>
         </>
     );
 }
-
 export default App;
