@@ -1,36 +1,40 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, useLayoutEffect } from 'react';
 import WebSocketManager from '../../../socket/WebSocketManager';
-import { ChatMessage } from '../../../model/ChatMessage';
 import ContentItem from './ContentItem';
-function MainContent({ username }: { username: string }) {
-    const [listMessage, setListMessage] = useState<ChatMessage[]>([]);
+import { useBoardContext } from '../../../hooks/useBoardContext';
+import { ChatMessage } from '../../../model/ChatMessage';
+function MainContent({ username }: any) {
     const [page, setPage] = useState<number>(1);
     const divRef = useRef<HTMLDivElement>(null);
-    console.log(listMessage.length);
+    const { listMessage, setListMessage } = useBoardContext();
+    const oldScrollHeightRef = useRef(0);
     useEffect(() => {
-        console.log('useffect 1');
         setListMessage([]);
         setPage(1);
-        return () => {
-            console.log('useffect 1 - 1');
-        };
     }, [username]);
     useEffect(() => {
-        console.log('useffect 2');
+        console.log('e2');
         const ws = WebSocketManager.getInstance();
-        const off = ws.onMessage('GET_PEOPLE_CHAT_MES', (msg) => {
-            if (msg.status === 'success' && msg.event === 'GET_PEOPLE_CHAT_MES') {
-                setListMessage((prev) => {
-                    const oldScrollHeight = divRef.current?.scrollHeight || 0;
-                    const newList = [...msg.data.reverse(), ...prev];
-                    setTimeout(() => {
-                        const scroll = divRef.current;
-                        if (scroll) {
-                            scroll.scrollTop = scroll.scrollHeight - oldScrollHeight;
-                        }
-                    }, 0);
-                    return newList;
-                });
+        ws.onMessage('GET_PEOPLE_CHAT_MES', (msg) => {
+            if (msg.status === 'success') {
+                if (msg.event === 'GET_PEOPLE_CHAT_MES') {
+                    oldScrollHeightRef.current = divRef.current?.scrollHeight || 0;
+                    setListMessage((prev) => {
+                        const newList = [...msg.data].reverse().concat(prev);
+                        return newList;
+                    });
+                } else if (msg.event === 'SEND_CHAT') {
+                    oldScrollHeightRef.current = divRef.current?.scrollHeight || 0;
+                    const newMessage: ChatMessage = {
+                        id: msg.data.id,
+                        name: msg.data.name,
+                        type: msg.data.tpye,
+                        to: msg.data.to,
+                        mes: decodeURIComponent(msg.data.mes),
+                        createAt: new Date().toISOString(),
+                    };
+                    setListMessage((prev) => [...prev, newMessage]);
+                }
             }
         });
         ws.sendMessage(
@@ -47,47 +51,58 @@ function MainContent({ username }: { username: string }) {
         );
         return () => {
             ws.unSubcribe('GET_PEOPLE_CHAT_MES');
-            console.log('useffect 2 - 2');
         };
-    }, [username, page]);
-
+    }, [page]);
     useEffect(() => {
-        console.log('useffect 3');
+        console.log('e3');
         const div = divRef.current;
+
         if (!div) return;
+
         if (page === 1) {
             div.scrollTop = div.scrollHeight;
         }
         const handleScroll = () => {
             if (div.scrollTop === 0 && listMessage.length >= 50) {
                 setPage((prev) => {
-                    console.log(listMessage.length);
-                    console.log(prev);
                     const newpage = prev + 1;
                     return newpage;
                 });
             }
         };
-
         div.addEventListener('scroll', handleScroll);
         return () => {
-            console.log('useffect 3 - 3');
+            console.log('e3-3');
             div.removeEventListener('scroll', handleScroll);
         };
+    }, [listMessage]);
+    useLayoutEffect(() => {
+        if (page > 1) {
+            const div = divRef.current;
+            if (!div) return;
+
+            div.scrollTop = div.scrollHeight - oldScrollHeightRef.current;
+        }
     }, [listMessage]);
 
     return (
         <section className="bg-[#f0f4fa] h-[calc(737.6px-72px-65px)]">
-            <div
-                ref={divRef}
-                className="h-full overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-200"
-            >
-                <ul className="p-2">
-                    {listMessage.map((message, index) => {
-                        return <ContentItem message={message} key={index} />;
-                    })}
-                </ul>
-            </div>
+            {listMessage.length > 0 ? (
+                <div
+                    ref={divRef}
+                    className="h-full overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-200"
+                >
+                    <ul className="p-2">
+                        {listMessage.map((message, index) => {
+                            return <ContentItem message={message} key={index} />;
+                        })}
+                    </ul>
+                </div>
+            ) : (
+                <div className="h-full flex items-center justify-center">
+                    <div className="w-10 h-10 border-4 border-gray-300 border-t-blue-500 rounded-full animate-spin"></div>
+                </div>
+            )}
         </section>
     );
 }

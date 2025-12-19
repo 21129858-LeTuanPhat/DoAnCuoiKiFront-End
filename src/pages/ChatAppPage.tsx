@@ -17,7 +17,7 @@ function Home() {
                 ) : (
                     <div>
                         <Header username={selectedUser} />
-                        <MainContent username={selectedUser} />
+                        <MainContent key={selectedUser} username={selectedUser} />
                         <Footer username={selectedUser} />
                     </div>
                 )}

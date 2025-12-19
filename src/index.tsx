@@ -8,11 +8,11 @@ import { BoardProvider } from './components/chat/Context/BoardProvider';
 const root = ReactDOM.createRoot(document.getElementById('root') as HTMLElement);
 root.render(
     // <React.StrictMode>
-    <SocketWrap>
-        <BoardProvider>
+    <BoardProvider>
+        <SocketWrap>
             <App />
-        </BoardProvider>
-    </SocketWrap>,
+        </SocketWrap>
+    </BoardProvider>,
     // </React.StrictMode>,
 );
 

@@ -1,15 +1,64 @@
 import { ImagePlus, Smile, Send } from 'lucide-react';
 import HeadlessTippy from '@tippyjs/react/headless';
 import EmojiPicker, { EmojiClickData } from 'emoji-picker-react';
-import { useState } from 'react';
+import { useRef, useState } from 'react';
+import WebSocketManager from '../../../socket/WebSocketManager';
+import { useBoardContext } from '../../../hooks/useBoardContext';
+import { ChatMessage } from '../../../model/ChatMessage';
 function Footer({ username }: { username: string }) {
     const [message, setMessage] = useState('');
+    const { listMessage, setListMessage } = useBoardContext();
+    const inputRef = useRef<any>(null);
     const handleEmojiClick = (emojiData: EmojiClickData) => {
         setMessage((prev) => prev + emojiData.emoji);
     };
     const handleMessage = (e: any) => {
         setMessage(e.target.value);
     };
+    function sendMessage() {
+        if (message.trim() === '') return;
+        const ws = WebSocketManager.getInstance();
+        ws.onMessage('SEND_CHAT', (msg) => {
+            if (msg.status === 'success' && msg.event === 'SEND_CHAT') {
+                ws.unSubcribe('SEND_CHAT');
+            }
+        });
+        ws.sendMessage(
+            JSON.stringify({
+                action: 'onchat',
+                data: {
+                    event: 'SEND_CHAT',
+                    data: {
+                        type: 'people',
+                        to: username,
+                        mes: encodeURIComponent(message),
+                    },
+                },
+            }),
+        );
+        setMessage('');
+        inputRef.current.focus();
+
+        const newMessage: ChatMessage = {
+            id: 0,
+            name: 'phat2',
+            type: 0,
+            to: username,
+            mes: message,
+            createAt: new Date().toISOString(),
+        };
+        setListMessage((prev) => [...prev, newMessage]);
+    }
+
+    const handleSendMessage = () => {
+        sendMessage();
+    };
+    const handleSendMessageKeyUp = (e: any) => {
+        if (e.keyCode === 13) {
+            sendMessage();
+        }
+    };
+
     return (
         <footer className="bg-white h-[65px] rounded-bl-lg ">
             <div className="flex items-center h-full ">
@@ -24,12 +73,14 @@ function Footer({ username }: { username: string }) {
                      focus-within:border-purple-400"
                 >
                     <input
+                        ref={inputRef}
                         value={message}
                         type="text"
                         placeholder="Soạn tin nhắn ..."
                         className="flex-[8] p-2 border-none outline-none 
                         bg-transparent "
                         onChange={handleMessage}
+                        onKeyUp={handleSendMessageKeyUp}
                     />
                     <button className="p-2">
                         <HeadlessTippy
@@ -46,7 +97,10 @@ function Footer({ username }: { username: string }) {
                         </HeadlessTippy>
                     </button>
                 </div>
-                <button className="m-2 text-white bg-gradient-to-br from-purple-200 via-pink-400 to-pink-400 p-2 rounded-xl">
+                <button
+                    onClick={handleSendMessage}
+                    className="m-2 text-white bg-gradient-to-br from-purple-200 via-pink-400 to-pink-400 p-2 rounded-xl hover:opacity-75"
+                >
                     <Send className="cursor-pointer" />
                 </button>
             </div>
