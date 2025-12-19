@@ -7,7 +7,7 @@ import { useBoardContext } from '../../../hooks/useBoardContext';
 import { ChatMessage } from '../../../model/ChatMessage';
 function Footer({ username }: { username: string }) {
     const [message, setMessage] = useState('');
-    const { listMessage, setListMessage } = useBoardContext();
+    const { listMessage, setListMessage, type } = useBoardContext();
     const inputRef = useRef<any>(null);
     const handleEmojiClick = (emojiData: EmojiClickData) => {
         setMessage((prev) => prev + emojiData.emoji);
@@ -29,7 +29,7 @@ function Footer({ username }: { username: string }) {
                 data: {
                     event: 'SEND_CHAT',
                     data: {
-                        type: 'people',
+                        type: type,
                         to: username,
                         mes: encodeURIComponent(message),
                     },

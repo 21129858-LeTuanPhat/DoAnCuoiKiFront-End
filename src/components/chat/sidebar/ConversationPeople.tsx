@@ -1,14 +1,12 @@
 import { Plus } from 'lucide-react';
 import ConversationItem from './ConversationItem';
-import { useEffect } from 'react';
-import WebSocketManager from '../../../socket/WebSocketManager';
-import { useState } from 'react';
 import { User } from '../../../model/User';
 import { useBoardContext } from '../../../hooks/useBoardContext';
 function ConversationPeople({ users }: { users: User[] }) {
-    const { selectedUser, setSelectedUser } = useBoardContext();
+    const { selectedUser, setSelectedUser, type, setType } = useBoardContext();
     const handleSelectedUser = (name: string) => {
         setSelectedUser((prev) => (prev === name ? '' : name));
+        setType('people');
     };
     return (
         <>
