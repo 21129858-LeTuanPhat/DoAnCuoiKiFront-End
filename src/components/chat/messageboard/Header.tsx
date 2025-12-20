@@ -1,5 +1,8 @@
 import { PanelLeft } from 'lucide-react';
-function Header({ username }: { username: string }) {
+function
+Header({ username }: { username: string }) {
+    console.log('selected user header'+username)
+
     return (
         <header className="bg-white h-[72px]  rounded-tl-lg block">
             <div className="flex items-center h-full">

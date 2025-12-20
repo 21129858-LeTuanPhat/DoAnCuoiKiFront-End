@@ -4,15 +4,22 @@ import ContentItem from './ContentItem';
 import { useBoardContext } from '../../../hooks/useBoardContext';
 import { ChatMessage } from '../../../model/ChatMessage';
 function MainContent({ username }: any) {
+
     const [page, setPage] = useState<number>(1);
     const divRef = useRef<HTMLDivElement>(null);
     const { listMessage, setListMessage, type } = useBoardContext();
     const oldScrollHeightRef = useRef(0);
+    console.log('selected user maincontent'+username)
+
     useEffect(() => {
+        console.log('useeff1')
         setListMessage([]);
         setPage(1);
     }, [username]);
+
     useEffect(() => {
+        console.log('useeff2')
+
         console.log('e2');
         const ws = WebSocketManager.getInstance();
         if (type === 'people') {

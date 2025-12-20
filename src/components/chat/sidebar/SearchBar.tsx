@@ -9,6 +9,7 @@ import {
     parseChatConnectState,
     changeStatusConnectChat
 } from '../../../hooks/useConnectChat';
+import { useBoardContext } from '../../../hooks/useBoardContext';
 
 function SearchBar() {
     const [open, setOpen] = useState(false);
@@ -29,13 +30,14 @@ function SearchUserModal({ onClose }: { onClose: () => void }) {
     const webSocket = WebSocketManager.getInstance();
     const [targetUser, setTargetUser] = useState<string | undefined>(undefined);
     const connectChatState = useChatConnect('taiabc', targetUser);
+    const { setSelectedUser,setType } = useBoardContext();
 
     const handleSearch = (e: any) => {
         setKeyword(e.target.value);
-        webSocket.onMessage((msg: WSMessage) => {
+        webSocket.onMessage('CHECK_USER',(msg: WSMessage) => {
             if (msg.status === 'success') {
-                alert('Tìm thấy người dùng!');
                 setTargetUser(keyword);
+                webSocket.unSubcribe('CHECK_USER')
             }
         });
         webSocket.sendMessage(
@@ -87,12 +89,17 @@ function SearchUserModal({ onClose }: { onClose: () => void }) {
                             <button
                                 disabled={connectChatState === 'pending'}
                                 onClick={() => {
-                                   if(connectChatState == 'incoming'){
-                                       changeStatusConnectChat('connected','taiabc', targetUser);
-                                   }else{
-                                       changeStatusConnectChat('cancel','taiabc', targetUser);
-                                   }
-                                }}
+                                    if (connectChatState == 'incoming') {
+                                        changeStatusConnectChat('connected', 'taiabc', targetUser);
+                                    } else if (connectChatState == 'none') {
+                                        sendChatInvitation('taiabc', targetUser);
+                                    } else if(connectChatState == 'connected')
+                                    {
+                                        setSelectedUser(targetUser)
+                                        setType('people')
+                                    }
+                                }
+                                }
                                 className="px-3 py-1 text-sm bg-blue-500 text-white rounded-lg hover:bg-blue-600"
                             >
                                 {parseChatConnectState(connectChatState)}

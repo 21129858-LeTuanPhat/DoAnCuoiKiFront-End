@@ -6,6 +6,7 @@ import SideBar from '../components/chat/sidebar/SideBar';
 import { useBoardContext } from '../hooks/useBoardContext';
 function Home() {
     const { selectedUser } = useBoardContext();
+    console.log('selected user home'+selectedUser)
     return (
         <div className="flex h-screen bg-gray-100">
             <aside className="hidden md:block w-[25%]">
