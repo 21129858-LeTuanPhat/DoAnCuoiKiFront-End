@@ -36,7 +36,7 @@ function SideBar() {
         <div className="flex flex-col items-start space-y-5 p-3 shadow-sm">
             <Moji />
             <SearchBar />
-            <ConversationPeople users={users.filter((user) => user.type === 0 && user.name !== 'phucabc')} />
+            <ConversationPeople users={users.filter((user) => user.type === 0 && user.name !== 'taiabc')} />
             <ConversationGroup users={users.filter((user) => user.type === 1)} />
         </div>
     );

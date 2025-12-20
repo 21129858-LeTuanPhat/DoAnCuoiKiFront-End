@@ -7,6 +7,7 @@ import {
     useChatConnect,
     sendChatInvitation,
     parseChatConnectState,
+    changeStatusConnectChat
 } from '../../../hooks/useConnectChat';
 
 function SearchBar() {
@@ -27,7 +28,7 @@ function SearchUserModal({ onClose }: { onClose: () => void }) {
     const [keyword, setKeyword] = useState('');
     const webSocket = WebSocketManager.getInstance();
     const [targetUser, setTargetUser] = useState<string | undefined>(undefined);
-    const connectChatState = useChatConnect('phucabc', targetUser);
+    const connectChatState = useChatConnect('taiabc', targetUser);
 
     const handleSearch = (e: any) => {
         setKeyword(e.target.value);
@@ -86,7 +87,11 @@ function SearchUserModal({ onClose }: { onClose: () => void }) {
                             <button
                                 disabled={connectChatState === 'pending'}
                                 onClick={() => {
-                                    sendChatInvitation('phucabc', targetUser);
+                                   if(connectChatState == 'incoming'){
+                                       changeStatusConnectChat('connected','taiabc', targetUser);
+                                   }else{
+                                       changeStatusConnectChat('cancel','taiabc', targetUser);
+                                   }
                                 }}
                                 className="px-3 py-1 text-sm bg-blue-500 text-white rounded-lg hover:bg-blue-600"
                             >

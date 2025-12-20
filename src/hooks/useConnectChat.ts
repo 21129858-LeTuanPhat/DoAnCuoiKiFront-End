@@ -3,6 +3,7 @@ import { db } from '../config/firebaseConfig';
 import { ref, set, onValue } from 'firebase/database';
 
 type ChatConnectState = 'none' | 'pending' | 'incoming' | 'connected' | 'cancel';
+
 function parseChatConnectState(state: ChatConnectState): string {
     switch (state) {
         case 'none':
@@ -14,9 +15,10 @@ function parseChatConnectState(state: ChatConnectState): string {
         case 'connected':
             return 'Nhắn tin';
         case 'cancel':
-            return 'Bị từ chối'
+            return 'Bị từ chối';
     }
 }
+
 function useChatConnect(me: string, target?: string): ChatConnectState {
     const [state, setState] = useState<ChatConnectState>('none');
 
@@ -61,6 +63,7 @@ function useChatConnect(me: string, target?: string): ChatConnectState {
 
     return state;
 }
+
 async function sendChatInvitation(me: string, target: string) {
     try {
 
@@ -84,7 +87,28 @@ async function sendChatInvitation(me: string, target: string) {
     }
 }
 
-export { parseChatConnectState, useChatConnect, sendChatInvitation };
+async function changeStatusConnectChat(status: ChatConnectState, me: string, target: string) {
+    const key = [me, target].sort().join('_');
+    const connect = ref(db, `connections/people/${key}`);
+
+    const invRef = ref(db, `invitations/people/${me}/${target}`);
+    const sentRef = ref(db, `sent_requests/people/${target}/${me}`);
+    if (status == 'connected') {
+        await set(connect, true);
+    }
+    await set(invRef,
+        {
+            status: status,
+            createdAt: Date.now()
+        });
+    await set(sentRef,
+        {
+            status: status,
+            createdAt: Date.now()
+        });
+}
+
+export { parseChatConnectState, useChatConnect, sendChatInvitation ,changeStatusConnectChat};
 
 // {
 

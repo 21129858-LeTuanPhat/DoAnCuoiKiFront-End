@@ -19,7 +19,7 @@ function App() {
                         data: {
                             event: 'LOGIN',
                             data: {
-                                user: 'phucabc',
+                                user: 'taiabc',
                                 pass: '123',
                             },
                         },
