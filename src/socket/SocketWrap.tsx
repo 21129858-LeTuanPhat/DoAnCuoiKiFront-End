@@ -7,7 +7,6 @@ interface SocketWrapProps {
 
 function SocketWrap({ children }: SocketWrapProps) {
     const [ready, setReady] = useState(false);
-
     useEffect(() => {
         const ws = WebSocketManager.getInstance();
         ws.connect2('wss://chat.longapp.site/chat/chat')

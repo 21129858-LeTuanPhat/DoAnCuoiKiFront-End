@@ -7,25 +7,28 @@ export async function loginWS(
 ): Promise<{
     status: 'success' | 'error';
     message: string;
+    username?: string;
+    reCode?: string
 }> {
     const ws = WebSocketManager.getInstance();
-    await ws.connect2('wss://chat.longapp.site/chat/chat');
+    await ws.connect2(SOCKET_BASE_URL);
+
 
     return new Promise((resolve) => {
         let resolved = false;
         const handler = (msg: any) => {
             if (msg.event !== 'LOGIN') return;
-
             if (resolved) return;
             resolved = true;
 
             if (msg.status === 'success') {
-                localStorage.setItem('_RECODE', msg.data.RE_LOGIN_CODE);
-                localStorage.setItem('_USER', JSON.stringify(user));
-
+                // localStorage.setItem('_RECODE', msg.data.RE_LOGIN_CODE);
+                // localStorage.setItem('_USER', JSON.stringify(user));
                 resolve({
                     status: 'success',
                     message: 'Đăng nhập thành công',
+                    username: user.username,
+                    reCode: msg.data.RE_LOGIN_CODE
                 });
             } else {
                 if (msg.mes === 'You are already logged in') {

@@ -1,9 +1,10 @@
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { UserLogin, UserRegistry } from '../../model/User'
 import { registryWS } from '../../socket/UserWS'
 import RegistryModal from '../modal/RegistryModal'
 import LoadingModal from '../modal/LoadingModal'
+import WebSocketManager from '../../socket/WebSocketManager'
 
 
 type FormRegistryInterface = {
@@ -25,31 +26,31 @@ export default function FormRegistry() {
     const handleForm = () => {
         setError({ username: '', password: '', rePassword: '' })
         const regex = /^(?=.*[a-z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/
-        let isValue = true
+        let isValid = true
         if (formRegistry.username.trim() === '') {
             setError(form => ({ ...form, username: 'Vui lòng nhập tên đăng nhập' }))
-            isValue = false
+            isValid = false
         }
         if (formRegistry.password.trim() === '') {
             setError(form => ({ ...form, password: 'Vui lòng mật khẩu' }))
-            isValue = false
+            isValid = false
         }
         if (formRegistry.rePassword.trim() === '') {
             setError(form => ({ ...form, rePassword: 'Vui lòng nhập lại mật khẩu' }))
-            isValue = false
+            isValid = false
         }
         if (formRegistry.rePassword !== formRegistry.password) {
 
             setError(form => ({ ...form, password: 'Mật khẩu không khớp' }))
             setError(form => ({ ...form, rePassword: 'Mật khẩu không khớp' }))
-            isValue = false
+            isValid = false
         }
         if (!regex.test(formRegistry.password)) {
             setError(form => ({ ...form, password: 'Mật khẩu phải ≥ 8 ký tự, gồm chữ thường, số và ký tự đặc biệt' }))
             setError(form => ({ ...form, rePassword: 'Mật khẩu phải ≥ 8 ký tự, gồm chữ thường, số và ký tự đặc biệt' }))
-            isValue = false
+            isValid = false
         }
-        return isValue
+        return isValid
     }
 
     const submitForm = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -57,13 +58,20 @@ export default function FormRegistry() {
         if (handleForm()) {
             const user: UserRegistry = { username: formRegistry.username, password: formRegistry.password }
             setLoading(true)
-            const response = await registryWS(user)
-            setLoading(false)
-            if (response.status === 'success') {
-                setOpenModal(true)
-            }
-            else {
-                setResponse(response.message)
+            try {
+                const response = await registryWS(user)
+
+                if (response.status === 'success') {
+                    setOpenModal(true)
+                }
+                else {
+                    setResponse(response.message)
+                }
+            } catch (error) {
+                setResponse('Đã xảy ra lỗi. Vui lòng thử lại!')
+            } finally {
+                // Đảm bảo loading luôn được tắt
+                setLoading(false)
             }
         }
     }

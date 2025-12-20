@@ -2,11 +2,15 @@ import { Button, Modal, Typography, Box } from '@mui/material';
 
 import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline';
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import WebSocketManager from '../../socket/WebSocketManager';
 export default function RegistryModal({ openModal }: { openModal: boolean }) {
     const navigate = useNavigate()
     const [open, setOpen] = useState(openModal);
+
+
+
     return (
         <>
             <Modal
