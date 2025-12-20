@@ -1,4 +1,3 @@
-import { ClockFading } from 'lucide-react';
 import { WSMessage } from '../model/WSMessage';
 import { useDispatch, useSelector } from 'react-redux';
 import store, { RootState } from '../redux/store';
@@ -27,6 +26,7 @@ class WebSocketManager {
     }
 
     public connect2(url: string): Promise<void> {
+
         return new Promise((resolve) => {
             if (this.socket?.readyState === WebSocket.OPEN) {
                 resolve();
@@ -59,6 +59,7 @@ class WebSocketManager {
                 })
             }
         });
+        
     }
     public reCode() {
         console.log('dis connet rồi')
@@ -84,7 +85,6 @@ class WebSocketManager {
         }))
     }
     public onMessage(event: string, cb: (msg: WSMessage) => void) {
-        if (this.listeners.get(event)) return;
         this.listeners.set(event, cb);
     }
 

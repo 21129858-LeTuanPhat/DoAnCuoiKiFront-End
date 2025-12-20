@@ -1,8 +1,13 @@
 import { UserPlus } from 'lucide-react';
 import ConversationItem from './ConversationItem';
 import { User } from '../../../model/User';
-
+import { useBoardContext } from '../../../hooks/useBoardContext';
 function ConversationGroup({ users }: { users: User[] }) {
+    const { selectedUser, setSelectedUser, type, setType } = useBoardContext();
+    const handleSelectedUser = (name: string) => {
+        setSelectedUser((prev) => (prev === name ? '' : name));
+        setType('room');
+    };
     return (
         <>
             <div className="flex flex-col w-full">
@@ -12,7 +17,11 @@ function ConversationGroup({ users }: { users: User[] }) {
                 </div>
                 <div className="flex flex-col gap-3 mt-5">
                     {users.map((user) => (
-                        <ConversationItem user={user} />
+                        <ConversationItem
+                            user={user}
+                            isActive={selectedUser === user.name}
+                            onClick={() => handleSelectedUser(user.name)}
+                        />
                     ))}
                 </div>
             </div>
