@@ -41,7 +41,7 @@ function Footer({ username }: { username: string }) {
 
         const newMessage: ChatMessage = {
             id: 0,
-            name: 'phat2',
+            name: 'taiabc',
             type: 0,
             to: username,
             mes: message,

@@ -18,8 +18,8 @@ function SocketWrap({ children }: SocketWrapProps) {
                         data: {
                             event: 'LOGIN',
                             data: {
-                                user: 'phat2',
-                                pass: '12345',
+                                user: 'taiabc',
+                                pass: '123',
                             },
                         },
                     }),

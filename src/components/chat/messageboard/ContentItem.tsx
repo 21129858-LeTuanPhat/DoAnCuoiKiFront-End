@@ -3,7 +3,7 @@ import { useBoardContext } from '../../../hooks/useBoardContext';
 function ContentItem({ message }: { message: ChatMessage }) {
     const { selectedUser, type } = useBoardContext();
     console.log('hello' + type);
-    let loginName = 'phat2';
+    let loginName = 'taiabc';
     return type === 'people' ? (
         selectedUser === message.name ? (
             <li>
