@@ -12,6 +12,7 @@ function App() {
         const ws = WebSocketManager.getInstance();
         ws.connect2('wss://chat.longapp.site/chat/chat')
             .then(() => {
+
                 ws.sendMessage(
                     JSON.stringify({
                         action: 'onchat',
