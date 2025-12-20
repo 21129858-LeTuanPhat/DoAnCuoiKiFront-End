@@ -5,10 +5,13 @@ import { useRef, useState } from 'react';
 import WebSocketManager from '../../../socket/WebSocketManager';
 import { useBoardContext } from '../../../hooks/useBoardContext';
 import { ChatMessage } from '../../../model/ChatMessage';
+import { useSelector } from 'react-redux';
+import { RootState } from '../../../redux/store';
 function Footer({ username }: { username: string }) {
     const [message, setMessage] = useState('');
     const { listMessage, setListMessage, type } = useBoardContext();
     const inputRef = useRef<any>(null);
+    const user = useSelector((state: RootState) => state.user);
     const handleEmojiClick = (emojiData: EmojiClickData) => {
         setMessage((prev) => prev + emojiData.emoji);
     };
@@ -41,7 +44,7 @@ function Footer({ username }: { username: string }) {
 
         const newMessage: ChatMessage = {
             id: 0,
-            name: 'taiabc',
+            name: user.username,
             type: 0,
             to: username,
             mes: message,

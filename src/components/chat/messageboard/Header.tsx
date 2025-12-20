@@ -1,8 +1,5 @@
 import { PanelLeft } from 'lucide-react';
-function
-Header({ username }: { username: string }) {
-    console.log('selected user header'+username)
-
+function Header({ username }: { username: string }) {
     return (
         <header className="bg-white h-[72px]  rounded-tl-lg block">
             <div className="flex items-center h-full">
@@ -21,6 +18,5 @@ Header({ username }: { username: string }) {
         </header>
     );
 }
-
 
 export default Header;

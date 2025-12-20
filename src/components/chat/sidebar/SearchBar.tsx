@@ -7,9 +7,11 @@ import {
     useChatConnect,
     sendChatInvitation,
     parseChatConnectState,
-    changeStatusConnectChat
+    changeStatusConnectChat,
 } from '../../../hooks/useConnectChat';
 import { useBoardContext } from '../../../hooks/useBoardContext';
+import { useSelector } from 'react-redux';
+import { RootState } from '../../../redux/store';
 
 function SearchBar() {
     const [open, setOpen] = useState(false);
@@ -29,15 +31,16 @@ function SearchUserModal({ onClose }: { onClose: () => void }) {
     const [keyword, setKeyword] = useState('');
     const webSocket = WebSocketManager.getInstance();
     const [targetUser, setTargetUser] = useState<string | undefined>(undefined);
-    const connectChatState = useChatConnect('taiabc', targetUser);
-    const { setSelectedUser,setType } = useBoardContext();
+    const user = useSelector((state: RootState) => state.user);
+    const connectChatState = useChatConnect(user.username, targetUser);
+    const { setSelectedUser, setType } = useBoardContext();
 
     const handleSearch = (e: any) => {
         setKeyword(e.target.value);
-        webSocket.onMessage('CHECK_USER',(msg: WSMessage) => {
+        webSocket.onMessage('CHECK_USER', (msg: WSMessage) => {
             if (msg.status === 'success') {
                 setTargetUser(keyword);
-                webSocket.unSubcribe('CHECK_USER')
+                webSocket.unSubcribe('CHECK_USER');
             }
         });
         webSocket.sendMessage(
@@ -52,7 +55,6 @@ function SearchUserModal({ onClose }: { onClose: () => void }) {
             }),
         );
     };
-
 
     return (
         <div className="fixed inset-0 z-50 bg-black/40 flex items-center justify-center">
@@ -81,34 +83,27 @@ function SearchUserModal({ onClose }: { onClose: () => void }) {
                     </button>
                 </div>
 
-
-                {
-                    targetUser && (
-                        <div className="flex justify-between items-center p-2 rounded-lg hover:bg-gray-100">
-                            <span>{targetUser}</span>
-                            <button
-                                disabled={connectChatState === 'pending'}
-                                onClick={() => {
-                                    if (connectChatState == 'incoming') {
-                                        changeStatusConnectChat('connected', 'taiabc', targetUser);
-                                    } else if (connectChatState == 'none') {
-                                        sendChatInvitation('taiabc', targetUser);
-                                    } else if(connectChatState == 'connected')
-                                    {
-                                        setSelectedUser(targetUser)
-                                        setType('people')
-                                    }
+                {targetUser && (
+                    <div className="flex justify-between items-center p-2 rounded-lg hover:bg-gray-100">
+                        <span>{targetUser}</span>
+                        <button
+                            disabled={connectChatState === 'pending'}
+                            onClick={() => {
+                                if (connectChatState == 'incoming') {
+                                    changeStatusConnectChat('connected', user.username, targetUser);
+                                } else if (connectChatState == 'none') {
+                                    sendChatInvitation(user.username, targetUser);
+                                } else if (connectChatState == 'connected') {
+                                    setSelectedUser(targetUser);
+                                    setType('people');
                                 }
-                                }
-                                className="px-3 py-1 text-sm bg-blue-500 text-white rounded-lg hover:bg-blue-600"
-                            >
-                                {parseChatConnectState(connectChatState)}
-                            </button>
-                        </div>
-                    )
-                }
-
-
+                            }}
+                            className="px-3 py-1 text-sm bg-blue-500 text-white rounded-lg hover:bg-blue-600"
+                        >
+                            {parseChatConnectState(connectChatState)}
+                        </button>
+                    </div>
+                )}
             </div>
         </div>
     );

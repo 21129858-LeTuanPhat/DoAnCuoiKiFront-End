@@ -1,9 +1,10 @@
 import { ChatMessage } from '../../../model/ChatMessage';
 import { useBoardContext } from '../../../hooks/useBoardContext';
+import { RootState } from '../../../redux/store';
+import { useSelector } from 'react-redux';
 function ContentItem({ message }: { message: ChatMessage }) {
     const { selectedUser, type } = useBoardContext();
-    console.log('hello' + type);
-    let loginName = 'taiabc';
+    const user = useSelector((state: RootState) => state.user);
     return type === 'people' ? (
         selectedUser === message.name ? (
             <li>
@@ -53,7 +54,7 @@ function ContentItem({ message }: { message: ChatMessage }) {
                 </div>
             </li>
         )
-    ) : loginName !== message.name ? (
+    ) : user.username !== message.name ? (
         <li>
             <div className="mt-4">
                 <div className="flex items-start gap-2">

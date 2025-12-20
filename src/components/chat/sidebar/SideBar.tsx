@@ -5,10 +5,12 @@ import { useEffect, useState } from 'react';
 import WebSocketManager from '../../../socket/WebSocketManager';
 import { User } from '../../../model/User';
 import SearchBar from './SearchBar';
+import { useSelector } from 'react-redux';
+import { RootState } from '../../../redux/store';
 
 function SideBar() {
     const [users, setUsers] = useState<User[]>([]);
-
+    const loginname = useSelector((state: RootState) => state.user);
     useEffect(() => {
         const ws = WebSocketManager.getInstance();
         const offGetUserList = ws.onMessage('GET_USER_LIST', (msg) => {
@@ -31,7 +33,7 @@ function SideBar() {
         <div className="flex flex-col items-start space-y-5 p-3 shadow-sm">
             <Moji />
             <SearchBar />
-            <ConversationPeople users={users.filter((user) => user.type === 0 && user.name !== 'taiabc')} />
+            <ConversationPeople users={users.filter((user) => user.type === 0 && user.name !== loginname.username)} />
             <ConversationGroup users={users.filter((user) => user.type === 1)} />
         </div>
     );

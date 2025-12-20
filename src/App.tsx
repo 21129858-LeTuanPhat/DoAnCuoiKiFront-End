@@ -1,21 +1,15 @@
-
-
-import { BrowserRouter, Outlet, Route, RouterProvider, Routes } from 'react-router-dom';
-import SignInPage from './pages/SignInPage';
-import Home from './pages/ChatAppPage';
-import SignUpPage from './pages/SignUpPage';
+import { Outlet, RouterProvider } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import { RootState } from './redux/store';
-import {routers} from './routes/router'
+import { routers } from './routes/router';
 
 function App() {
-    const user = useSelector((state: RootState) => state.user)
-    console.log(user)
+    const user = useSelector((state: RootState) => state.user);
 
     return (
         <div>
             <RouterProvider router={routers}>
-                <Outlet/>
+                <Outlet />
             </RouterProvider>
         </div>
     );
