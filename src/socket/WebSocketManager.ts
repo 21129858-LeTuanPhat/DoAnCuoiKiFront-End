@@ -15,6 +15,7 @@ class WebSocketManager {
     }
 
     public connect2(url: string): Promise<void> {
+
         return new Promise((resolve) => {
             if (this.socket?.readyState === WebSocket.OPEN) {
                 resolve();
@@ -38,6 +39,7 @@ class WebSocketManager {
                 this.socket = null;
             };
         });
+        
     }
 
     public onMessage(event: string, cb: (msg: WSMessage) => void) {
