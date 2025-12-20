@@ -18,18 +18,16 @@ export async function loginWS(
         let resolved = false;
         const handler = (msg: any) => {
             if (msg.event !== 'LOGIN') return;
-
             if (resolved) return;
             resolved = true;
 
             if (msg.status === 'success') {
-
                 // localStorage.setItem('_RECODE', msg.data.RE_LOGIN_CODE);
                 // localStorage.setItem('_USER', JSON.stringify(user));
                 resolve({
                     status: 'success',
                     message: 'Đăng nhập thành công',
-                    username: JSON.stringify(user.username),
+                    username: user.username,
                     reCode: msg.data.RE_LOGIN_CODE
                 });
             } else {

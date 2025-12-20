@@ -1,9 +1,10 @@
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { UserLogin, UserRegistry } from '../../model/User'
 import { registryWS } from '../../socket/UserWS'
 import RegistryModal from '../modal/RegistryModal'
 import LoadingModal from '../modal/LoadingModal'
+import WebSocketManager from '../../socket/WebSocketManager'
 
 
 type FormRegistryInterface = {
