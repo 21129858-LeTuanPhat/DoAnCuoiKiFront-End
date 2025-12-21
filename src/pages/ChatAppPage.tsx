@@ -22,8 +22,8 @@ function Home() {
     return user.username == null ? (
         <div></div>
     ) : (
-        <div className="flex h-screen bg-gray-100">
-            <aside className="hidden md:block w-[25%]">
+        <div className="flex h-screen ">
+            <aside className="hidden md:block w-[25%] relative">
                 <SideBar />
             </aside>
             <main className="w-[75%]  md:block flex flex-col bg-[#f0f4fa] shadow-[0_4px_6px_-1px_rgba(0,0,0,0.2)]">
