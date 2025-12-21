@@ -18,10 +18,6 @@ function SearchBar() {
 
     return (
         <>
-            <button onClick={() => setOpen(true)} className="p-2 rounded-full hover:bg-gray-200 transition">
-                <Search className="text-gray-600" />
-            </button>
-
             {open && <SearchUserModal onClose={() => setOpen(false)} />}
         </>
     );
@@ -66,7 +62,7 @@ function SearchUserModal({ onClose }: { onClose: () => void }) {
                     </button>
                 </div>
 
-                <div className="flex gap-2 mb-2">
+                <div className="flex gap-2 mb-2 items-center">
                     <input
                         type="text"
                         placeholder="Nhập tên hoặc email..."
@@ -78,8 +74,8 @@ function SearchUserModal({ onClose }: { onClose: () => void }) {
                         focus:outline-none focus:ring-2 focus:ring-blue-500
                     "
                     />
-                    <button className="bg-blue-600  rounded-lg text-white px-4 py-2 mb-3 " onClick={handleSearch}>
-                        Search
+                    <button className="bg-blue-500  rounded-lg text-white px-3 py-1 mb-3 " onClick={handleSearch}>
+                        Tìm kiếm
                     </button>
                 </div>
 
@@ -96,6 +92,7 @@ function SearchUserModal({ onClose }: { onClose: () => void }) {
                                 } else if (connectChatState == 'connected') {
                                     setSelectedUser(targetUser);
                                     setType('people');
+                                    onClose()
                                 }
                             }}
                             className="px-3 py-1 text-sm bg-blue-500 text-white rounded-lg hover:bg-blue-600"
