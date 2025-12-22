@@ -59,7 +59,7 @@ class WebSocketManager {
                 })
             }
         });
-        
+
     }
     public reCode() {
         console.log('dis connet rồi')
@@ -69,9 +69,7 @@ class WebSocketManager {
             if (mes.status === 'success') {
                 store.dispatch(setReCode({ reCode: mes.data.RE_LOGIN_CODE }))
             }
-            else {
-                this.reCode()
-            }
+
         })
         this.sendMessage(JSON.stringify({
             action: "onchat",

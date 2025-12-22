@@ -105,5 +105,4 @@ function SearchUserModal({ onClose }: { onClose: () => void }) {
         </div>
     );
 }
-
 export default SearchBar;
