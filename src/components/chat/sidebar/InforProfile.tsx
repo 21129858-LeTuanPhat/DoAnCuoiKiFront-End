@@ -1,5 +1,7 @@
 import { CircleX, Camera, Heart } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
+import { useContext } from 'react';
+import { ProfileContext } from '../Context/ProfileCotext';
 
 import { handleUploadImage } from '../../../services/supabaseService';
 import { getUserProfile, handleChangeProfile } from '../../../services/firebaseService';
@@ -20,32 +22,10 @@ function LoadingProfileSkeleton() {
 }
 
 export function InforProfile({ onClose, username }: { onClose: () => void; username: string }) {
+    const { profileInfor } = useContext(ProfileContext)!;
     const inputRef = useRef<HTMLInputElement>(null);
-
     const [imageFile, setImageFile] = useState<File | null>(null);
     const [previewUrl, setPreviewUrl] = useState<string | null>(null);
-    const [loading, setLoading] = useState(true);
-    const [profileInfor, setProfileInfor] = useState<ProfileForm>({
-        username: username,
-        fullName: '',
-        address: '',
-        introduce: '',
-    });
-
-    useEffect(() => {
-        const fetchProfile = async () => {
-            try {
-                const profileData = await getUserProfile(username);
-                if (profileData) {
-                    setProfileInfor(profileData);
-                }
-            } finally {
-                setLoading(false);
-            }
-        };
-
-        fetchProfile();
-    }, [username]);
 
     const handleChangeAvatar = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
@@ -55,12 +35,9 @@ export function InforProfile({ onClose, username }: { onClose: () => void; usern
         setPreviewUrl(URL.createObjectURL(file));
     };
 
-    if (loading) return <div></div>;
-
     return (
         <div className="fixed inset-0 p-2 bg-black/40 animate-in slide-in-from-right-80 duration-300 ease-out flex flex-col items-center justify-between">
             <div className="flex flex-col bg-white w-full max-w-xl h-full rounded-xl shadow-lg p-4">
-                {/* Header */}
                 <div className="flex justify-between items-center">
                     <h2 className="text-xl font-semibold">Thông tin cá nhân</h2>
                     <CircleX className="cursor-pointer" onClick={onClose} />
@@ -127,6 +104,7 @@ function InforProfileDetail({
 }) {
     const [loading, setLoading] = useState(false);
     const [formProfile, setFormProfile] = useState<ProfileForm | null>(null);
+    const { setProfileInfor } = useContext(ProfileContext)!;
 
     const originalProfileRef = useRef<ProfileForm | null>(null);
 
@@ -166,6 +144,11 @@ function InforProfileDetail({
                     ...formProfile!,
                     imageUrl,
                 },
+            });
+
+            setProfileInfor({
+                ...formProfile!,
+                imageUrl,
             });
         } catch (error) {
             console.error('Error updating profile:', error);

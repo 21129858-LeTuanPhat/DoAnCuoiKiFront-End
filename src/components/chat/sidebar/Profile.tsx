@@ -3,19 +3,19 @@ import { useState } from 'react';
 import { useSelector } from 'react-redux';
 import { RootState } from '../../../redux/store';
 import { InforProfile } from './InforProfile';
+import { useContext } from 'react';
+import { ProfileContext } from '../Context/ProfileCotext';
 export function Profile() {
-    const user = useSelector((state: RootState) => state.user);
+    const { profileInfor } = useContext(ProfileContext)!;
+    const img_url =
+        profileInfor?.imageUrl ?? 'https://tse3.mm.bing.net/th/id/OIP.cGz8NopJvAgdkioxkugKoQHaHa?pid=Api&P=0&h=220';
     const [open, setOpen] = useState(false);
     return (
         <>
             <div className="flex justify-between items-center bg-gray-200 shadow-sm w-full p-2  my-1 rounded-xl select-none ">
                 <div className="flex gap-3 items-center ">
-                    <img
-                        src="https://tse3.mm.bing.net/th/id/OIP.cGz8NopJvAgdkioxkugKoQHaHa?pid=Api&P=0&h=220"
-                        alt=""
-                        className="w-10 h-10 rounded-full object-cover"
-                    />
-                    <p className="text-[#3e4040] font-medium text-md hover:">{user.username}</p>
+                    <img src={img_url} className="w-10 h-10 rounded-full object-cover" />
+                    <p className="text-[#3e4040] font-medium text-md hover:">{profileInfor?.username}</p>
                 </div>
 
                 {open ? (
@@ -36,13 +36,16 @@ export function Profile() {
                     />
                 )}
 
-                {open && <ProfilePopup username={user.username ?? ''} onClose={() => setOpen(false)} />}
+                {open && <ProfilePopup username={profileInfor?.username ?? ''} onClose={() => setOpen(false)} />}
             </div>
         </>
     );
 }
 
 function ProfilePopup({ username, onClose }: { username: string; onClose: () => void }) {
+    const { profileInfor } = useContext(ProfileContext)!;
+    const img_url =
+        profileInfor?.imageUrl ?? 'https://tse3.mm.bing.net/th/id/OIP.cGz8NopJvAgdkioxkugKoQHaHa?pid=Api&P=0&h=220';
     const [openProfile, setOpenProfile] = useState(false);
     return (
         <div
@@ -51,11 +54,7 @@ function ProfilePopup({ username, onClose }: { username: string; onClose: () => 
         >
             <div className="flex flex-col p-2 w-full">
                 <div className="flex gap-3 items-center ">
-                    <img
-                        src="https://tse3.mm.bing.net/th/id/OIP.cGz8NopJvAgdkioxkugKoQHaHa?pid=Api&P=0&h=220"
-                        alt=""
-                        className="w-9 h-9 rounded-full object-cover"
-                    />
+                    <img src={img_url} alt={username} className="w-9 h-9 rounded-full object-cover" />
                     <p className="text-[#3e4040] font-medium text-sm hover:">{username}</p>
                 </div>
                 <SeparatorHorizontal />
