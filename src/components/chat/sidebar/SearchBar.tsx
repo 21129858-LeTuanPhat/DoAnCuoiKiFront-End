@@ -32,7 +32,7 @@ function SearchUserModal({ onClose }: { onClose: () => void }) {
 
     const handleSearch = (e: any) => {
         setKeyword(e.target.value);
-        webSocket.onMessage((msg: WSMessage) => {
+        webSocket.onMessage('CHECK_USER', (msg: WSMessage) => {
             if (msg.status === 'success') {
                 alert('Tìm thấy người dùng!');
                 setTargetUser(keyword);
@@ -78,8 +78,6 @@ function SearchUserModal({ onClose }: { onClose: () => void }) {
                         Search
                     </button>
                 </div>
-
-
                 {
                     targetUser && (
                         <div className="flex justify-between items-center p-2 rounded-lg hover:bg-gray-100">
@@ -87,11 +85,11 @@ function SearchUserModal({ onClose }: { onClose: () => void }) {
                             <button
                                 disabled={connectChatState === 'pending'}
                                 onClick={() => {
-                                   if(connectChatState == 'incoming'){
-                                       changeStatusConnectChat('connected','taiabc', targetUser);
-                                   }else{
-                                       changeStatusConnectChat('cancel','taiabc', targetUser);
-                                   }
+                                    if (connectChatState == 'incoming') {
+                                        changeStatusConnectChat('connected', 'taiabc', targetUser);
+                                    } else {
+                                        changeStatusConnectChat('cancel', 'taiabc', targetUser);
+                                    }
                                 }}
                                 className="px-3 py-1 text-sm bg-blue-500 text-white rounded-lg hover:bg-blue-600"
                             >
@@ -100,11 +98,8 @@ function SearchUserModal({ onClose }: { onClose: () => void }) {
                         </div>
                     )
                 }
-
-
             </div>
         </div>
     );
 }
-
 export default SearchBar;
