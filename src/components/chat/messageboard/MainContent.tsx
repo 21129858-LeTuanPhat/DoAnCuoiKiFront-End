@@ -9,10 +9,14 @@ function MainContent({ username }: any) {
     const { listMessage, setListMessage, type } = useBoardContext();
     const oldScrollHeightRef = useRef(0);
     useEffect(() => {
+        console.log('useeff1');
         setListMessage([]);
         setPage(1);
     }, [username]);
+
     useEffect(() => {
+        console.log('useeff2');
+
         console.log('e2');
         const ws = WebSocketManager.getInstance();
         if (type === 'people') {

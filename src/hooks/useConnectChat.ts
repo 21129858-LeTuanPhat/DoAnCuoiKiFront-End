@@ -19,7 +19,7 @@ function parseChatConnectState(state: ChatConnectState): string {
     }
 }
 
-function useChatConnect(me: string, target?: string): ChatConnectState {
+function useChatConnect(me: string | null, target?: string): ChatConnectState {
     const [state, setState] = useState<ChatConnectState>('none');
 
     useEffect(() => {
@@ -64,9 +64,8 @@ function useChatConnect(me: string, target?: string): ChatConnectState {
     return state;
 }
 
-async function sendChatInvitation(me: string, target: string) {
+async function sendChatInvitation(me: string | null, target: string) {
     try {
-
         const sentRef = ref(db, `sent_requests/people/${me}/${target}`);
         const invRef = ref(db, `invitations/people/${target}/${me}`);
 
@@ -87,7 +86,7 @@ async function sendChatInvitation(me: string, target: string) {
     }
 }
 
-async function changeStatusConnectChat(status: ChatConnectState, me: string, target: string) {
+async function changeStatusConnectChat(status: ChatConnectState, me: string | null, target: string) {
     const key = [me, target].sort().join('_');
     const connect = ref(db, `connections/people/${key}`);
 
@@ -96,19 +95,17 @@ async function changeStatusConnectChat(status: ChatConnectState, me: string, tar
     if (status == 'connected') {
         await set(connect, true);
     }
-    await set(invRef,
-        {
-            status: status,
-            createdAt: Date.now()
-        });
-    await set(sentRef,
-        {
-            status: status,
-            createdAt: Date.now()
-        });
+    await set(invRef, {
+        status: status,
+        createdAt: Date.now(),
+    });
+    await set(sentRef, {
+        status: status,
+        createdAt: Date.now(),
+    });
 }
 
-export { parseChatConnectState, useChatConnect, sendChatInvitation ,changeStatusConnectChat};
+export { parseChatConnectState, useChatConnect, sendChatInvitation, changeStatusConnectChat };
 
 // {
 
