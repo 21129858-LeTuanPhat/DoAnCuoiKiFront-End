@@ -2,6 +2,7 @@ import { CircleChevronDown, CircleChevronUp, UserCircle, BellRing, LogOut } from
 import { useState } from 'react';
 import { useSelector } from 'react-redux';
 import { RootState } from '../../../redux/store';
+import { InforProfile } from './InforProfile';
 export function Profile() {
     const user = useSelector((state: RootState) => state.user);
     const [open, setOpen] = useState(false);
@@ -14,7 +15,7 @@ export function Profile() {
                         alt=""
                         className="w-10 h-10 rounded-full object-cover"
                     />
-                    <p className="text-[#3e4040] font-medium text-lg hover:">{user.username}</p>
+                    <p className="text-[#3e4040] font-medium text-md hover:">{user.username}</p>
                 </div>
 
                 {open ? (
@@ -35,13 +36,14 @@ export function Profile() {
                     />
                 )}
 
-                {open && ProfilePopup(user.username ?? '', () => setOpen(false))}
+                {open && <ProfilePopup username={user.username ?? ''} onClose={() => setOpen(false)} />}
             </div>
         </>
     );
 }
 
-function ProfilePopup(username: string, onClose: () => void) {
+function ProfilePopup({ username, onClose }: { username: string; onClose: () => void }) {
+    const [openProfile, setOpenProfile] = useState(false);
     return (
         <div
             className="absolute -right-96 bottom-4 w-96 p-2 bg-gray-100 shadow-lg rounded-3xl border-2 border-gray-200
@@ -58,9 +60,14 @@ function ProfilePopup(username: string, onClose: () => void) {
                 </div>
                 <SeparatorHorizontal />
 
-                <div className="flex gap-x-4 mb-4">
+                <div className="flex gap-x-4 mb-4 cursor-pointer">
                     <UserCircle color="#3e4040" />
-                    <p className="text-[#3e4040] font-medium text-sm hover:text-[#474e4e]">Xem trang cá nhân</p>
+                    <p
+                        className="text-[rgb(62,64,64)] font-medium text-sm hover:text-[#474e4e] "
+                        onClick={() => setOpenProfile(!openProfile)}
+                    >
+                        Xem trang cá nhân
+                    </p>
                 </div>
 
                 <div className="flex gap-x-4">
@@ -75,6 +82,8 @@ function ProfilePopup(username: string, onClose: () => void) {
                     <p className="text-[#f53d1d] font-medium text-sm hover:text-[#f90000]">Đăng xuất</p>
                 </div>
             </div>
+
+            {openProfile && <InforProfile onClose={() => setOpenProfile(false)} username={username} />}
         </div>
     );
 }

@@ -16,11 +16,7 @@ import { RootState } from '../../../redux/store';
 function SearchBar() {
     const [open, setOpen] = useState(false);
 
-    return (
-        <>
-            {open && <SearchUserModal onClose={() => setOpen(false)} />}
-        </>
-    );
+    return <>{open && <SearchUserModal onClose={() => setOpen(false)} />}</>;
 }
 
 function SearchUserModal({ onClose }: { onClose: () => void }) {
@@ -39,6 +35,7 @@ function SearchUserModal({ onClose }: { onClose: () => void }) {
                 webSocket.unSubcribe('CHECK_USER');
             }
         });
+
         webSocket.sendMessage(
             JSON.stringify({
                 action: 'onchat',
@@ -92,7 +89,7 @@ function SearchUserModal({ onClose }: { onClose: () => void }) {
                                 } else if (connectChatState == 'connected') {
                                     setSelectedUser(targetUser);
                                     setType('people');
-                                    onClose()
+                                    onClose();
                                 }
                             }}
                             className="px-3 py-1 text-sm bg-blue-500 text-white rounded-lg hover:bg-blue-600"
