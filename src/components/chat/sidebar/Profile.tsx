@@ -1,10 +1,10 @@
 import { CircleChevronDown, CircleChevronUp, UserCircle, BellRing, LogOut } from 'lucide-react';
 import { useState } from 'react';
-import { useSelector } from 'react-redux';
-import { RootState } from '../../../redux/store';
+
 import { InforProfile } from './InforProfile';
 import { useContext } from 'react';
 import { ProfileContext } from '../Context/ProfileCotext';
+import { Notification } from './Notification';
 export function Profile() {
     const { profileInfor } = useContext(ProfileContext)!;
     const img_url =
@@ -47,6 +47,7 @@ function ProfilePopup({ username, onClose }: { username: string; onClose: () => 
     const img_url =
         profileInfor?.imageUrl ?? 'https://tse3.mm.bing.net/th/id/OIP.cGz8NopJvAgdkioxkugKoQHaHa?pid=Api&P=0&h=220';
     const [openProfile, setOpenProfile] = useState(false);
+    const [openNotification, setOpenNotification] = useState(false);
     return (
         <div
             className="absolute -right-96 bottom-4 w-96 p-2 bg-gray-100 shadow-lg rounded-3xl border-2 border-gray-200
@@ -71,7 +72,12 @@ function ProfilePopup({ username, onClose }: { username: string; onClose: () => 
 
                 <div className="flex gap-x-4">
                     <BellRing color="#3e4040" />
-                    <p className="text-[#3e4040] font-medium text-sm hover:text-[#474e4e]">Thông báo</p>
+                    <p
+                        className="text-[#3e4040] font-medium text-sm hover:text-[#474e4e] cursor-pointer"
+                        onClick={() => setOpenNotification(!openNotification)}
+                    >
+                        Thông báo
+                    </p>
                 </div>
 
                 <SeparatorHorizontal />
@@ -83,6 +89,7 @@ function ProfilePopup({ username, onClose }: { username: string; onClose: () => 
             </div>
 
             {openProfile && <InforProfile onClose={() => setOpenProfile(false)} username={username} />}
+            {openNotification && <Notification onClose={() => setOpenNotification(false)} />}
         </div>
     );
 }
