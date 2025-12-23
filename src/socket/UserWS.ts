@@ -1,18 +1,13 @@
-import { stringify } from "querystring";
-import { UserLogin, UserRegistry } from "../model/User";
-import WebSocketManager from "../socket/WebSocketManager";
-import { SOCKET_BASE_URL } from "../config/utils";
+import { stringify } from 'querystring';
+import { UserLogin, UserRegistry } from '../model/User';
+import WebSocketManager from '../socket/WebSocketManager';
+import { SOCKET_BASE_URL } from '../config/utils';
+import { User } from '../model/User';
 export async function loginWS(
-    user: UserLogin
-): Promise<{
-    status: 'success' | 'error';
-    message: string;
-    username?: string;
-    reCode?: string
-}> {
+    user: UserLogin,
+): Promise<{ status: 'success' | 'error'; message: string; username?: string; reCode?: string }> {
     const ws = WebSocketManager.getInstance();
     await ws.connect2(SOCKET_BASE_URL);
-
 
     return new Promise((resolve) => {
         let resolved = false;
@@ -28,7 +23,7 @@ export async function loginWS(
                     status: 'success',
                     message: 'Đăng nhập thành công',
                     username: user.username,
-                    reCode: msg.data.RE_LOGIN_CODE
+                    reCode: msg.data.RE_LOGIN_CODE,
                 });
             } else {
                 if (msg.mes === 'You are already logged in') {
@@ -44,7 +39,6 @@ export async function loginWS(
                 }
             }
             ws.unSubcribe('LOGIN');
-
         };
         ws.onMessage('LOGIN', handler);
         ws.sendMessage(
@@ -57,16 +51,12 @@ export async function loginWS(
                         pass: user.password,
                     },
                 },
-            })
+            }),
         );
-
-
     });
 }
 
-export async function registryWS(
-    user: UserRegistry
-): Promise<{
+export async function registryWS(user: UserRegistry): Promise<{
     status: 'success' | 'error';
     message: string;
 }> {
@@ -75,7 +65,7 @@ export async function registryWS(
     return new Promise((resolve) => {
         let resolved = false;
         const handler = (msg: any) => {
-            console.log('msg', msg)
+            console.log('msg', msg);
             if (msg.event !== 'REGISTER') return;
             if (resolved) return;
             resolved = true;
@@ -95,18 +85,15 @@ export async function registryWS(
         ws.onMessage('REGISTER', handler);
         ws.sendMessage(
             JSON.stringify({
-                "action": "onchat",
-                "data": {
-                    "event": "REGISTER",
-                    "data": {
-                        "user": user.username,
-                        "pass": user.password
-                    }
-                }
-            })
+                action: 'onchat',
+                data: {
+                    event: 'REGISTER',
+                    data: {
+                        user: user.username,
+                        pass: user.password,
+                    },
+                },
+            }),
         );
-
-
     });
 }
-
