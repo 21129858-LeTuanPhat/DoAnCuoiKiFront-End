@@ -3,20 +3,26 @@ import Home from '../pages/ChatAppPage';
 import { Login } from '@mui/icons-material';
 import SignUpPage from '../pages/SignUpPage';
 import SignInPage from '../pages/SignInPage';
+import Call from '../pages/Call';
 
 export const routers = createBrowserRouter(
     [
         {
             path: '/',
-            element: <Home/>,
+            element: <Home />,
         },
         {
             path: '/login',
-            element: <SignInPage/>,
+            element: <SignInPage />,
         },
         {
             path: '/register',
-            element: <SignUpPage/>,
-        }
+            element: <SignUpPage />,
+        },
+        {
+            path: '/call',
+            element: <Call />,
+        },
+
     ],
 );

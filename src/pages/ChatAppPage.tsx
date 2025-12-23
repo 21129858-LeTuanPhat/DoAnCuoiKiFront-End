@@ -13,15 +13,17 @@ function Home() {
     const user = useSelector((state: RootState) => state.user);
     const navigate = useNavigate();
     console.log('selected user home' + selectedUser);
-    useEffect(() => {
-        if (!user.username) {
-            navigate('/login', { replace: true });
-        }
-    }, [user.username, navigate]);
+    // useEffect(() => {
+    //     if (!user.username) {
+    //         navigate('/login', { replace: true });
+    //     }
+    // }, [user.username, navigate]);
 
-    return user.username == null ? (
-        <div></div>
-    ) : (
+    //  user.username == null ? (
+    //     <div></div>
+    // ) :
+    return (
+
         <div className="flex h-screen ">
             <aside className="hidden md:block w-[25%] relative">
                 <SideBar />

@@ -10,37 +10,38 @@ interface SocketWrapProps {
 function SocketWrap({ children }: SocketWrapProps) {
     const [ready, setReady] = useState(false);
 
-    // useEffect(() => {
-    //     const ws = WebSocketManager.getInstance();
-    //     ws.connect2('wss://chat.longapp.site/chat/chat')
-    //         .then(() => {
-    //             ws.sendMessage(
-    //                 JSON.stringify({
-    //                     action: 'onchat',
-    //                     data: {
-    //                         event: 'LOGIN',
-    //                         data: {
-    //                             user: 'taiabc',
-    //                             pass: '123',
-    //                         },
-    //                     },
-    //                 }),
-    //             );
-    //             ws.onMessage('LOGIN', (mes) => {
-    //                 if (mes.status === 'success' && mes.event === 'LOGIN') {
-    //                     setReady(true);
-    //                     ws.unSubcribe('LOGIN');
-    //                 }
-    //             });
-    //         })
-    //         .catch(() => {
-    //             console.error('WS connect failed');
-    //         });
-    // }, []);
+    useEffect(() => {
+        const ws = WebSocketManager.getInstance();
+        ws.connect2('wss://chat.longapp.site/chat/chat')
+            .then(() => {
+                ws.sendMessage(
+                    JSON.stringify({
+                        action: 'onchat',
+                        data: {
+                            event: 'LOGIN',
+                            data: {
+                                user: 'taiabc',
+                                pass: '123',
+                            },
+                        },
+                    }),
+                );
+                ws.onMessage('LOGIN', (mes) => {
+                    if (mes.status === 'success' && mes.event === 'LOGIN') {
+                        localStorage.setItem('username', 'taiabc')
+                        setReady(true);
+                        ws.unSubcribe('LOGIN');
+                    }
+                });
+            })
+            .catch(() => {
+                console.error('WS connect failed');
+            });
+    }, []);
 
-    // if (!ready) {
-    //     return <div className="h-screen flex items-center justify-center">Đang kết nối server...</div>;
-    // }
+    if (!ready) {
+        return <div className="h-screen flex items-center justify-center">Đang kết nối server...</div>;
+    }
 
     return <>{children}</>;
 }

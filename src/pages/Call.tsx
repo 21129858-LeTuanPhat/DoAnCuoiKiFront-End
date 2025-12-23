@@ -1,13 +1,13 @@
 import React from 'react'
 import { ZegoUIKitPrebuilt } from '@zegocloud/zego-uikit-prebuilt';
+import { randomRoomID } from '../model/CallProps';
 export default function Call() {
-    const roomID = 'jasvcjhajcbahjcbahjcbajcbacacascbasc'
-    const serverSecret = "da768b23960152fd9c95a29a5d3624e3";
+    const roomID = randomRoomID()
     let myMeeting = async (element: any) => {
-        // generate Kit Token
-        const appID = 1657641729;
+        const appID = Number(process.env.REACT_APP_ZEGO_APPID);
+        const serverSecret = process.env.REACT_APP_ZEGO_SERVER;
 
-        const kitToken = ZegoUIKitPrebuilt.generateKitTokenForTest(appID, serverSecret, roomID, 'abc', 'bbc');
+        const kitToken = ZegoUIKitPrebuilt.generateKitTokenForTest(Number(process.env.REACT_APP_ZEGO_APPID), process.env.REACT_APP_ZEGO_SERVER as string, roomID, 'abc', 'bcbc');
         // Create instance object from Kit Token.
         const zp = ZegoUIKitPrebuilt.create(kitToken);
         // start the call
@@ -43,7 +43,7 @@ export default function Call() {
             scenario: {
                 mode: ZegoUIKitPrebuilt.GroupCall,
             },
-            showPreJoinView: false, //tắt popup
+            showPreJoinView: false,
             maxUsers: 2,
             turnOnCameraWhenJoining: false,
             turnOnMicrophoneWhenJoining: true,
@@ -63,7 +63,6 @@ export default function Call() {
                 });
             },
         });
-
     }
 
     const handleClick = () => {

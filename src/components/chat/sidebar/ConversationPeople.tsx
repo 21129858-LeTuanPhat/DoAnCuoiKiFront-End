@@ -26,7 +26,7 @@ function ConversationPeople({ users }: { users: User[] }) {
             <div className="flex flex-col w-full" >
                 <div className="flex justify-between items-center w-full" >
                     <p className="text-gray-500 select-none cursor-pointer">Bạn bè</p>
-                    <Plus className="cursor-default hover:cursor-pointer text-gray-500" onClick={() => setOpen(!open)}/>
+                    <Plus className="cursor-default hover:cursor-pointer text-gray-500" onClick={() => setOpen(!open)} />
                 </div>
                 <div className="flex flex-col gap-3 mt-5">
                     {users.map((user) => (
