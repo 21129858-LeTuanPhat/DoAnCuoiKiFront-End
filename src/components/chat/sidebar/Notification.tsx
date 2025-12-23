@@ -1,8 +1,26 @@
 import { CircleX } from 'lucide-react';
-import { useState } from 'react';
+import { useContext, useEffect, useState } from 'react';
+import { getInvitation } from './../../../services/firebaseService';
+import { ProfileContext } from '../Context/ProfileCotext';
+import RequestConnect from '../../../model/RequestConnect';
 
 function Notification({ onClose }: { onClose: () => void }) {
     const [tab, setTab] = useState<'sent' | 'received'>('sent');
+    const { profileInfor } = useContext(ProfileContext)!;
+    const [listConnect, setListConnect] = useState<RequestConnect[]>([]);
+
+    useEffect(() => {
+        const fetchNotifications = async () => {
+            const listConnect = await getInvitation(
+                profileInfor?.username!,
+                'people',
+                tab === 'sent' ? 'sent_requests' : 'invitations',
+            );
+            console.log('listConnect', listConnect);
+            setListConnect(listConnect);
+        };
+        fetchNotifications();
+    }, [tab]);
 
     return (
         <div className="flex justify-center  items-center fixed inset-0 bg-black/40 z-50">
@@ -29,19 +47,36 @@ function Notification({ onClose }: { onClose: () => void }) {
                 </div>
 
                 <div className="w-full flex flex-col gap-2 mt-2">
-                    <div className="w-full flex justify-between items-center p-2 rounded-lg hover:bg-gray-100">
-                        <span>phucabc</span>
-                        <button className="px-3 py-1 text-sm bg-blue-500 text-white rounded-lg hover:bg-blue-600">
-                            Hủy
-                        </button>
-                    </div>
-
-                    <div className="w-full flex justify-between items-center p-2 rounded-lg hover:bg-gray-100">
-                        <span>taiabc</span>
-                        <button className="px-3 py-1 text-sm bg-blue-500 text-white rounded-lg hover:bg-blue-600">
-                            Hủy
-                        </button>
-                    </div>
+                    {listConnect.length === 0 ? (
+                        <p className="text-center text-gray-500">Không có thông báo nào</p>
+                    ) : (
+                        listConnect.map((connect) => {
+                            return (
+                                <div className="w-full flex justify-between items-center p-2 rounded-lg hover:bg-gray-100">
+                                    <div className="flex gap-3 items-center ">
+                                        <img
+                                            src={
+                                                connect.imageUrl ||
+                                                'https://tse3.mm.bing.net/th/id/OIP.cGz8NopJvAgdkioxkugKoQHaHa?pid=Api&P=0&h=220'
+                                            }
+                                            alt={connect.username}
+                                            className="w-9 h-9 rounded-full object-cover"
+                                        />
+                                        <p className="text-[#85d712] font-medium text-sm ">{connect.username}</p>
+                                    </div>
+                                    <button className="px-3 py-1 text-sm bg-blue-500 text-white rounded-lg hover:bg-blue-600">
+                                        {connect.status === 'pending'
+                                            ? 'Chấp nhận'
+                                            : connect.status === 'connected'
+                                            ? 'Đã chấp nhận'
+                                            : connect.status === 'rejected'
+                                            ? 'Đã từ chối'
+                                            : 'Đã hủy'}
+                                    </button>
+                                </div>
+                            );
+                        })
+                    )}
                 </div>
             </div>
         </div>

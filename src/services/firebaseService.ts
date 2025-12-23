@@ -1,6 +1,7 @@
 import { db } from './../config/firebaseConfig';
 import { ref, set, get } from 'firebase/database';
 import ProfileForm from '../model/ProfileForm';
+import RequestConnect from '../model/RequestConnect';
 
 async function handleChangeProfile({ profileData }: { profileData: ProfileForm }) {
     const key = `profiles/${profileData.username}`;
@@ -23,7 +24,6 @@ async function getUserProfile(username: string): Promise<ProfileForm | null> {
     const snapshot = await get(profileRef);
     console.log('snapshot value', snapshot.val());
 
-
     if (!snapshot.exists()) {
         return null;
     }
@@ -31,4 +31,29 @@ async function getUserProfile(username: string): Promise<ProfileForm | null> {
     return snapshot.val() as ProfileForm;
 }
 
-export { handleChangeProfile, getUserProfile };
+async function getInvitation(
+    username: string,
+    type: 'people' | 'room',
+    category: 'invitations' | 'sent_requests' = 'invitations',
+): Promise<RequestConnect[]> {
+    const key = `${category}/${type}/${username}`;
+    const invitationRef = ref(db, key);
+    const snapshot = await get(invitationRef);
+    console.log('snapshot value', snapshot.val());
+    if (!snapshot.exists()) {
+        return [];
+    }
+    const data = snapshot.val();
+    const listConnect = Object.entries(data).map(([key, value]: [string, any]) => {
+        return {
+            username: key,
+            imageUrl: value.imageUrl,
+            createAt: value.createdAt,
+            status: value.status,
+        };
+    });
+
+    return listConnect as RequestConnect[];
+}
+
+export { handleChangeProfile, getUserProfile, getInvitation };
