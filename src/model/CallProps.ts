@@ -13,7 +13,6 @@ export function randomRoomID(length = 8): string {
     for (let i = 0; i < length; i++) {
         result += chars.charAt(Math.floor(Math.random() * chars.length));
     }
-
     return result;
 }
 

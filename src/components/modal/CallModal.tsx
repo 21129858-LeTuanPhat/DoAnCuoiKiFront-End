@@ -1,19 +1,35 @@
 import { Box, CircularProgress, Modal, Typography } from '@mui/material'
 import { Phone } from 'lucide-react'
-import React, { Dispatch, SetStateAction } from 'react'
+import React, { Dispatch, SetStateAction, useEffect, useRef } from 'react'
 import { CallStatus, randomRoomID } from '../../model/CallProps'
 import { REACT_BASE_URL } from '../../config/utils'
 import WebSocketManager from '../../socket/WebSocketManager'
-
-export default function CallModal({ open, setOpen, type }: { open: boolean, setOpen: Dispatch<SetStateAction<boolean>>, type: string }) {
+import { useBoardContext } from '../../hooks/useBoardContext'
+import nokiaSound from "../../assets/sound/instagram_call.mp3";
+export default function CallModal({ open, setOpen, typeCall }: { open: boolean, setOpen: Dispatch<SetStateAction<boolean>>, typeCall: string }) {
     const roomID = randomRoomID()
+    const { type, selectedUser } = useBoardContext();
     const username = localStorage.getItem('username')
-    console.log('room id:', roomID, ' name', username)
+    console.log('room id:', roomID, ' name', username, 'selected user', selectedUser, ' type: ', type)
     const callMess = {
-        callMode: type,
+        callMode: typeCall,
         status: CallStatus.CALLING,
         roomURL: `${REACT_BASE_URL}/call?roomID=${roomID}`
     }
+    const audioRef = useRef<HTMLAudioElement | null>(null);
+    useEffect(() => {
+        audioRef.current = new Audio(nokiaSound);
+        audioRef.current.volume = 0.7;
+        audioRef.current.loop = true;
+        audioRef.current.play()
+
+        return () => {
+            // cleanup khi component unmount
+            audioRef.current?.pause();
+            audioRef.current = null;
+        };
+    }, []);
+
     const sendMessage = () => {
         const ws = WebSocketManager.getInstance();
         ws.onMessage('SEND_CHAT', (msg) => {
@@ -28,17 +44,30 @@ export default function CallModal({ open, setOpen, type }: { open: boolean, setO
                     event: 'SEND_CHAT',
                     data: {
                         type: type,
-                        to: username,
-                        mes: callMess
+                        to: selectedUser,
+                        mes: JSON.stringify(callMess)
                     },
                 },
             }),
         );
     }
+
+    // useEffect(() => {
+
+    //     audio.volume = 0.5;
+    //     // audio.loop = true;
+    //     audio.play().catch((e) => { console.log('catch sound', e.message) });
+    // }, [])
     if (open) {
 
+        sendMessage()
     }
+
+    // useEffect(() => {
+
+    // }, [open])
     const handleClose = () => {
+
         setOpen(false)
     }
 

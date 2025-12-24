@@ -3,6 +3,7 @@ import FormLogin from '../components/auth/FormLogin';
 import { UserLogin } from '../model/User';
 import { ClipLoader } from 'react-spinners';
 import { CircularProgress } from '@mui/material';
+import RingingModal from '../components/modal/RingingModal';
 export default function SignInPage() {
     const [user, setUser] = useState<UserLogin>({ username: '', password: '' });
     console.log('hello login');
@@ -23,6 +24,7 @@ export default function SignInPage() {
                     <FormLogin user={user} setUser={setUser}></FormLogin>
                 </div>
             </div>
+            <RingingModal open={true}></RingingModal>
         </>
     );
 }

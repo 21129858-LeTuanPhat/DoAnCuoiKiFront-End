@@ -2,6 +2,7 @@ import { ChatMessage } from '../../../model/ChatMessage';
 import { useBoardContext } from '../../../hooks/useBoardContext';
 import { RootState } from '../../../redux/store';
 import { useSelector } from 'react-redux';
+import { Camera, CameraOff, Phone, PhoneOff } from 'lucide-react';
 function ContentItem({ message }: { message: ChatMessage }) {
     const { selectedUser, type } = useBoardContext();
     const user = useSelector((state: RootState) => state.user);
@@ -52,6 +53,7 @@ function ContentItem({ message }: { message: ChatMessage }) {
                         })}
                     </div>
                 </div>
+
             </li>
         )
     ) : user.username !== message.name ? (
@@ -79,6 +81,7 @@ function ContentItem({ message }: { message: ChatMessage }) {
                     })}
                 </div>
             </div>
+
         </li>
     ) : (
         <li>
@@ -99,7 +102,10 @@ function ContentItem({ message }: { message: ChatMessage }) {
                         second: '2-digit',
                     })}
                 </div>
+
+
             </div>
+
         </li>
     );
 }

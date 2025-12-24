@@ -23,7 +23,6 @@ function Home() {
     //     <div></div>
     // ) :
     return (
-
         <div className="flex h-screen ">
             <aside className="hidden md:block w-[25%] relative">
                 <SideBar />

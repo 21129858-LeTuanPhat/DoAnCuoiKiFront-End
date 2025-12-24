@@ -32,7 +32,7 @@ function Header({ username }: { username: string }) {
     return (
         <>
             {
-                openModal && (<CallModal open={openModal} setOpen={setModal} type={type} />)
+                openModal && (<CallModal open={openModal} setOpen={setModal} typeCall={type} />)
             }
             <div className="flex items-center h-full justify-between px-4 py-3" >
                 <div className="flex items-center">

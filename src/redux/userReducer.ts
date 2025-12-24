@@ -15,12 +15,13 @@ const userReducer = createSlice({
     initialState: initialUser,
     reducers: {
         userAction(state, action: PayloadAction<{ username: string, reCode: string }>) {
-
             state.username = action.payload.username
             state.reCode = action.payload.reCode
+            localStorage.setItem('username', action.payload.username)
+            localStorage.setItem('reCode', action.payload.reCode)
         },
         setReCode(state, action: PayloadAction<{ reCode: string }>) {
-            state.reCode = action.payload.reCode
+            localStorage.setItem('reCode', action.payload.reCode)
         },
         logOut(state) {
             state.username = null

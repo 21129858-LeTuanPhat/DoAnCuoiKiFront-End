@@ -15,7 +15,11 @@ class WebSocketManager {
     private constructor() { }
 
     private getUser() {
-        return store.getState().user;
+        const user = {
+            username: localStorage.getItem('username'),
+            reCode: localStorage.getItem('reCode')
+        }
+        return user;
     }
 
     public static getInstance(): WebSocketManager {
