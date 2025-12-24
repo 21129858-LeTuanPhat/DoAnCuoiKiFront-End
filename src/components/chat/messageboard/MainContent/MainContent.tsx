@@ -1,8 +1,8 @@
 import { useEffect, useRef, useState, useLayoutEffect } from 'react';
-import WebSocketManager from '../../../socket/WebSocketManager';
-import ContentItem from './ContentItem';
-import { useBoardContext } from '../../../hooks/useBoardContext';
-import { ChatMessage } from '../../../model/ChatMessage';
+import WebSocketManager from '../../../../socket/WebSocketManager';
+import ContentItem from '../MainContent/ContentItem';
+import { useBoardContext } from '../../../../hooks/useBoardContext';
+import { ChatMessage } from '../../../../model/ChatMessage';
 function MainContent({ username }: any) {
     const [page, setPage] = useState<number>(1);
     const divRef = useRef<HTMLDivElement>(null);
@@ -153,7 +153,7 @@ function MainContent({ username }: any) {
             ) : listMessage.length === 0 ? (
                 <div className="h-full flex items-center justify-center">
                     <h2
-                        className="p-2 text-center text-3xl font-bold bg-gradient-to-r from-purple-500 to-pink-500 
+                        className="p-2 text-center text-3xl font-bold bg-gradient-to-r from-purple-500 to-pink-500
                 bg-clip-text text-transparent"
                     >
                         Hãy bắt đầu nhắn tin

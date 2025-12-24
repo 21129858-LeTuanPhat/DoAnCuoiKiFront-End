@@ -1,7 +1,7 @@
-import Footer from '../components/chat/messageboard/Footer';
-import Header from '../components/chat/messageboard/Header';
-import MainContent from '../components/chat/messageboard/MainContent';
-import Welcome from '../components/chat/messageboard/Welcome';
+import Footer from '../components/chat/messageboard/Footer/Footer';
+import Header from '../components/chat/messageboard/Header/Header';
+import MainContent from '../components/chat/messageboard/MainContent/MainContent';
+import Welcome from '../components/chat/messageboard/MainContent/Welcome';
 import SideBar from '../components/chat/sidebar/SideBar';
 import { useBoardContext } from '../hooks/useBoardContext';
 import { useSelector } from 'react-redux';

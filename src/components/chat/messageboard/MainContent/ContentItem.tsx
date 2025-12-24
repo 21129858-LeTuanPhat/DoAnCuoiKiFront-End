@@ -1,6 +1,6 @@
-import { ChatMessage } from '../../../model/ChatMessage';
-import { useBoardContext } from '../../../hooks/useBoardContext';
-import { RootState } from '../../../redux/store';
+import { ChatMessage } from '../../../../model/ChatMessage';
+import { useBoardContext } from '../../../../hooks/useBoardContext';
+import { RootState } from '../../../../redux/store';
 import { useSelector } from 'react-redux';
 function ContentItem({ message }: { message: ChatMessage }) {
     const { selectedUser, type } = useBoardContext();

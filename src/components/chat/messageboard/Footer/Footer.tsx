@@ -1,64 +1,54 @@
-import { ImagePlus, Smile, Send } from 'lucide-react';
+//Lucide
+import { ImagePlus, Smile, Send, X } from 'lucide-react';
+//Tippy
 import HeadlessTippy from '@tippyjs/react/headless';
+//Emoji-picker
 import EmojiPicker, { EmojiClickData } from 'emoji-picker-react';
+//FilePond
+
 import { useRef, useState } from 'react';
-import WebSocketManager from '../../../socket/WebSocketManager';
-import { useBoardContext } from '../../../hooks/useBoardContext';
-import { ChatMessage } from '../../../model/ChatMessage';
+import { useBoardContext } from '../../../../hooks/useBoardContext';
 import { useSelector } from 'react-redux';
-import { RootState } from '../../../redux/store';
+import { RootState } from '../../../../redux/store';
+import { useChatSender } from '../../../../hooks/useChatSender';
+
+import PopUp from '../Footer/PopUp';
+
 function Footer({ username }: { username: string }) {
+    const MAX_SIZE = 20 * 1024;
+    const [files, setFiles] = useState<any[]>([]);
+
     const [message, setMessage] = useState('');
     const { listMessage, setListMessage, type } = useBoardContext();
     const inputRef = useRef<any>(null);
     const user = useSelector((state: RootState) => state.user);
+    const [popUp, setPopUp] = useState<boolean>(false);
+
+    const handleClosePupUp = () => {
+        setPopUp(false);
+        setFiles([]);
+    };
     const handleEmojiClick = (emojiData: EmojiClickData) => {
         setMessage((prev) => prev + emojiData.emoji);
     };
     const handleMessage = (e: any) => {
         setMessage(e.target.value);
     };
-    function sendMessage() {
-        if (message.trim() === '') return;
-        const ws = WebSocketManager.getInstance();
-        ws.onMessage('SEND_CHAT', (msg) => {
-            if (msg.status === 'success' && msg.event === 'SEND_CHAT') {
-                ws.unSubcribe('SEND_CHAT');
-            }
-        });
-        ws.sendMessage(
-            JSON.stringify({
-                action: 'onchat',
-                data: {
-                    event: 'SEND_CHAT',
-                    data: {
-                        type: type,
-                        to: username,
-                        mes: encodeURIComponent(message),
-                    },
-                },
-            }),
-        );
-        setMessage('');
-        inputRef.current.focus();
-
-        const newMessage: ChatMessage = {
-            id: 0,
-            name: user.username,
-            type: 0,
-            to: username,
-            mes: message,
-            createAt: new Date().toISOString(),
-        };
-        setListMessage((prev) => [...prev, newMessage]);
-    }
+    const { sendMessage } = useChatSender({
+        type,
+        username,
+        user,
+        setListMessage,
+        inputRef,
+        setMessage,
+    });
 
     const handleSendMessage = () => {
-        sendMessage();
+        sendMessage(message);
     };
     const handleSendMessageKeyUp = (e: any) => {
         if (e.keyCode === 13) {
-            sendMessage();
+            sendMessage(message);
         }
     };
 
@@ -66,7 +56,11 @@ function Footer({ username }: { username: string }) {
         <footer className="bg-white h-[65px] rounded-bl-lg ">
             <div className="flex items-center h-full ">
                 <div>
-                    <ImagePlus className="cursor-pointer mt-2 mb-2 ml-4 mr-8 h-[21.5px]" />
+                    <ImagePlus
+                        onClick={() => setPopUp(true)}
+                        className="cursor-pointer mt-2 mb-2 ml-4 mr-8 h-[21.5px]"
+                    />
+                    {popUp && <PopUp onClose={handleClosePupUp} setFiles={setFiles} files={files} />}
                 </div>
                 <div
                     className="flex-[5] flex items-center my-1
