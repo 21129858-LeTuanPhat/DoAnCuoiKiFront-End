@@ -2,6 +2,7 @@ import { ChatMessage } from '../../../../model/ChatMessage';
 import { useBoardContext } from '../../../../hooks/useBoardContext';
 import { RootState } from '../../../../redux/store';
 import { useSelector } from 'react-redux';
+import FileItem from './FileItem';
 function ContentItem({ message }: { message: ChatMessage }) {
     const { selectedUser, type } = useBoardContext();
     const user = useSelector((state: RootState) => state.user);
@@ -15,12 +16,14 @@ function ContentItem({ message }: { message: ChatMessage }) {
                             alt="hình ảnh"
                             className="rounded-full w-8 h-8"
                         />
-                        {message.mes.type === 1 ? (
-                            <img src={message.mes.data} className="max-w-xs rounded-xl" />
-                        ) : (
+                        {message.mes.type === 0 ? (
                             <div className="max-w-xl break-words bg-white text-black p-2 rounded-xl">
                                 <p className="break-words">{message.mes.data}</p>
                             </div>
+                        ) : message.mes.type === 1 ? (
+                            <img src={message.mes.data} className="max-w-xs rounded-xl" />
+                        ) : (
+                            <FileItem data={message.mes.data} />
                         )}
                     </div>
                     <div className="text-xs text-gray-500 mt-1">
@@ -40,12 +43,16 @@ function ContentItem({ message }: { message: ChatMessage }) {
             <li>
                 <div className="mt-4">
                     <div className="flex items-start gap-2 flex-row-reverse">
-                        {message.mes.type === 1 ? (
-                            <img src={message.mes.data} className="max-w-xs rounded-xl" />
-                        ) : (
+                        {message.mes.type === 0 ? (
                             <div className="max-w-xl break-words bg-white text-black p-2 rounded-xl">
                                 <p className="break-words">{message.mes.data}</p>
                             </div>
+                        ) : message.mes.type === 1 ? (
+                            <img src={message.mes.data} className="max-w-xs rounded-xl" />
+                        ) : (
+                            <a className="max-w-xs rounded-xl" href={message.mes.data} download>
+                                Download
+                            </a>
                         )}
                     </div>
                     <div className="text-xs text-gray-500 mt-1 text-right">
@@ -71,12 +78,16 @@ function ContentItem({ message }: { message: ChatMessage }) {
                         alt="hình ảnh"
                         className="rounded-full w-8 h-8"
                     />
-                    {message.mes.type === 1 ? (
-                        <img src={message.mes.data} className="max-w-xs rounded-xl" />
-                    ) : (
+                    {message.mes.type === 0 ? (
                         <div className="max-w-xl break-words bg-white text-black p-2 rounded-xl">
                             <p className="break-words">{message.mes.data}</p>
                         </div>
+                    ) : message.mes.type === 1 ? (
+                        <img src={message.mes.data} className="max-w-xs rounded-xl" />
+                    ) : (
+                        <a className="max-w-xs rounded-xl" href={message.mes.data} download>
+                            Download
+                        </a>
                     )}
                 </div>
                 <div className="text-xs text-gray-500 mt-1">
@@ -96,12 +107,16 @@ function ContentItem({ message }: { message: ChatMessage }) {
         <li>
             <div className="mt-4">
                 <div className="flex items-start gap-2 flex-row-reverse">
-                    {message.mes.type === 1 ? (
+                    {message.mes.type === 0 ? (
+                        <div className="max-w-xl break-words bg-white text-black p-2 rounded-xl">
+                            <p className="break-words">{message.mes.data}</p>
+                        </div>
+                    ) : message.mes.type === 1 ? (
                         <img src={message.mes.data} className="max-w-xs rounded-xl" />
                     ) : (
-                        <div className="max-w-xl break-words bg-white text-black p-2 rounded-xl">
-                            <p className="break-words">{message.mes.type}</p>
-                        </div>
+                        <a className="max-w-xs rounded-xl" href={message.mes.data} download>
+                            Download
+                        </a>
                     )}
                 </div>
                 <div className="text-xs text-gray-500 mt-1 text-right">

@@ -1,5 +1,5 @@
 //Lucide
-import { ImagePlus, Smile, Send, X } from 'lucide-react';
+import { ImagePlus, Smile, Send, FolderUp } from 'lucide-react';
 //Tippy
 import HeadlessTippy from '@tippyjs/react/headless';
 //Emoji-picker
@@ -23,6 +23,19 @@ function Footer({ username }: { username: string }) {
     const [popUp, setPopUp] = useState<boolean>(false);
     const [loading, setLoading] = useState<boolean>(false);
     const [checkNull, setCheckNull] = useState<boolean>(true);
+    const [checkFile, setCheckFile] = useState<boolean>(false);
+    const [typeFile, setTypeFile] = useState<number>(0);
+
+    const handlePopUpFile = () => {
+        setPopUp(true);
+        setCheckFile(true);
+        setTypeFile(2);
+    };
+    const handlePopUpImage = () => {
+        setPopUp(true);
+        setCheckFile(false);
+        setTypeFile(1);
+    };
 
     const handleSendFile = async () => {
         if (files.length === 0) {
@@ -49,7 +62,7 @@ function Footer({ username }: { username: string }) {
             }
 
             const { data } = supabaseClient.storage.from('chat-images').getPublicUrl(fileName);
-            sendMessage(data.publicUrl, 1);
+            sendMessage(data.publicUrl, typeFile);
             setTimeout(() => {
                 setLoading(false);
                 setPopUp(false);
@@ -92,13 +105,12 @@ function Footer({ username }: { username: string }) {
     return (
         <footer className="bg-white h-[65px] rounded-bl-lg ">
             <div className="flex items-center h-full ">
-                <div>
-                    <ImagePlus
-                        onClick={() => setPopUp(true)}
-                        className="cursor-pointer mt-2 mb-2 ml-4 mr-8 h-[21.5px]"
-                    />
+                <div className="flex">
+                    <ImagePlus onClick={handlePopUpImage} className="cursor-pointer mt-2 mb-2 ml-4 mr-1 h-[21.5px]" />
+                    <FolderUp onClick={handlePopUpFile} className="cursor-pointer mt-2 mb-2 ml-4 mr-4 h-[21.5px]" />
                     {popUp && (
                         <PopUp
+                            checkFile={checkFile}
                             setCheckNull={setCheckNull}
                             checkNull={checkNull}
                             loading={loading}

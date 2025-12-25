@@ -16,7 +16,7 @@ registerPlugin(
     FilePondPluginFileValidateType,
 );
 
-function PopUp({ setCheckNull, checkNull, loading, onClose, files, setFiles, onClick }: any) {
+function PopUp({ checkFile, setCheckNull, checkNull, loading, onClose, files, setFiles, onClick }: any) {
     const handleChooseImage = (fileItems: any) => {
         setCheckNull(false);
         setFiles(fileItems);
@@ -35,7 +35,11 @@ function PopUp({ setCheckNull, checkNull, loading, onClose, files, setFiles, onC
                 )}
                 {checkNull && (
                     <div className="flex justify-center items-center my-4">
-                        <h3 className="text-blue-500 text-3xl">Bạn chưa chọn hình ảnh kìa bạn ơi</h3>
+                        {checkFile === true ? (
+                            <h3 className="text-blue-500 text-2xl">Bạn chưa chọn File kìa bạn ơi</h3>
+                        ) : (
+                            <h3 className="text-blue-500 text-2xl">Bạn chưa chọn hình ảnh kìa bạn ơi</h3>
+                        )}
                     </div>
                 )}
 
@@ -48,7 +52,20 @@ function PopUp({ setCheckNull, checkNull, loading, onClose, files, setFiles, onC
                         maxFileSize="20KB"
                         labelMaxFileSizeExceeded="File quá nặng"
                         labelMaxFileSize="Dung lượng tối đa là {filesize}"
-                        acceptedFileTypes={['image/*']}
+                        acceptedFileTypes={
+                            checkFile === true
+                                ? [
+                                      'application/msword', // .doc
+                                      'application/vnd.openxmlformats-officedocument.wordprocessingml.document', // .docx
+                                      'text/plain', // .txt
+                                      'application/vnd.ms-excel', // .xls
+                                      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', // .xlsx
+                                      'application/pdf', // .pdf
+                                      //   'application/zip', // .zip
+                                      //   'application/x-rar-compressed', // .rar
+                                  ]
+                                : ['image/*']
+                        }
                         server={null}
                         name="files"
                     />
