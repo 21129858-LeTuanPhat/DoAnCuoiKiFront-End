@@ -13,34 +13,32 @@ import { useBoardContext } from '../../../hooks/useBoardContext';
 import { useSelector } from 'react-redux';
 import { RootState } from '../../../redux/store';
 
-function SearchBar() {
-    const [open, setOpen] = useState(false);
-
-    return <>{open && <SearchUserModal onClose={() => setOpen(false)} />}</>;
-}
-
 function SearchUserModal({ onClose }: { onClose: () => void }) {
     const [keyword, setKeyword] = useState('');
     const webSocket = WebSocketManager.getInstance();
-    const [targetUser, setTargetUser] = useState<string | undefined>(undefined);
+    const [targetUser, setTargetUser] = useState<string | undefined | null>(undefined);
     const user = useSelector((state: RootState) => state.user);
-    const connectChatState = useChatConnect(user.username, targetUser);
+    const connectChatState = useChatConnect(user.username, targetUser || null);
     const { setSelectedUser, setType } = useBoardContext();
 
-    const handleSearch = (e: any) => {
-        setKeyword(e.target.value);
-        webSocket.onMessage('CHECK_USER', (msg: WSMessage) => {
-            if (msg.status === 'success') {
+    const handleSearch = () => {
+        console.log('Searching for:', keyword);
+        if (!keyword.trim()) return;
+
+        webSocket.onMessage('CHECK_USER_EXIST', (msg: WSMessage) => {
+            if (msg.status === 'success' && msg.data.status === true) {
                 setTargetUser(keyword);
-                webSocket.unSubcribe('CHECK_USER');
+            } else {
+                setTargetUser(null);
             }
+            webSocket.unSubcribe('CHECK_USER_EXIST');
         });
 
         webSocket.sendMessage(
             JSON.stringify({
                 action: 'onchat',
                 data: {
-                    event: 'CHECK_USER',
+                    event: 'CHECK_USER_EXIST',
                     data: {
                         user: keyword,
                     },
@@ -63,8 +61,8 @@ function SearchUserModal({ onClose }: { onClose: () => void }) {
                     <input
                         type="text"
                         placeholder="Nhập tên hoặc email..."
-                        value={keyword}
                         onChange={(e) => setKeyword(e.target.value)}
+                        value={keyword}
                         className="
                         flex-1 px-4 py-2 mb-3
                         border rounded-lg
@@ -98,9 +96,11 @@ function SearchUserModal({ onClose }: { onClose: () => void }) {
                         </button>
                     </div>
                 )}
+
+                {targetUser === null && <p className="text-center text-gray-500">Không tìm thấy người dùng</p>}
             </div>
         </div>
     );
 }
 
-export default SearchBar;
+export default SearchUserModal;

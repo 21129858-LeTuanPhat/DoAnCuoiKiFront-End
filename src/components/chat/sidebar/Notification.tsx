@@ -29,15 +29,15 @@ function Notification({ onClose }: { onClose: () => void }) {
                     <p className="font-semibold text-md">Lời mời nhóm và kết bạn</p>
                     <CircleX className="cursor-pointer" color="gray" onClick={onClose} />
                 </div>
-                <div className="flex justify-around items-center mx-2 mt-3 w-full h-8 rounded-2xl bg-gray-100 relative">
+                <div className="flex justify-around items-center mx-2 my-4 w-full h-8 rounded-2xl bg-gray-100 relative">
                     <p className="font-semibold text-sm text-black z-10 cursor-pointer" onClick={() => setTab('sent')}>
-                        Đã Gửi{' '}
+                        Đã Gửi
                     </p>
                     <p
                         className="font-semibold text-sm text-black z-10 cursor-pointer"
                         onClick={() => setTab('received')}
                     >
-                        Đã nhận{' '}
+                        Đã nhận
                     </p>
                     <div
                         className={`absolute top-0 left-0 w-1/2 h-8 bg-slate-200 rounded-2xl  transition-all duration-300 ease-out ${
@@ -65,13 +65,7 @@ function Notification({ onClose }: { onClose: () => void }) {
                                         <p className="text-[#85d712] font-medium text-sm ">{connect.username}</p>
                                     </div>
                                     <button className="px-3 py-1 text-sm bg-blue-500 text-white rounded-lg hover:bg-blue-600">
-                                        {connect.status === 'pending'
-                                            ? 'Chấp nhận'
-                                            : connect.status === 'connected'
-                                            ? 'Đã chấp nhận'
-                                            : connect.status === 'rejected'
-                                            ? 'Đã từ chối'
-                                            : 'Đã hủy'}
+                                        {getStatus(connect.status)}
                                     </button>
                                 </div>
                             );
@@ -81,5 +75,20 @@ function Notification({ onClose }: { onClose: () => void }) {
             </div>
         </div>
     );
+
+    const getStatus = (status: string): string => {
+        switch (status) {
+            case 'pending':
+                return tab === 'sent' ? 'Đang chờ' : 'Chấp nhận';
+            case 'accepted':
+                return 'Đã chấp nhận';
+            case 'rejected':
+                return 'Đã từ chối';
+            case 'connected':
+                return 'Đã kết bạn';
+            default:
+                return '';
+        }
+    };
 }
 export { Notification };
