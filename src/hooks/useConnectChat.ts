@@ -19,7 +19,7 @@ function parseChatConnectState(state: ChatConnectState): string {
     }
 }
 
-function useChatConnect(me: string | null, target?: string): ChatConnectState {
+function useChatConnect(me: string | null, target?: string | null): ChatConnectState {
     const [state, setState] = useState<ChatConnectState>('none');
 
     useEffect(() => {

@@ -11,8 +11,7 @@ class WebSocketManager {
 
     private listeners: Map<string, (msg: WSMessage) => void> = new Map();
 
-
-    private constructor() { }
+    private constructor() {}
 
     private getUser() {
         return store.getState().user;
@@ -26,7 +25,6 @@ class WebSocketManager {
     }
 
     public connect2(url: string): Promise<void> {
-
         return new Promise((resolve) => {
             if (this.socket?.readyState === WebSocket.OPEN) {
                 resolve();
@@ -44,7 +42,6 @@ class WebSocketManager {
 
             this.socket.onerror = (err) => {
                 console.log('lỗi:', err);
-
             };
             this.socket.onclose = () => {
                 this.socket = null;
@@ -56,16 +53,16 @@ class WebSocketManager {
                 // }, 500);
                 this.connect2(SOCKET_BASE_URL).then(() => {
                     this.reCode();
-                })
-            }
+                });
+            };
         });
 
     }
     public reCode() {
-        console.log('dis connet rồi')
+        console.log('dis connet rồi');
         const user = this.getUser();
-        this.onMessage("RE_LOGIN", (mes: any) => {
-            console.log('re code nhan', mes)
+        this.onMessage('RE_LOGIN', (mes: any) => {
+            console.log('re code nhan', mes);
             if (mes.status === 'success') {
                 store.dispatch(setReCode({ reCode: mes.data.RE_LOGIN_CODE }))
             }
@@ -76,11 +73,14 @@ class WebSocketManager {
             data: {
                 event: "RE_LOGIN",
                 data: {
-                    user: user.username,
-                    code: user.reCode
-                }
-            }
-        }))
+                    event: 'RE_LOGIN',
+                    data: {
+                        user: user.username,
+                        code: user.reCode,
+                    },
+                },
+            }),
+        );
     }
     public onMessage(event: string, cb: (msg: WSMessage) => void) {
         this.listeners.set(event, cb);
