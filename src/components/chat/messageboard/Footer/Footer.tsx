@@ -4,25 +4,62 @@ import { ImagePlus, Smile, Send, X } from 'lucide-react';
 import HeadlessTippy from '@tippyjs/react/headless';
 //Emoji-picker
 import EmojiPicker, { EmojiClickData } from 'emoji-picker-react';
-//FilePond
 
 import { useRef, useState } from 'react';
 import { useBoardContext } from '../../../../hooks/useBoardContext';
 import { useSelector } from 'react-redux';
 import { RootState } from '../../../../redux/store';
 import { useChatSender } from '../../../../hooks/useChatSender';
-
 import PopUp from '../Footer/PopUp';
+import { supabaseClient } from '../../../../config/supaBaseConfig';
 
 function Footer({ username }: { username: string }) {
     const MAX_SIZE = 20 * 1024;
     const [files, setFiles] = useState<any[]>([]);
-
     const [message, setMessage] = useState('');
     const { listMessage, setListMessage, type } = useBoardContext();
     const inputRef = useRef<any>(null);
     const user = useSelector((state: RootState) => state.user);
     const [popUp, setPopUp] = useState<boolean>(false);
+    const [loading, setLoading] = useState<boolean>(false);
+    const [checkNull, setCheckNull] = useState<boolean>(true);
+
+    const handleSendFile = async () => {
+        if (files.length === 0) {
+            return;
+        }
+
+        const fileToUpload = files[0].file;
+        if (fileToUpload.size > MAX_SIZE) {
+            alert('Ảnh vượt quá 20KB');
+            return;
+        }
+
+        setLoading(true);
+        try {
+            const fileName = `${Date.now()}-${fileToUpload.name}`;
+            const { error } = await supabaseClient.storage
+                .from('chat-images')
+                .upload(fileName, fileToUpload, { upsert: true });
+
+            if (error) {
+                console.error('Upload error:', error);
+                alert('Upload thất bại, thử lại sau.');
+                return;
+            }
+
+            const { data } = supabaseClient.storage.from('chat-images').getPublicUrl(fileName);
+            sendMessage(data.publicUrl, 1);
+            setTimeout(() => {
+                setLoading(false);
+                setPopUp(false);
+                setFiles([]);
+            }, 300);
+        } catch (err) {
+            console.error(err);
+            setLoading(false);
+        }
+    };
 
     const handleClosePupUp = () => {
         setPopUp(false);
@@ -60,7 +97,17 @@ function Footer({ username }: { username: string }) {
                         onClick={() => setPopUp(true)}
                         className="cursor-pointer mt-2 mb-2 ml-4 mr-8 h-[21.5px]"
                     />
-                    {popUp && <PopUp onClose={handleClosePupUp} setFiles={setFiles} files={files} />}
+                    {popUp && (
+                        <PopUp
+                            setCheckNull={setCheckNull}
+                            checkNull={checkNull}
+                            loading={loading}
+                            onClose={handleClosePupUp}
+                            setFiles={setFiles}
+                            files={files}
+                            onClick={handleSendFile}
+                        />
+                    )}
                 </div>
                 <div
                     className="flex-[5] flex items-center my-1

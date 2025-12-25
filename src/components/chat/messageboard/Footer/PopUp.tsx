@@ -7,33 +7,61 @@ import FilePondPluginImageExifOrientation from 'filepond-plugin-image-exif-orien
 import FilePondPluginImagePreview from 'filepond-plugin-image-preview';
 import 'filepond-plugin-image-preview/dist/filepond-plugin-image-preview.css';
 import FilePondPluginFileValidateSize from 'filepond-plugin-file-validate-size';
-import { useState } from 'react';
+import FilePondPluginFileValidateType from 'filepond-plugin-file-validate-type';
 
-registerPlugin(FilePondPluginImagePreview, FilePondPluginImageExifOrientation, FilePondPluginFileValidateSize);
+registerPlugin(
+    FilePondPluginImagePreview,
+    FilePondPluginImageExifOrientation,
+    FilePondPluginFileValidateSize,
+    FilePondPluginFileValidateType,
+);
 
-function PopUp({ onClose, files, setFiles }: any) {
+function PopUp({ setCheckNull, checkNull, loading, onClose, files, setFiles, onClick }: any) {
+    const handleChooseImage = (fileItems: any) => {
+        setCheckNull(false);
+        setFiles(fileItems);
+    };
     return (
-        <div className="fixed flex top-0 bottom-0 left-0 right-0">
-            <div className="m-auto relative z-10">
-                <div className="min-w-96 bg-white rounded-lg">
-                    <div className="p-2">
-                        <div className="w-full flex flex-row-reverse">
-                            <X className="mb-2 cursor-pointer" onClick={onClose} />
-                        </div>
-                        <div>
-                            <FilePond
-                                files={files}
-                                onupdatefiles={setFiles}
-                                allowMultiple={false}
-                                allowFileSizeValidation
-                                maxFileSize="20KB"
-                                labelMaxFileSizeExceeded="File quá nặng"
-                                labelMaxFileSize="Dung lượng tối đa là {filesize}"
-                                server={null}
-                                name="files"
-                            />
-                        </div>
+        <div className="fixed inset-0 flex items-center justify-center bg-black/40 z-50">
+            <div className="relative z-10 min-w-96 bg-white rounded-lg p-2">
+                <div className="w-full flex justify-end">
+                    <X className="mb-2 cursor-pointer" onClick={onClose} />
+                </div>
+
+                {loading && (
+                    <div className="flex justify-center items-center my-4">
+                        <div className="animate-spin rounded-full h-10 w-10 border-t-4 border-b-4 border-blue-500"></div>
                     </div>
+                )}
+                {checkNull && (
+                    <div className="flex justify-center items-center my-4">
+                        <h3 className="text-blue-500 text-3xl">Bạn chưa chọn hình ảnh kìa bạn ơi</h3>
+                    </div>
+                )}
+
+                <div className={`${loading ? 'opacity-50 pointer-events-none' : ''}`}>
+                    <FilePond
+                        files={files}
+                        onupdatefiles={handleChooseImage}
+                        allowMultiple={false}
+                        allowFileSizeValidation
+                        maxFileSize="20KB"
+                        labelMaxFileSizeExceeded="File quá nặng"
+                        labelMaxFileSize="Dung lượng tối đa là {filesize}"
+                        acceptedFileTypes={['image/*']}
+                        server={null}
+                        name="files"
+                    />
+                </div>
+
+                <div className="flex justify-center mt-4">
+                    <button
+                        onClick={onClick}
+                        disabled={loading}
+                        className="py-2 px-4 bg-green-400 rounded-xl text-white hover:opacity-85 disabled:bg-slate-500 disabled:opacity-100"
+                    >
+                        Gửi ảnh
+                    </button>
                 </div>
             </div>
         </div>

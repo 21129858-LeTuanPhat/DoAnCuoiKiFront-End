@@ -15,9 +15,13 @@ function ContentItem({ message }: { message: ChatMessage }) {
                             alt="hình ảnh"
                             className="rounded-full w-8 h-8"
                         />
-                        <div className="max-w-xl break-words bg-white text-black p-2 rounded-xl">
-                            <p className="break-words">{decodeURIComponent(message.mes)}</p>
-                        </div>
+                        {message.mes.type === 1 ? (
+                            <img src={message.mes.data} className="max-w-xs rounded-xl" />
+                        ) : (
+                            <div className="max-w-xl break-words bg-white text-black p-2 rounded-xl">
+                                <p className="break-words">{message.mes.data}</p>
+                            </div>
+                        )}
                     </div>
                     <div className="text-xs text-gray-500 mt-1">
                         {new Date(message.createAt).toLocaleString('vi-VN', {
@@ -36,9 +40,13 @@ function ContentItem({ message }: { message: ChatMessage }) {
             <li>
                 <div className="mt-4">
                     <div className="flex items-start gap-2 flex-row-reverse">
-                        <div className="max-w-xl break-words bg-purple-400 text-white p-2 rounded-xl">
-                            <p className="break-words">{decodeURIComponent(message.mes)}</p>
-                        </div>
+                        {message.mes.type === 1 ? (
+                            <img src={message.mes.data} className="max-w-xs rounded-xl" />
+                        ) : (
+                            <div className="max-w-xl break-words bg-white text-black p-2 rounded-xl">
+                                <p className="break-words">{message.mes.data}</p>
+                            </div>
+                        )}
                     </div>
                     <div className="text-xs text-gray-500 mt-1 text-right">
                         {new Date(message.createAt).toLocaleString('vi-VN', {
@@ -63,9 +71,13 @@ function ContentItem({ message }: { message: ChatMessage }) {
                         alt="hình ảnh"
                         className="rounded-full w-8 h-8"
                     />
-                    <div className="max-w-xl break-words bg-white text-black p-2 rounded-xl">
-                        <p className="break-words">{decodeURIComponent(message.mes)}</p>
-                    </div>
+                    {message.mes.type === 1 ? (
+                        <img src={message.mes.data} className="max-w-xs rounded-xl" />
+                    ) : (
+                        <div className="max-w-xl break-words bg-white text-black p-2 rounded-xl">
+                            <p className="break-words">{message.mes.data}</p>
+                        </div>
+                    )}
                 </div>
                 <div className="text-xs text-gray-500 mt-1">
                     {new Date(message.createAt).toLocaleString('vi-VN', {
@@ -84,9 +96,13 @@ function ContentItem({ message }: { message: ChatMessage }) {
         <li>
             <div className="mt-4">
                 <div className="flex items-start gap-2 flex-row-reverse">
-                    <div className="max-w-xl break-words bg-purple-400 text-white p-2 rounded-xl">
-                        <p className="break-words">{decodeURIComponent(message.mes)}</p>
-                    </div>
+                    {message.mes.type === 1 ? (
+                        <img src={message.mes.data} className="max-w-xs rounded-xl" />
+                    ) : (
+                        <div className="max-w-xl break-words bg-white text-black p-2 rounded-xl">
+                            <p className="break-words">{message.mes.type}</p>
+                        </div>
+                    )}
                 </div>
                 <div className="text-xs text-gray-500 mt-1 text-right">
                     {new Date(message.createAt).toLocaleString('vi-VN', {

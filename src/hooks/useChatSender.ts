@@ -2,7 +2,7 @@ import WebSocketManager from '../socket/WebSocketManager';
 import { ChatMessage } from '../model/ChatMessage';
 
 export function useChatSender({ type, username, user, setListMessage, inputRef, setMessage }: any) {
-    const sendMessage = (message: string) => {
+    const sendMessage = (message: string, image: number = 0) => {
         if (message.trim() === '') return;
 
         const ws = WebSocketManager.getInstance();
@@ -21,7 +21,12 @@ export function useChatSender({ type, username, user, setListMessage, inputRef, 
                     data: {
                         type,
                         to: username,
-                        mes: encodeURIComponent(message),
+                        mes: encodeURIComponent(
+                            JSON.stringify({
+                                type: image,
+                                data: message,
+                            }),
+                        ),
                     },
                 },
             }),
@@ -35,7 +40,10 @@ export function useChatSender({ type, username, user, setListMessage, inputRef, 
             name: user.username,
             type: 0,
             to: username,
-            mes: message,
+            mes: {
+                type: image,
+                data: message,
+            },
             createAt: new Date().toISOString(),
         };
 
