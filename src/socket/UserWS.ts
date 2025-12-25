@@ -2,12 +2,10 @@ import { stringify } from 'querystring';
 import { UserLogin, UserRegistry } from '../model/User';
 import WebSocketManager from '../socket/WebSocketManager';
 import { SOCKET_BASE_URL } from '../config/utils';
-export async function loginWS(user: UserLogin): Promise<{
-    status: 'success' | 'error';
-    message: string;
-    username?: string;
-    reCode?: string;
-}> {
+import { User } from '../model/User';
+export async function loginWS(
+    user: UserLogin,
+): Promise<{ status: 'success' | 'error'; message: string; username?: string; reCode?: string }> {
     const ws = WebSocketManager.getInstance();
     await ws.connect2(SOCKET_BASE_URL);
 
