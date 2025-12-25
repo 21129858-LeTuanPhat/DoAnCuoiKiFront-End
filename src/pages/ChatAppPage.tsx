@@ -8,6 +8,8 @@ import { useSelector } from 'react-redux';
 import { RootState } from '../redux/store';
 import { useNavigate } from 'react-router-dom';
 import { useEffect } from 'react';
+import WebSocketManager from '../socket/WebSocketManager';
+import { ChatMessage } from '../model/ChatMessage';
 function Home() {
     const { selectedUser } = useBoardContext();
     const user = useSelector((state: RootState) => state.user);
@@ -22,6 +24,27 @@ function Home() {
     //  user.username == null ? (
     //     <div></div>
     // ) :
+
+    useEffect(() => {
+        const socket = WebSocketManager.getInstance()
+        socket.onMessage("haha", (msg: any) => {
+            console.log('socket: ', msg)
+            if (msg.status === 'success' && msg.event === 'SEND_CHAT') {
+
+                const newMessage: ChatMessage = {
+                    id: msg.data.id,
+                    name: msg.data.name,
+                    type: msg.data.type,
+                    to: msg.data.to,
+                    mes: decodeURIComponent(msg.data.mes),
+                    createAt: new Date().toISOString(),
+                };
+                console.log('new mess', newMessage)
+            }
+
+        });
+
+    }, [])
     return (
         <div className="flex h-screen ">
             <aside className="hidden md:block w-[25%] relative">

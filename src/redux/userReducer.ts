@@ -17,10 +17,12 @@ const userReducer = createSlice({
         userAction(state, action: PayloadAction<{ username: string, reCode: string }>) {
             state.username = action.payload.username
             state.reCode = action.payload.reCode
+            console.log('recode login:', action.payload.reCode)
             localStorage.setItem('username', action.payload.username)
             localStorage.setItem('reCode', action.payload.reCode)
         },
         setReCode(state, action: PayloadAction<{ reCode: string }>) {
+            console.log('re code', action.payload.reCode)
             localStorage.setItem('reCode', action.payload.reCode)
         },
         logOut(state) {

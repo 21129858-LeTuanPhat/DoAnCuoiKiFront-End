@@ -5,6 +5,8 @@ import { useBoardContext } from '../../../hooks/useBoardContext';
 import { ChatMessage } from '../../../model/ChatMessage';
 import ContentItemCall from './ItemCall';
 import RingingModal from '../../modal/RingingModal';
+import { CallInterface, CallStatus } from '../../../model/CallProps';
+
 function MainContent({ username }: any) {
     const [page, setPage] = useState<number>(1);
     const divRef = useRef<HTMLDivElement>(null);
@@ -16,9 +18,6 @@ function MainContent({ username }: any) {
         setPage(1);
     }, [username]);
     useEffect(() => {
-        console.log('useeff2');
-
-        console.log('e2');
         const ws = WebSocketManager.getInstance();
         if (type === 'people') {
             ws.onMessage('GET_PEOPLE_CHAT_MES', (msg) => {
@@ -131,10 +130,20 @@ function MainContent({ username }: any) {
             div.scrollTop = div.scrollHeight - oldScrollHeightRef.current;
         }
     }, [listMessage]);
+
+    // listMessage.forEach((message) => {
+    //     try {
+    //         const obj = JSON.parse(message.mes);
+
+    //         if (obj && typeof obj === 'object' && obj.roomID) {
+    //             // ghi đè => luôn là trạng thái cuối
+    //             lastCallByRoom[obj.roomID] = message;
+    //         }
+    //     } catch {
+    //         // message thường thì bỏ qua ở bước này
+    //     }
+    // });
     console.log('list mess', listMessage)
-
-
-
     return (
         <section className="bg-[#f0f4fa] h-[calc(737.6px-72px-65px)]">
             {listMessage.length > 0 ? (
@@ -145,32 +154,29 @@ function MainContent({ username }: any) {
                     <ul className="p-2">
                         {listMessage.map((message, index) => {
                             try {
-                                const obj = JSON.parse(message.mes)
-                                if (typeof obj === 'object' && obj !== null) {
-                                    return <ContentItemCall message={message} key={index}></ContentItemCall>
+                                const obj: CallInterface = JSON.parse(message.mes)
+                                // console.log('try', obj)
+                                if (Object.prototype.toString.call(obj) === '[object Object]') {
+                                    return (<>
+                                        {/* {obj.status === CallStatus.CALLING && (< RingingModal open={true} />)} */}
+                                        < ContentItemCall message={message} key={index} /></>)
                                 }
+                                return <ContentItem message={message} key={index} />
                             } catch {
+                                // console.log('catch', message)
                                 return <ContentItem message={message} key={index} />;
                             }
-
                         })}
-                        <ContentItem message={{
-                            id: 1231321,
-                            name: 'tai',
-                            type: 12,
-                            to: 'phucabc',
-                            mes: "string",
-                            createAt: "20 / 1012"
-                        }} key={1122} />
                     </ul>
                 </div>
             ) : (
                 <div className="h-full flex items-center justify-center">
                     <div className="w-10 h-10 border-4 border-gray-300 border-t-blue-500 rounded-full animate-spin"></div>
                 </div>
-            )}
-            <RingingModal open={true}></RingingModal>
-        </section>
+            )
+            }
+
+        </section >
     );
 }
 

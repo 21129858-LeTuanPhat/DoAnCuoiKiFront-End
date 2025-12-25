@@ -3,6 +3,7 @@ import React from 'react'
 import { ChatMessage } from '../../../model/ChatMessage'
 import { useBoardContext } from '../../../hooks/useBoardContext';
 export default function ContentItemCall({ message }: { message: ChatMessage }) {
+
     const { selectedUser, type } = useBoardContext();
     const username = localStorage.getItem('username')
 
@@ -62,7 +63,7 @@ export default function ContentItemCall({ message }: { message: ChatMessage }) {
             alt="hình ảnh"
             className="rounded-full w-8 h-8 mr-2 align-bottom   "
         />
-        <div className="bg-white rounded-3xl shadow-lg p-4 w-1/4  ">
+        <div className="bg-white rounded-3xl shadow-lg p-4 w-1/4 ">
             {/* Header với icon điện thoại và X */}
             <div className="flex items-start gap-4 mb-2">
                 <div className="bg-gray-100 rounded-full p-3">

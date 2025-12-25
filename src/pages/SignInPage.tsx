@@ -24,7 +24,7 @@ export default function SignInPage() {
                     <FormLogin user={user} setUser={setUser}></FormLogin>
                 </div>
             </div>
-            <RingingModal open={true}></RingingModal>
+            {/* <RingingModal open={true}></RingingModal> */}
         </>
     );
 }

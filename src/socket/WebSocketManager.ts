@@ -4,12 +4,17 @@ import store, { RootState } from '../redux/store';
 import { setReCode } from '../redux/userReducer';
 import { SOCKET_BASE_URL } from '../config/utils';
 import { useNavigate } from 'react-router-dom';
+import { ReCodeInterface } from '../model/User';
 class WebSocketManager {
     private static webSocketManager: WebSocketManager;
 
     private socket: WebSocket | null = null;
 
     private listeners: Map<string, (msg: WSMessage) => void> = new Map();
+    private reconnectAttempts = 0;
+    private maxReconnectAttempts = 5;
+    private reconnectDelay = 3000;
+    private isReconnecting = false;
 
 
     private constructor() { }
@@ -28,9 +33,7 @@ class WebSocketManager {
         }
         return WebSocketManager.webSocketManager;
     }
-
     public connect2(url: string): Promise<void> {
-
         return new Promise((resolve) => {
             if (this.socket?.readyState === WebSocket.OPEN) {
                 resolve();
@@ -53,14 +56,23 @@ class WebSocketManager {
             this.socket.onclose = () => {
                 this.socket = null;
                 console.log('WebSocket disconnected');
-                // setTimeout(() => {
-                //     this.connect2(SOCKET_BASE_URL).then(() => {
-                //         this.reCode();
-                //     });
-                // }, 500);
-                this.connect2(SOCKET_BASE_URL).then(() => {
-                    this.reCode();
-                })
+                if (!this.isReconnecting && this.reconnectAttempts < this.maxReconnectAttempts) {
+                    this.isReconnecting = true;
+                    this.reconnectAttempts++;
+                    console.log(`Reconnecting... Attempt ${this.reconnectAttempts}`);
+
+                    this.connect2(SOCKET_BASE_URL)
+                        .then(() => {
+                            this.reCode();
+                        })
+                        .catch((err) => {
+                            console.error('Reconnect failed:', err);
+                            this.isReconnecting = false;
+                        });
+                } else if (this.reconnectAttempts >= this.maxReconnectAttempts) {
+                    console.error('Max reconnect attempts reached');
+                    this.isReconnecting = false;
+                }
             }
         });
 
@@ -68,12 +80,15 @@ class WebSocketManager {
     public reCode() {
         console.log('dis connet rồi')
         const user = this.getUser();
+        console.log('gửi đi recode', user)
         this.onMessage("RE_LOGIN", (mes: any) => {
+            const objReCode: ReCodeInterface = mes.data
+            console.log("objReCode", objReCode)
             console.log('re code nhan', mes)
-            if (mes.status === 'success') {
-                store.dispatch(setReCode({ reCode: mes.data.RE_LOGIN_CODE }))
+            if (mes.status === 'success' && typeof objReCode.RE_LOGIN_CODE === 'string') {
+                console.log('lưu vào local storage vs code: ', objReCode.RE_LOGIN_CODE)
+                store.dispatch(setReCode({ reCode: objReCode.RE_LOGIN_CODE }))
             }
-
         })
         this.sendMessage(JSON.stringify({
             action: "onchat",
@@ -96,6 +111,7 @@ class WebSocketManager {
             this.socket.send(message);
         } else {
             console.log('WebSocket is not connected.');
+
         }
     }
     public disconnect(): void {

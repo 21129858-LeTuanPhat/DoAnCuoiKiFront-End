@@ -14,7 +14,8 @@ export default function CallModal({ open, setOpen, typeCall }: { open: boolean, 
     const callMess = {
         callMode: typeCall,
         status: CallStatus.CALLING,
-        roomURL: `${REACT_BASE_URL}/call?roomID=${roomID}`
+        roomURL: `${REACT_BASE_URL}/call?roomID=${roomID}`,
+        roomID: roomID
     }
     const audioRef = useRef<HTMLAudioElement | null>(null);
     useEffect(() => {
