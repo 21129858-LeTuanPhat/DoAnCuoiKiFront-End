@@ -56,6 +56,7 @@ class WebSocketManager {
                 });
             };
         });
+
     }
     public reCode() {
         console.log('dis connet rồi');
@@ -63,12 +64,14 @@ class WebSocketManager {
         this.onMessage('RE_LOGIN', (mes: any) => {
             console.log('re code nhan', mes);
             if (mes.status === 'success') {
-                store.dispatch(setReCode({ reCode: mes.data.RE_LOGIN_CODE }));
+                store.dispatch(setReCode({ reCode: mes.data.RE_LOGIN_CODE }))
             }
-        });
-        this.sendMessage(
-            JSON.stringify({
-                action: 'onchat',
+
+        })
+        this.sendMessage(JSON.stringify({
+            action: "onchat",
+            data: {
+                event: "RE_LOGIN",
                 data: {
                     event: 'RE_LOGIN',
                     data: {
