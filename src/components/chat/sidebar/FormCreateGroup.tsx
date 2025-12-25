@@ -1,9 +1,25 @@
-import { Camera, CircleX } from 'lucide-react';
+import { Camera, CircleX, Plus } from 'lucide-react';
 import React, { use, useRef, useState } from 'react';
 function FormCreateGroup({ onClose }: { onClose: () => void }) {
     const inputRef = useRef<HTMLInputElement>(null);
     const [imageFile, setImageFile] = useState<File | null>(null);
     const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
+    const [memberKeyword, setMemberKeyword] = useState('');
+    const [memberError, setMemberError] = useState<string | null>(null);
+    const [invitedUsers, setInvitedUsers] = useState<string[]>([]);
+    const handleCheckMember = () => {
+        if (memberKeyword.trim() === '') {
+            setMemberError('Vui lòng nhập tên người dùng');
+            return;
+        }
+        if (invitedUsers.includes(memberKeyword.trim())) {
+            setMemberError('Người dùng đã được thêm');
+            return;
+        }
+        setInvitedUsers((prev) => [...prev, memberKeyword.trim()]);
+        setMemberError(null);
+        setMemberKeyword('');
+    };
 
     const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
@@ -55,11 +71,42 @@ function FormCreateGroup({ onClose }: { onClose: () => void }) {
 
                 <div>
                     <label className="text-md font-semibold text-black">Thành viên</label>
-                    <input
-                        type="text"
-                        className="w-full px-3 py-2 mt-2 border rounded-lg focus:outline-none"
-                        placeholder="Gửi lời mời thành viên vào nhóm..."
-                    />
+
+                    <div className="flex gap-2 mt-2">
+                        <input
+                            type="text"
+                            value={memberKeyword}
+                            onChange={(e) => setMemberKeyword(e.target.value)}
+                            className="flex-1 px-3 py-2 border rounded-lg focus:outline-none"
+                            placeholder="Gửi lời mời thành viên vào nhóm..."
+                        />
+                        <button
+                            type="button"
+                            onClick={handleCheckMember}
+                            className="flex justify-end items-center px-3 w-10 h-10 rounded-full  bg-blue-500 text-white"
+                        >
+                            <Plus />
+                        </button>
+                    </div>
+
+                    {invitedUsers.length > 0 && (
+                        <div className="mt-3 flex flex-col gap-2">
+                            {invitedUsers.map((u) => (
+                                <div key={u} className="flex justify-between items-center px-3 py-2 border rounded-lg">
+                                    <span>{u}</span>
+                                    <button
+                                        type="button"
+                                        onClick={() => setInvitedUsers((prev) => prev.filter((item) => item !== u))}
+                                        className="text-gray-500 hover:text-red-500"
+                                    >
+                                        <CircleX size={18} />
+                                    </button>
+                                </div>
+                            ))}
+                        </div>
+                    )}
+
+                    {memberError && <p className="mt-1 ml-1 text-sm text-red-500">{memberError}</p>}
                 </div>
 
                 <button className="mt-4 py-2 rounded-3xl bg-gradient-to-r from-blue-500 to-pink-500 text-white font-semibold">

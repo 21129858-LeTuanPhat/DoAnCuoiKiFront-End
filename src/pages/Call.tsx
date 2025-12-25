@@ -1,8 +1,8 @@
-import React from 'react'
+import React from 'react';
 import { ZegoUIKitPrebuilt } from '@zegocloud/zego-uikit-prebuilt';
 export default function Call() {
-    const roomID = 'jasvcjhajcbahjcbahjcbajcbacacascbasc'
-    const serverSecret = "da768b23960152fd9c95a29a5d3624e3";
+    const roomID = 'jasvcjhajcbahjcbahjcbajcbacacascbasc';
+    const serverSecret = 'da768b23960152fd9c95a29a5d3624e3';
     let myMeeting = async (element: any) => {
         // generate Kit Token
         const appID = 1657641729;
@@ -34,8 +34,10 @@ export default function Call() {
                 {
                     name: 'Personal link',
                     url:
-                        window.location.protocol + '//' +
-                        window.location.host + window.location.pathname +
+                        window.location.protocol +
+                        '//' +
+                        window.location.host +
+                        window.location.pathname +
                         '?roomID=' +
                         roomID,
                 },
@@ -54,17 +56,16 @@ export default function Call() {
             showTextChat: false, // Tắt chat nếu không cần
             showUserList: false, // Tắt danh sách user nếu không cần
             showRoomTimer: true, // Hiển thị thời gian cuộc gọi
-            onUserAvatarSetter: (userList) => {
-                userList.forEach(user => {
-                    // Bạn có thể set avatar khác nhau cho từng user
-                    if (user && typeof user.setUserAvatar === 'function') {
-                        user.setUserAvatar("https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSHuY484VNuH6DQea0DwgHsAYgZCbR0a-jxmLbciys8zoHjd1JJZut8oRSdcQE0lQnAyckwew&s=10");
-                    }
-                });
-            },
+            // onUserAvatarSetter: (userList) => {
+            //     userList.forEach(user => {
+            //         // Bạn có thể set avatar khác nhau cho từng user
+            //         if (user && typeof user.setUserAvatar === 'function') {
+            //             user.setUserAvatar("https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSHuY484VNuH6DQea0DwgHsAYgZCbR0a-jxmLbciys8zoHjd1JJZut8oRSdcQE0lQnAyckwew&s=10");
+            //         }
+            //     });
+            // },
         });
-
-    }
+    };
 
     const handleClick = () => {
         const paddingTop = 50;
@@ -72,27 +73,16 @@ export default function Call() {
         const width = window.innerWidth - paddingLeft * 2;
         const height = window.innerHeight - paddingTop * 2;
 
-
         window.open(
-            "https://example.com",
-            "_blank",
-            `width=${width},height=${height},left=${paddingLeft},top=${paddingTop}`
+            'https://example.com',
+            '_blank',
+            `width=${width},height=${height},left=${paddingLeft},top=${paddingTop}`,
         );
     };
     return (
         <div>
-            <div
-                className="myCallContainer"
-                ref={myMeeting as any}
-                style={{ width: '100vw', height: '100vh' }}
-            ></div>
-            <button onClick={handleClick}>
-                Mở popup với padding
-            </button>
+            <div className="myCallContainer" ref={myMeeting as any} style={{ width: '100vw', height: '100vh' }}></div>
+            <button onClick={handleClick}>Mở popup với padding</button>
         </div>
-
-
-
-    )
-
+    );
 }
