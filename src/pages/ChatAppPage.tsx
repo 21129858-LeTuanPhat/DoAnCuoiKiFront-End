@@ -4,14 +4,18 @@ import MainContent from '../components/chat/messageboard/MainContent';
 import Welcome from '../components/chat/messageboard/Welcome';
 import SideBar from '../components/chat/sidebar/SideBar';
 import { useBoardContext } from '../hooks/useBoardContext';
-import { useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { RootState } from '../redux/store';
 import { useNavigate } from 'react-router-dom';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
+import { incomingCall } from '../redux/callReducer'
 import WebSocketManager from '../socket/WebSocketManager';
 import { ChatMessage } from '../model/ChatMessage';
+import { CallInterface, CallStatus } from '../model/CallProps';
+import RingingModal from '../components/modal/RingingModal';
 function Home() {
     const { selectedUser } = useBoardContext();
+    const callStore = useSelector((state: RootState) => state.call)
     const user = useSelector((state: RootState) => state.user);
     const navigate = useNavigate();
     console.log('selected user home' + selectedUser);
@@ -25,13 +29,13 @@ function Home() {
     //     <div></div>
     // ) :
 
+    const dispatch = useDispatch()
     useEffect(() => {
         const socket = WebSocketManager.getInstance()
         socket.onMessage("haha", (msg: any) => {
             console.log('socket: ', msg)
             if (msg.status === 'success' && msg.event === 'SEND_CHAT') {
-
-                const newMessage: ChatMessage = {
+                const newMess: ChatMessage = {
                     id: msg.data.id,
                     name: msg.data.name,
                     type: msg.data.type,
@@ -39,29 +43,47 @@ function Home() {
                     mes: decodeURIComponent(msg.data.mes),
                     createAt: new Date().toISOString(),
                 };
-                console.log('new mess', newMessage)
+                try {
+                    const obj: CallInterface = JSON.parse(newMess.mes)
+
+                    if (Object.prototype.toString.call(obj) !== '[object Object]') {
+                        return
+                    }
+                    if (obj.status === CallStatus.CALLING) {
+                        console.log('obj mess', obj)
+                        console.log('obj url', obj.roomURL)
+                        console.log('name newMess', newMess.name)
+                        console.log('calling')
+                        dispatch(incomingCall({ roomURL: obj.roomURL, roomID: obj.roomID, caller: newMess.name, callMode: obj.callMode }))
+                    }
+                } catch {
+                }
             }
-
         });
-
     }, [])
+    console.log('call store', callStore)
     return (
-        <div className="flex h-screen ">
-            <aside className="hidden md:block w-[25%] relative">
-                <SideBar />
-            </aside>
-            <main className="w-[75%]  md:block flex flex-col bg-[#f0f4fa] shadow-[0_4px_6px_-1px_rgba(0,0,0,0.2)]">
-                {selectedUser === '' ? (
-                    <Welcome />
-                ) : (
-                    <div>
-                        <Header username={selectedUser} />
-                        <MainContent key={selectedUser} username={selectedUser} />
-                        <Footer username={selectedUser} />
-                    </div>
-                )}
-            </main>
-        </div>
+        <>
+            {callStore.callStatus === CallStatus.RINGING && (<RingingModal open={true} />)}
+            <div className="flex h-screen ">
+                <aside className="hidden md:block w-[25%] relative">
+                    <SideBar />
+                </aside>
+                <main className="w-[75%]  md:block flex flex-col bg-[#f0f4fa] shadow-[0_4px_6px_-1px_rgba(0,0,0,0.2)]">
+                    {selectedUser === '' ? (
+                        <Welcome />
+                    ) : (
+                        <div>
+                            <Header username={selectedUser} />
+                            <MainContent key={selectedUser} username={selectedUser} />
+                            <Footer username={selectedUser} />
+                        </div>
+                    )}
+                </main>
+            </div>
+
+        </>
     );
+
 }
 export default Home;

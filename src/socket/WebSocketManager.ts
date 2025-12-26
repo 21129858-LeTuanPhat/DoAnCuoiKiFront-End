@@ -51,7 +51,6 @@ class WebSocketManager {
 
             this.socket.onerror = (err) => {
                 console.log('lỗi:', err);
-
             };
             this.socket.onclose = () => {
                 this.socket = null;
@@ -75,9 +74,9 @@ class WebSocketManager {
                 }
             }
         });
-
     }
     public reCode() {
+        this.unSubcribe("RE_LOGIN");
         console.log('dis connet rồi')
         const user = this.getUser();
         console.log('gửi đi recode', user)
@@ -111,7 +110,6 @@ class WebSocketManager {
             this.socket.send(message);
         } else {
             console.log('WebSocket is not connected.');
-
         }
     }
     public disconnect(): void {

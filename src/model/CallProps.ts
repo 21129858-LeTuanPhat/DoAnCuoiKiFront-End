@@ -16,7 +16,7 @@ export enum CallStatus {
     IDLE = 'idle',
     CALLING = 'calling',
     RINGING = 'ringing',
-    CONNECTED = 'connected',
+    IN_CALL = 'inCall',
     ENDED = 'ended',
 }
 
@@ -25,8 +25,37 @@ export enum CallStatus {
 export interface CallInterface {
     callMode: string,
     roomID: string,
-    rommURL: string,
+    roomURL: string,
     status: string
 }
+export enum ICallMode {
+    VOICE = 'voice',
+    VIDEO = 'video'
 
+}
+
+
+export const VOICE_CONFIG = {
+    turnOnCameraWhenJoining: false,
+    turnOnMicrophoneWhenJoining: true,
+    showMyCameraToggleButton: false,
+    showMyMicrophoneToggleButton: true,
+    showAudioVideoSettingsButton: false,
+    showScreenSharingButton: false,
+    showTextChat: false,
+    showUserList: true,
+    showRoomTimer: true,
+}
+
+export const VIDEO_CONFIG = {
+    turnOnCameraWhenJoining: true,
+    turnOnMicrophoneWhenJoining: true,
+    showMyCameraToggleButton: true,
+    showMyMicrophoneToggleButton: true,
+    showAudioVideoSettingsButton: true,
+    showScreenSharingButton: true,
+    showTextChat: true,
+    showUserList: true,
+    showRoomTimer: true,
+}
 

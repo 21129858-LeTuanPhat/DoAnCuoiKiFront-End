@@ -4,10 +4,12 @@ import { Login } from '@mui/icons-material';
 import SignUpPage from '../pages/SignUpPage';
 import SignInPage from '../pages/SignInPage';
 import Call from '../pages/Call';
+import RootLayout from '../RootLayout';
 
 export const routers = createBrowserRouter(
-    [
-        {
+    [{
+        element: <RootLayout />,
+        children: [{
             path: '/',
             element: <Home />,
         },
@@ -22,7 +24,7 @@ export const routers = createBrowserRouter(
         {
             path: '/call',
             element: <Call />,
-        },
-
+        },]
+    }
     ],
 );
