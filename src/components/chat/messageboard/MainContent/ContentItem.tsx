@@ -3,6 +3,7 @@ import { useBoardContext } from '../../../../hooks/useBoardContext';
 import { RootState } from '../../../../redux/store';
 import { useSelector } from 'react-redux';
 import FileItem from './FileItem';
+import FileImage from './FileImage';
 function ContentItem({ message }: { message: ChatMessage }) {
     const { selectedUser, type } = useBoardContext();
     const user = useSelector((state: RootState) => state.user);
@@ -21,9 +22,9 @@ function ContentItem({ message }: { message: ChatMessage }) {
                                 <p className="break-words">{message.mes.data}</p>
                             </div>
                         ) : message.mes.type === 1 ? (
-                            <img src={message.mes.data} className="max-w-xs rounded-xl" />
+                            <FileImage data={message.mes.data} check={false} />
                         ) : (
-                            <FileItem data={message.mes.data} />
+                            <FileItem data={message.mes.data} check={true} />
                         )}
                     </div>
                     <div className="text-xs text-gray-500 mt-1">
@@ -44,15 +45,13 @@ function ContentItem({ message }: { message: ChatMessage }) {
                 <div className="mt-4">
                     <div className="flex items-start gap-2 flex-row-reverse">
                         {message.mes.type === 0 ? (
-                            <div className="max-w-xl break-words bg-white text-black p-2 rounded-xl">
+                            <div className="max-w-xl break-words bg-purple-400 text-white p-2 rounded-xl">
                                 <p className="break-words">{message.mes.data}</p>
                             </div>
                         ) : message.mes.type === 1 ? (
-                            <img src={message.mes.data} className="max-w-xs rounded-xl" />
+                            <FileImage data={message.mes.data} check={true} />
                         ) : (
-                            <a className="max-w-xs rounded-xl" href={message.mes.data} download>
-                                Download
-                            </a>
+                            <FileItem data={message.mes.data} check={true} />
                         )}
                     </div>
                     <div className="text-xs text-gray-500 mt-1 text-right">
@@ -83,11 +82,9 @@ function ContentItem({ message }: { message: ChatMessage }) {
                             <p className="break-words">{message.mes.data}</p>
                         </div>
                     ) : message.mes.type === 1 ? (
-                        <img src={message.mes.data} className="max-w-xs rounded-xl" />
+                        <FileImage data={message.mes.data} check={false} />
                     ) : (
-                        <a className="max-w-xs rounded-xl" href={message.mes.data} download>
-                            Download
-                        </a>
+                        <FileItem data={message.mes.data} check={false} />
                     )}
                 </div>
                 <div className="text-xs text-gray-500 mt-1">
@@ -108,15 +105,13 @@ function ContentItem({ message }: { message: ChatMessage }) {
             <div className="mt-4">
                 <div className="flex items-start gap-2 flex-row-reverse">
                     {message.mes.type === 0 ? (
-                        <div className="max-w-xl break-words bg-white text-black p-2 rounded-xl">
+                        <div className="max-w-xl break-words bg-purple-400 text-white p-2 rounded-xl">
                             <p className="break-words">{message.mes.data}</p>
                         </div>
                     ) : message.mes.type === 1 ? (
-                        <img src={message.mes.data} className="max-w-xs rounded-xl" />
+                        <FileImage data={message.mes.data} check={true} />
                     ) : (
-                        <a className="max-w-xs rounded-xl" href={message.mes.data} download>
-                            Download
-                        </a>
+                        <FileItem data={message.mes.data} check={true} />
                     )}
                 </div>
                 <div className="text-xs text-gray-500 mt-1 text-right">
