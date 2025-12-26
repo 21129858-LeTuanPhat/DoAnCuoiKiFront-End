@@ -1,6 +1,6 @@
 import supabaseClient from '../config/supabaseConfig';
 
-async function handleUploadImage(file: File) {
+async function handleUploadImage(file: File, bucket: string) {
     console.log('HANDLE UPLOAD IMAGE CALLED');
     console.log('FILE TO UPLOAD:', file);
     if (!file) {
@@ -13,7 +13,7 @@ async function handleUploadImage(file: File) {
     const fileName = `${Date.now()}_${file.name}`;
     const filePath = `${fileName}`;
 
-    const { data: uploadData, error } = await supabaseClient.storage.from('profile_image').upload(filePath, file);
+    const { data: uploadData, error } = await supabaseClient.storage.from(bucket).upload(filePath, file);
 
     console.log('STEP 2: after upload');
 
@@ -24,7 +24,7 @@ async function handleUploadImage(file: File) {
 
     console.log('UPLOAD DATA:', uploadData);
 
-    const { data } = supabaseClient.storage.from('profile_image').getPublicUrl(filePath);
+    const { data } = supabaseClient.storage.from(bucket).getPublicUrl(filePath);
 
     console.log('STEP 3: public url', data);
     console.log('URL IMAGE >>>', data.publicUrl);

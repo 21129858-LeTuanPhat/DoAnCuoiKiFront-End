@@ -2,6 +2,7 @@ import { db } from './../config/firebaseConfig';
 import { ref, set, get } from 'firebase/database';
 import ProfileForm from '../model/ProfileForm';
 import RequestConnect from '../model/RequestConnect';
+import { create } from 'domain';
 
 async function handleChangeProfile({ profileData }: { profileData: ProfileForm }) {
     const key = `profiles/${profileData.username}`;
@@ -50,10 +51,54 @@ async function getInvitation(
             imageUrl: value.imageUrl,
             createAt: value.createdAt,
             status: value.status,
+            type: type
         };
     });
 
     return listConnect as RequestConnect[];
 }
 
-export { handleChangeProfile, getUserProfile, getInvitation };
+async function createGroup({
+    name,
+    description,
+    imageUrl,
+    adminUsername,
+    members,
+}: {
+    name: string;
+    description?: string;
+    imageUrl?: string;
+    adminUsername: string;
+    members: string[];
+}) {
+    const groupRef = `groups/${name}`;
+    await set(ref(db, groupRef), {
+        name,
+        description: description || '',
+        imageUrl: imageUrl || '',
+        adminUsername,
+        createAt: Date.now(),
+    });
+    const memberRef = `group_members/${name}`;
+
+    await set(ref(db, memberRef + '/' + adminUsername), {
+        role: 'admin',
+        joinAt: Date.now(),
+    });
+
+    for (const member of members) {
+        await set(ref(db, `sent_requests/room/${name}/${member}`), {
+            status: 'pending',
+            createdAt: Date.now(),
+            imageUrl: imageUrl || '',
+        });
+
+        await set(ref(db, `invitations/room/${member}/${name}`), {
+            status: 'pending',
+            createdAt: Date.now(),
+            imageUrl: imageUrl || '',
+        });
+    }
+}
+
+export { handleChangeProfile, getUserProfile, getInvitation, createGroup };
