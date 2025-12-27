@@ -3,6 +3,10 @@ import WebSocketManager from '../../../../socket/WebSocketManager';
 import ContentItem from '../MainContent/ContentItem';
 import { useBoardContext } from '../../../../hooks/useBoardContext';
 import { ChatMessage } from '../../../../model/ChatMessage';
+import ContentItemCall from '../ItemCall';
+import RingingModal from '../../../modal/RingingModal';
+import { CallInterface, CallStatus } from '../../../../model/CallProps';
+
 function MainContent({ username }: any) {
     const [page, setPage] = useState<number>(1);
     const divRef = useRef<HTMLDivElement>(null);
@@ -15,11 +19,7 @@ function MainContent({ username }: any) {
         setListMessage([]);
         setPage(1);
     }, [username]);
-
     useEffect(() => {
-        console.log('useeff2');
-
-        console.log('e2');
         const ws = WebSocketManager.getInstance();
         if (page === 1) {
             setInitialLoading(true);
@@ -183,6 +183,19 @@ function MainContent({ username }: any) {
         }
     }, [listMessage]);
 
+    // listMessage.forEach((message) => {
+    //     try {
+    //         const obj = JSON.parse(message.mes);
+
+    //         if (obj && typeof obj === 'object' && obj.roomID) {
+    //             // ghi đè => luôn là trạng thái cuối
+    //             lastCallByRoom[obj.roomID] = message;
+    //         }
+    //     } catch {
+    //         // message thường thì bỏ qua ở bước này
+    //     }
+    // });
+    console.log('list mess', listMessage);
     return (
         <section className="bg-[#f0f4fa] h-[calc(737.6px-72px-65px)]">
             {initialLoading ? (
@@ -208,9 +221,21 @@ function MainContent({ username }: any) {
                     )}
 
                     <ul className="p-2">
-                        {listMessage.map((message, index) => (
-                            <ContentItem message={message} key={index} />
-                        ))}
+                        {listMessage.map((message, index) => {
+                            if (message.type > 10) {
+                                const obj: CallInterface = JSON.parse(message.mes.data);
+                                // console.log('try', obj)
+                                if (Object.prototype.toString.call(obj) === '[object Object]') {
+                                    return (
+                                        <>
+                                            {/* {obj.status === CallStatus.CALLING && (< RingingModal open={true} />)} */}
+                                            <ContentItemCall message={message} key={index} />
+                                        </>
+                                    );
+                                }
+                                return <ContentItem message={message} key={index} />;
+                            }
+                        })}
                     </ul>
                 </div>
             )}

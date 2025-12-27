@@ -16,3 +16,8 @@ export interface UserRegistry {
     username: string,
     password: string
 }
+
+
+export interface ReCodeInterface {
+    RE_LOGIN_CODE: string
+}
