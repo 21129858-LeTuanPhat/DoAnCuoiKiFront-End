@@ -34,6 +34,7 @@ function MainContent({ username }: any) {
 
                         const parsedList: ChatMessage[] = msg.data.map((item: any) => {
                             const mesObj = JSON.parse(decodeURIComponent(item.mes));
+
                             return {
                                 id: item.id,
                                 name: item.name,
@@ -222,18 +223,18 @@ function MainContent({ username }: any) {
 
                     <ul className="p-2">
                         {listMessage.map((message, index) => {
-                            if (message.type > 10) {
-                                const obj: CallInterface = JSON.parse(message.mes.data);
-                                // console.log('try', obj)
-                                if (Object.prototype.toString.call(obj) === '[object Object]') {
-                                    return (
-                                        <>
-                                            {/* {obj.status === CallStatus.CALLING && (< RingingModal open={true} />)} */}
-                                            <ContentItemCall message={message} key={index} />
-                                        </>
-                                    );
-                                }
-                            }
+                            // if (message.type > 10) {
+                            //     const obj: CallInterface = JSON.parse(message.mes.data);
+                            //     // console.log('try', obj)
+                            //     if (Object.prototype.toString.call(obj) === '[object Object]') {
+                            //         return (
+                            //             <>
+                            //                 {/* {obj.status === CallStatus.CALLING && (< RingingModal open={true} />)} */}
+                            //                 <ContentItemCall message={message} key={index} />
+                            //             </>
+                            //         );
+                            //     }
+                            // }
                             return <ContentItem message={message} key={index} />;
                         })}
                     </ul>

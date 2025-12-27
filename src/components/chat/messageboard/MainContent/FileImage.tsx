@@ -4,7 +4,8 @@ interface DataImage {
     data: string;
     check: boolean;
 }
-function FileImage({ data, check = false }: DataImage) {
+function FileImage({ data = '', check = false }: DataImage) {
+    console.log(typeof data);
     const filename = data.split('/').pop() ?? '';
     const parts = filename.split('-');
     const afterDash = parts.slice(1).join('-');

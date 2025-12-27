@@ -4,9 +4,13 @@ import wordIcon from '../../../../assets/img/icon_file/word.png';
 import txtIcon from '../../../../assets/img/icon_file/txt.png';
 import excelIcon from '../../../../assets/img/icon_file/excel.png';
 import pdfIcon from '../../../../assets/img/icon_file/pdf.png';
-
-function FileItem({ data, check = false }: any) {
-    const filename = data.split('/').pop();
+interface DataFile {
+    data: string;
+    check: boolean;
+}
+function FileItem({ data = '', check = false }: DataFile) {
+    console.log(typeof data);
+    const filename = data.split('/').pop() ?? '';
     const parts = filename.split('-');
     const afterDash = parts.slice(1).join('-');
     let FileItem: JSX.Element | null = null;
