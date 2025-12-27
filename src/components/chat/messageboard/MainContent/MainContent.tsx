@@ -233,8 +233,8 @@ function MainContent({ username }: any) {
                                         </>
                                     );
                                 }
-                                return <ContentItem message={message} key={index} />;
                             }
+                            return <ContentItem message={message} key={index} />;
                         })}
                     </ul>
                 </div>

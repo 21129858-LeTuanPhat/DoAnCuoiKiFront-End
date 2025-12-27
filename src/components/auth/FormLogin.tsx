@@ -95,7 +95,7 @@ export default function FormLogin({ user, setUser }: FormLoginProps) {
                         {error.password && <p className="text-red-500 text-xs italic">Vui lòng nhập mật khẩu</p>}
                         {/*  */}
                         <div className="flex justify-end">
-                            <Link to="/registry" className="text-blue-500 text-sm hover:underline">
+                            <Link to="/register" className="text-blue-500 text-sm hover:underline">
                                 Đăng kí tài khoản?
                             </Link>
                         </div>
