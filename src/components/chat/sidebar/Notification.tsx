@@ -1,7 +1,10 @@
 import { CircleX } from 'lucide-react';
 import { useContext, useEffect, useMemo, useState } from 'react';
-import { getInvitation } from './../../../services/firebaseService';
+import { getInvitation, changeStatusRoomResponse } from './../../../services/firebaseService';
 import { ProfileContext } from '../Context/ProfileCotext';
+import WebSocketManager from '../../../socket/WebSocketManager';
+import { ResponseStatus } from '../../../model/RequestConnect';
+
 import RequestConnect from '../../../model/RequestConnect';
 
 function Notification({ onClose }: { onClose: () => void }) {
@@ -13,7 +16,7 @@ function Notification({ onClose }: { onClose: () => void }) {
 
     const roomRequests = useMemo(() => listConnect.filter((item) => item.type === 'room'), [listConnect]);
 
-    const getStatus = (status: string): string => {
+    const getStatus = (status: string, type: string): string => {
         switch (status) {
             case 'pending':
                 return tab === 'sent' ? 'Đang chờ' : 'Chấp nhận';
@@ -22,7 +25,7 @@ function Notification({ onClose }: { onClose: () => void }) {
             case 'rejected':
                 return 'Đã từ chối';
             case 'connected':
-                return 'Đã kết bạn';
+                return `Đã ${type === 'people' ? 'kết bạn' : 'tham gia nhóm'}`;
             default:
                 return '';
         }
@@ -45,6 +48,40 @@ function Notification({ onClose }: { onClose: () => void }) {
         };
         fetchNotifications();
     }, [tab]);
+    const handleResponed = async (changeStatus: ResponseStatus, type: string, request: RequestConnect) => {
+        if (request.status !== 'pending') return;
+
+        if (changeStatus === 'connected') {
+            const ws = WebSocketManager.getInstance();
+
+            ws.sendMessage(
+                JSON.stringify({
+                    action: 'onchat',
+                    data: {
+                        event: 'JOIN_ROOM',
+                        data: {
+                            name: profileInfor?.username!,
+                        },
+                    },
+                }),
+            );
+        }
+
+        await changeStatusRoomResponse({
+            type,
+            request,
+            status: changeStatus,
+            username: profileInfor?.username!,
+        });
+
+        setListConnect((prev) =>
+            prev.map((item) =>
+                item.username === request.username && item.type === request.type
+                    ? { ...item, status: changeStatus }
+                    : item,
+            ),
+        );
+    };
 
     return (
         <div className="flex justify-center  items-center fixed inset-0 bg-black/40 z-50">
@@ -95,8 +132,14 @@ function Notification({ onClose }: { onClose: () => void }) {
                                         <p className="text-[#85d712] font-medium text-sm">{connect.username}</p>
                                     </div>
 
-                                    <button className="px-3 py-1 text-sm bg-blue-500 text-white rounded-lg hover:bg-blue-600">
-                                        {getStatus(connect.status)}
+                                    <button
+                                        className={`px-3 py-1 text-sm bg-blue-500 text-white rounded-lg hover:bg-blue-600 ${
+                                            connect.status !== 'pending' ? 'opacity-50 cursor-not-allowed' : ''
+                                        }`}
+                                        disabled={connect.status !== 'pending'}
+                                        onClick={() => handleResponed('connected', 'people', connect)}
+                                    >
+                                        {getStatus(connect.status, 'people')}
                                     </button>
                                 </div>
                             ))
@@ -127,8 +170,14 @@ function Notification({ onClose }: { onClose: () => void }) {
                                         <p className="text-[#85d712] font-medium text-sm">{connect.username}</p>
                                     </div>
 
-                                    <button className="px-3 py-1 text-sm bg-blue-500 text-white rounded-lg hover:bg-blue-600">
-                                        {getStatus(connect.status)}
+                                    <button
+                                        className={`px-3 py-1 text-sm bg-blue-500 text-white rounded-lg hover:bg-blue-600 ${
+                                            connect.status !== 'pending' ? 'opacity-50 cursor-not-allowed' : ''
+                                        }`}
+                                        disabled={connect.status !== 'pending'}
+                                        onClick={() => handleResponed('connected', 'room', connect)}
+                                    >
+                                        {getStatus(connect.status, 'room')}
                                     </button>
                                 </div>
                             ))

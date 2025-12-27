@@ -6,6 +6,7 @@ import WebSocketManager from '../../../socket/WebSocketManager';
 import { useSelector } from 'react-redux';
 import { RootState } from '../../../redux/store';
 import { LoadingProfileSkeleton } from '../../modal/LoadingSkeleton';
+import { WSMessage } from '../../../model/WSMessage';
 
 function FormCreateGroup({ onClose }: { onClose: () => void }) {
     const inputRef = useRef<HTMLInputElement>(null);
@@ -28,9 +29,30 @@ function FormCreateGroup({ onClose }: { onClose: () => void }) {
             setMemberError('Người dùng đã được thêm');
             return;
         }
-        setInvitedUsers((prev) => [...prev, memberKeyword.trim()]);
-        setMemberError(null);
-        setMemberKeyword('');
+        const webSocket = WebSocketManager.getInstance();
+
+        webSocket.onMessage('CHECK_USER_EXIST', (msg: WSMessage) => {
+            if (msg.status === 'success' && msg.data.status === true) {
+                setInvitedUsers((prev) => [...prev, memberKeyword.trim()]);
+                setMemberError(null);
+            } else {
+                setMemberError('Người dùng không tồn tại');
+            }
+            setMemberKeyword('');
+            webSocket.unSubcribe('CHECK_USER_EXIST');
+        });
+
+        webSocket.sendMessage(
+            JSON.stringify({
+                action: 'onchat',
+                data: {
+                    event: 'CHECK_USER_EXIST',
+                    data: {
+                        user: memberKeyword.trim(),
+                    },
+                },
+            }),
+        );
     };
 
     const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {

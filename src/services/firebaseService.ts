@@ -1,7 +1,7 @@
 import { db } from './../config/firebaseConfig';
 import { ref, set, get } from 'firebase/database';
 import ProfileForm from '../model/ProfileForm';
-import RequestConnect from '../model/RequestConnect';
+import RequestConnect, { ResponseStatus } from '../model/RequestConnect';
 import { create } from 'domain';
 
 async function handleChangeProfile({ profileData }: { profileData: ProfileForm }) {
@@ -51,7 +51,7 @@ async function getInvitation(
             imageUrl: value.imageUrl,
             createAt: value.createdAt,
             status: value.status,
-            type: type
+            type: type,
         };
     });
 
@@ -101,4 +101,44 @@ async function createGroup({
     }
 }
 
-export { handleChangeProfile, getUserProfile, getInvitation, createGroup };
+async function changeStatusRoomResponse({
+    type,
+    request,
+    status,
+    username,
+}: {
+    type: string;
+    request: RequestConnect;
+    status: ResponseStatus;
+    username: string;
+}) {
+    const key = `invitations/${request.type}/${username}/${request.username}`;
+    await set(ref(db, key), {
+        status: status,
+        createdAt: request.createAt,
+        imageUrl: request.imageUrl,
+    });
+
+    const sentKey = `sent_requests/${request.type}/${request.username}/${username}`;
+    await set(ref(db, sentKey), {
+        status: status,
+        createdAt: request.createAt,
+        imageUrl: request.imageUrl,
+    });
+    console.log('STATUS', status);
+    if (status !== 'connected') return;
+
+    if (type === 'people') {
+        const key = [username, request.username].sort().join('_');
+        const connRef = ref(db, `connections/people/${key}`);
+        await set(connRef, true);
+    } else if (type === 'room') {
+        const memberRef = `group_members/${request.username}/${username}`;
+        await set(ref(db, memberRef), {
+            role: 'member',
+            joinAt: Date.now(),
+        });
+    }
+}
+
+export { handleChangeProfile, getUserProfile, getInvitation, createGroup, changeStatusRoomResponse };
