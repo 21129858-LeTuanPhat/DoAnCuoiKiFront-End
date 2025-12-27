@@ -18,7 +18,6 @@ function Header({ username }: { username: string }) {
         setModal(true);
         setType(ICallMode.VIDEO);
     };
-
     const hanldeVideo = () => {
         setModal(true);
         setType(ICallMode.VIDEO);

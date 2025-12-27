@@ -14,7 +14,9 @@ import { ChatMessage, ISendMessage, TypeMess } from '../model/ChatMessage';
 import { CallInterface, CallStatus } from '../model/CallProps';
 import RingingModal from '../components/modal/RingingModal';
 function Home() {
-    const { selectedUser } = useBoardContext();
+
+    const { listMessage, setListMessage, selectedUser } = useBoardContext();
+
     const callStore = useSelector((state: RootState) => state.call);
     const user = useSelector((state: RootState) => state.user);
     const navigate = useNavigate();

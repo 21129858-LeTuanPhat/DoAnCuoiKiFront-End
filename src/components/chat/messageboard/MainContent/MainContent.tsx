@@ -2,7 +2,7 @@ import { useEffect, useRef, useState, useLayoutEffect } from 'react';
 import WebSocketManager from '../../../../socket/WebSocketManager';
 import ContentItem from '../MainContent/ContentItem';
 import { useBoardContext } from '../../../../hooks/useBoardContext';
-import { ChatMessage } from '../../../../model/ChatMessage';
+import { ChatMessage, TypeMess } from '../../../../model/ChatMessage';
 import ContentItemCall from '../ItemCall';
 import RingingModal from '../../../modal/RingingModal';
 import { CallInterface, CallStatus } from '../../../../model/CallProps';
@@ -28,32 +28,39 @@ function MainContent({ username }: any) {
         }
         if (type === 'people') {
             ws.onMessage('GET_PEOPLE_CHAT_MES', (msg) => {
+                console.log('msg nè', msg)
                 if (msg.status === 'success') {
                     if (msg.event === 'GET_PEOPLE_CHAT_MES') {
+                        console.log('GET_PEOPLE_CHAT_MES nè')
                         oldScrollHeightRef.current = divRef.current?.scrollHeight || 0;
-
                         const parsedList: ChatMessage[] = msg.data.map((item: any) => {
-                            const mesObj = JSON.parse(decodeURIComponent(item.mes));
+                            try {
+                                const mesObj = JSON.parse(decodeURIComponent(item.mes));
+                                console.log('mess obj', mesObj)
+                                return {
+                                    id: item.id,
+                                    name: item.name,
+                                    type: item.type,
+                                    to: item.to,
+                                    mes: {
+                                        type: mesObj.type,
+                                        data: mesObj.data,
+                                    },
+                                    createAt: item.createAt,
+                                };
+                            } catch {
+                                console.log('lỗi catch', item)
+                            }
 
-                            return {
-                                id: item.id,
-                                name: item.name,
-                                type: item.type,
-                                to: item.to,
-                                mes: {
-                                    type: mesObj.type,
-                                    data: mesObj.data,
-                                },
-                                createAt: item.createAt,
-                            };
                         });
-
+                        console.log("parsedList", parsedList)
                         setListMessage((prev) => {
                             const newList = parsedList.reverse().concat(prev);
                             return newList;
                         });
                         setInitialLoading(false);
                         setFetchingMore(false);
+
                     } else if (msg.event === 'SEND_CHAT') {
                         oldScrollHeightRef.current = divRef.current?.scrollHeight || 0;
                         const mesObj = JSON.parse(decodeURIComponent(msg.data.mes));
@@ -110,6 +117,7 @@ function MainContent({ username }: any) {
                         });
                         setInitialLoading(false);
                         setFetchingMore(false);
+
                     } else if (msg.event === 'SEND_CHAT') {
                         oldScrollHeightRef.current = divRef.current?.scrollHeight || 0;
                         const mesObj = JSON.parse(decodeURIComponent(msg.data.mes));
@@ -150,6 +158,7 @@ function MainContent({ username }: any) {
             }
         };
     }, [page]);
+    console.log('list mess nè', listMessage)
     useEffect(() => {
         console.log('e3');
         const div = divRef.current;
@@ -183,20 +192,21 @@ function MainContent({ username }: any) {
             div.scrollTop = div.scrollHeight - oldScrollHeightRef.current;
         }
     }, [listMessage]);
+    console.log('list mess nè', listMessage)
 
-    // listMessage.forEach((message) => {
-    //     try {
-    //         const obj = JSON.parse(message.mes);
+    // const newMess =
+    //     { type: 0, data: 'cuc cung' }
+    // const newMess2 = { type: 0, data: 'hao han' }
+    // console.log('taiabc den tai 123', encodeURIComponent(JSON.stringify(newMess)))
+    // console.log('tai123 den taiabc', encodeURIComponent(JSON.stringify(newMess2)))
+    // const callMess = {
+    //     callMode: 'voice',
+    //     status: 'calling',
+    //     roomURL: `localhost:3000/call?roomID=1231212&call_mode=12121212`,
+    //     roomID: '123123',
+    // };
+    // console.log('taiabc den tai 123', encodeURIComponent(JSON.stringify({ type: TypeMess.SIGNAL_REQUEST, data: callMess })))
 
-    //         if (obj && typeof obj === 'object' && obj.roomID) {
-    //             // ghi đè => luôn là trạng thái cuối
-    //             lastCallByRoom[obj.roomID] = message;
-    //         }
-    //     } catch {
-    //         // message thường thì bỏ qua ở bước này
-    //     }
-    // });
-    console.log('list mess', listMessage);
     return (
         <section className="bg-[#f0f4fa] h-[calc(737.6px-72px-65px)]">
             {initialLoading ? (
@@ -220,21 +230,26 @@ function MainContent({ username }: any) {
                     {fetchingMore && (
                         <div className="text-center text-sm text-gray-500 py-2">Đang tải tin nhắn cũ...</div>
                     )}
-
                     <ul className="p-2">
                         {listMessage.map((message, index) => {
-                            // if (message.type > 10) {
-                            //     const obj: CallInterface = JSON.parse(message.mes.data);
-                            //     // console.log('try', obj)
-                            //     if (Object.prototype.toString.call(obj) === '[object Object]') {
-                            //         return (
-                            //             <>
-                            //                 {/* {obj.status === CallStatus.CALLING && (< RingingModal open={true} />)} */}
-                            //                 <ContentItemCall message={message} key={index} />
-                            //             </>
-                            //         );
-                            //     }
-                            // }
+                            console.log('hihi  mess', message.mes)
+                            console.log('type of', typeof message.mes.data)
+                            try {
+                                const objectMess: { type: number, data: any } = message.mes
+                                if (objectMess.type >= 10) {
+                                    console.log('type >= 10 nè ')
+
+                                    return (
+                                        <>
+                                            {/* {objectMess.data.status === CallStatus.CALLING && (< RingingModal open={true} />)} */}
+                                            <ContentItemCall message={message} key={index} />
+                                        </>
+                                    );
+                                }
+                            }
+                            catch {
+                                console.log('catch type >= 10 nè ', message.mes)
+                            }
                             return <ContentItem message={message} key={index} />;
                         })}
                     </ul>

@@ -7,7 +7,7 @@ function App() {
     const user = useSelector((state: RootState) => state.user);
     return (
         <div>
-            <RouterProvider router={routers} />;
+            <RouterProvider router={routers} />
         </div>
     );
 }
