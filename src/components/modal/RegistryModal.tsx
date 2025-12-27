@@ -15,7 +15,6 @@ export default function RegistryModal({ openModal }: { openModal: boolean }) {
         <>
             <Modal
                 open={open}
-
                 disableEscapeKeyDown
             >
                 <Box

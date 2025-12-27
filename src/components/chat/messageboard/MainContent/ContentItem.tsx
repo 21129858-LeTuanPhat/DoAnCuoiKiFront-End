@@ -4,6 +4,7 @@ import { RootState } from '../../../../redux/store';
 import { useSelector } from 'react-redux';
 import FileItem from './FileItem';
 import FileImage from './FileImage';
+import { Camera, CameraOff, Phone, PhoneOff } from 'lucide-react';
 function ContentItem({ message }: { message: ChatMessage }) {
     const { selectedUser, type } = useBoardContext();
     const user = useSelector((state: RootState) => state.user);
