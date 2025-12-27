@@ -20,7 +20,6 @@ export default function CallModal({
     const { type, selectedUser } = useBoardContext();
     const username = localStorage.getItem('username');
     console.log('room id:', roomID, ' name', username, 'selected user', selectedUser, ' type: ', type);
-
     const callMess = {
         callMode: typeCall,
         status: CallStatus.CALLING,
@@ -33,7 +32,6 @@ export default function CallModal({
         audioRef.current.volume = 0.7;
         audioRef.current.loop = true;
         audioRef.current.play();
-
         return () => {
             // cleanup khi component unmount
             audioRef.current?.pause();
@@ -56,13 +54,13 @@ export default function CallModal({
                     data: {
                         type: type,
                         to: selectedUser,
-                        mes: encodeURIComponent(JSON.stringify({ type: 10, data: callMess })),
+                        mes: encodeURIComponent(JSON.stringify({ type: TypeMess.SIGNAL_REQUEST, data: callMess })),
                     },
                 },
             }),
         );
     };
-
+    console.log('send call', encodeURIComponent(JSON.stringify({ type: 10, data: callMess })))
     // useEffect(() => {
 
     //     audio.volume = 0.5;
