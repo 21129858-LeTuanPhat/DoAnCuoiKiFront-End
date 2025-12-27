@@ -1,7 +1,7 @@
 
 
 
-export function randomRoomID(length = 8): string {
+export function randomRoomID(length = 16): string {
     const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
     let result = '';
 
@@ -16,11 +16,10 @@ export enum CallStatus {
     IDLE = 'idle',
     CALLING = 'calling',
     RINGING = 'ringing',
+    ACCEPTED = 'accepted',
     IN_CALL = 'inCall',
     ENDED = 'ended',
 }
-
-
 
 export interface CallInterface {
     callMode: string,

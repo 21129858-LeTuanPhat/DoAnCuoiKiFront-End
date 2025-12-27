@@ -6,15 +6,17 @@ import { REACT_BASE_URL } from '../../config/utils'
 import WebSocketManager from '../../socket/WebSocketManager'
 import { useBoardContext } from '../../hooks/useBoardContext'
 import nokiaSound from "../../assets/sound/instagram_call.mp3";
+import { TypeMess } from '../../model/ChatMessage'
 export default function CallModal({ open, setOpen, typeCall }: { open: boolean, setOpen: Dispatch<SetStateAction<boolean>>, typeCall: string }) {
     const roomID = randomRoomID()
     const { type, selectedUser } = useBoardContext();
     const username = localStorage.getItem('username')
     console.log('room id:', roomID, ' name', username, 'selected user', selectedUser, ' type: ', type)
+
     const callMess = {
         callMode: typeCall,
         status: CallStatus.CALLING,
-        roomURL: `${REACT_BASE_URL}/call?roomID=${roomID}`,
+        roomURL: `${REACT_BASE_URL}/call?roomID=${roomID}&call_mode=${typeCall}`,
         roomID: roomID
     }
     const audioRef = useRef<HTMLAudioElement | null>(null);
@@ -46,7 +48,7 @@ export default function CallModal({ open, setOpen, typeCall }: { open: boolean, 
                     data: {
                         type: type,
                         to: selectedUser,
-                        mes: JSON.stringify(callMess)
+                        mes: JSON.stringify({ type: TypeMess.SIGNAL_REQUEST, data: callMess })
                     },
                 },
             }),

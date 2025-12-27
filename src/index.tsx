@@ -14,8 +14,6 @@ root.render(
     // <React.StrictMode>
     <BoardProvider>
         {/* <SocketWrap> */}
-
-
         <Provider store={store}>
             <App /></Provider>
         {/* </SocketWrap> */}

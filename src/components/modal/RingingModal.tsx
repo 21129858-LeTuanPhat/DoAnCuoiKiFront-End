@@ -6,9 +6,10 @@ import { deepOrange } from '@mui/material/colors';
 import nokiaSound from '../../assets/sound/nokia_ringirng.mp3'
 import { useDispatch, useSelector } from 'react-redux';
 import { RootState } from '../../redux/store';
-import { ICallMode } from '../../model/CallProps';
+import { CallStatus, ICallMode } from '../../model/CallProps';
 import { REACT_BASE_URL } from '../../config/utils';
 import { inCall } from '../../redux/callReducer'
+import { sendSignal } from '../../socket/CallWS';
 
 export default function RingingModal({ open }: { open: boolean }) {
     const dispatch = useDispatch()
@@ -34,8 +35,8 @@ export default function RingingModal({ open }: { open: boolean }) {
             "_blank",
             `width=${width},height=${height},left=${paddingLeft},top=${paddingTop}`
         );
+        sendSignal(callStore.caller as string, { type: callStore.callMode as string, roomID: callStore.roomID as string, status: CallStatus.ACCEPTED })
     }
-
     return (
         <div>
             <Modal open={open}>

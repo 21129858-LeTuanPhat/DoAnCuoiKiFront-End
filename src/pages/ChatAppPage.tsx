@@ -10,7 +10,7 @@ import { useNavigate } from 'react-router-dom';
 import { useEffect, useState } from 'react';
 import { incomingCall } from '../redux/callReducer'
 import WebSocketManager from '../socket/WebSocketManager';
-import { ChatMessage } from '../model/ChatMessage';
+import { ChatMessage, ISendMessage, TypeMess } from '../model/ChatMessage';
 import { CallInterface, CallStatus } from '../model/CallProps';
 import RingingModal from '../components/modal/RingingModal';
 function Home() {
@@ -43,19 +43,36 @@ function Home() {
                     mes: decodeURIComponent(msg.data.mes),
                     createAt: new Date().toISOString(),
                 };
-                try {
-                    const obj: CallInterface = JSON.parse(newMess.mes)
 
-                    if (Object.prototype.toString.call(obj) !== '[object Object]') {
-                        return
+                try {
+                    const obj: ISendMessage = JSON.parse(newMess.mes)
+                    console.log('obj nè bạn ơi', obj)
+                    if (obj.type === TypeMess.SIGNAL_REQUEST) {
+                        console.log('signal request')
+                        if (obj.payload.status === CallStatus.CALLING) {
+                            console.log('obj mess', obj)
+                            console.log('obj url', obj.payload.roomURL)
+                            console.log('name newMess', newMess.name)
+                            console.log('calling')
+                            dispatch(incomingCall({ roomURL: obj.payload.roomURL, roomID: obj.payload.roomID, caller: newMess.name, callMode: obj.payload.callMode }))
+                        }
                     }
-                    if (obj.status === CallStatus.CALLING) {
-                        console.log('obj mess', obj)
-                        console.log('obj url', obj.roomURL)
-                        console.log('name newMess', newMess.name)
-                        console.log('calling')
-                        dispatch(incomingCall({ roomURL: obj.roomURL, roomID: obj.roomID, caller: newMess.name, callMode: obj.callMode }))
+                    if (obj.type === TypeMess.SIGNAL_RESPONSE) {
+                        console.log('signal response')
+
+
                     }
+
+                    // if (Object.prototype.toString.call(obj) !== '[object Object]') {
+                    //     return
+                    // }
+                    // if (obj.status === CallStatus.CALLING) {
+                    //     console.log('obj mess', obj)
+                    //     console.log('obj url', obj.roomURL)
+                    //     console.log('name newMess', newMess.name)
+                    //     console.log('calling')
+                    //     dispatch(incomingCall({ roomURL: obj.roomURL, roomID: obj.roomID, caller: newMess.name, callMode: obj.callMode }))
+                    // }
                 } catch {
                 }
             }

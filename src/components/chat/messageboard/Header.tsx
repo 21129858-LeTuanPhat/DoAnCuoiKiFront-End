@@ -5,6 +5,7 @@ import { REACT_BASE_URL } from '../../../config/utils';
 import { useState } from 'react';
 import CallModal from '../../modal/CallModal';
 import { useBoardContext } from '../../../hooks/useBoardContext';
+import { ICallMode } from '../../../model/CallProps';
 function Header({ username }: { username: string }) {
     // const paddingTop = 50;
     // const paddingLeft = 100;
@@ -16,13 +17,12 @@ function Header({ username }: { username: string }) {
     const hanldeVoice = () => {
 
         setModal(true)
-        setType('voice')
+        setType(ICallMode.VIDEO)
     }
 
     const hanldeVideo = () => {
-
         setModal(true)
-        setType('video')
+        setType(ICallMode.VIDEO)
         // window.open(
         //     `${REACT_BASE_URL}/groupcall?call_id=`,
         //     "_blank",
