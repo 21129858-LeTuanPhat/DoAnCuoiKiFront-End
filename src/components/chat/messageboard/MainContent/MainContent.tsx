@@ -1,8 +1,8 @@
 import { useEffect, useRef, useState, useLayoutEffect } from 'react';
-import WebSocketManager from '../../../socket/WebSocketManager';
-import ContentItem from './ContentItem';
-import { useBoardContext } from '../../../hooks/useBoardContext';
-import { ChatMessage } from '../../../model/ChatMessage';
+import WebSocketManager from '../../../../socket/WebSocketManager';
+import ContentItem from '../MainContent/ContentItem';
+import { useBoardContext } from '../../../../hooks/useBoardContext';
+import { ChatMessage } from '../../../../model/ChatMessage';
 function MainContent({ username }: any) {
     const [page, setPage] = useState<number>(1);
     const divRef = useRef<HTMLDivElement>(null);
@@ -31,20 +31,40 @@ function MainContent({ username }: any) {
                 if (msg.status === 'success') {
                     if (msg.event === 'GET_PEOPLE_CHAT_MES') {
                         oldScrollHeightRef.current = divRef.current?.scrollHeight || 0;
+
+                        const parsedList: ChatMessage[] = msg.data.map((item: any) => {
+                            const mesObj = JSON.parse(decodeURIComponent(item.mes));
+                            return {
+                                id: item.id,
+                                name: item.name,
+                                type: item.type,
+                                to: item.to,
+                                mes: {
+                                    type: mesObj.type,
+                                    data: mesObj.data,
+                                },
+                                createAt: item.createAt,
+                            };
+                        });
+
                         setListMessage((prev) => {
-                            const newList = [...msg.data].reverse().concat(prev);
+                            const newList = parsedList.reverse().concat(prev);
                             return newList;
                         });
                         setInitialLoading(false);
                         setFetchingMore(false);
                     } else if (msg.event === 'SEND_CHAT') {
                         oldScrollHeightRef.current = divRef.current?.scrollHeight || 0;
+                        const mesObj = JSON.parse(decodeURIComponent(msg.data.mes));
                         const newMessage: ChatMessage = {
                             id: msg.data.id,
                             name: msg.data.name,
                             type: msg.data.tpye,
                             to: msg.data.to,
-                            mes: decodeURIComponent(msg.data.mes),
+                            mes: {
+                                type: mesObj.type,
+                                data: mesObj.data,
+                            },
                             createAt: new Date().toISOString(),
                         };
                         setListMessage((prev) => [...prev, newMessage]);
@@ -68,20 +88,39 @@ function MainContent({ username }: any) {
                 if (msg.status === 'success') {
                     if (msg.event === 'GET_ROOM_CHAT_MES') {
                         oldScrollHeightRef.current = divRef.current?.scrollHeight || 0;
+                        const parsedList: ChatMessage[] = msg.data.map((item: any) => {
+                            const mesObj = JSON.parse(decodeURIComponent(item.mes));
+                            return {
+                                id: item.id,
+                                name: item.name,
+                                type: item.type,
+                                to: item.to,
+                                mes: {
+                                    type: mesObj.type,
+                                    data: mesObj.data,
+                                },
+                                createAt: item.createAt,
+                            };
+                        });
+
                         setListMessage((prev) => {
-                            const newList = [...msg.data.chatData].reverse().concat(prev);
+                            const newList = parsedList.reverse().concat(prev);
                             return newList;
                         });
                         setInitialLoading(false);
                         setFetchingMore(false);
                     } else if (msg.event === 'SEND_CHAT') {
                         oldScrollHeightRef.current = divRef.current?.scrollHeight || 0;
+                        const mesObj = JSON.parse(decodeURIComponent(msg.data.mes));
                         const newMessage: ChatMessage = {
                             id: msg.data.id,
                             name: msg.data.name,
                             type: msg.data.tpye,
                             to: msg.data.to,
-                            mes: decodeURIComponent(msg.data.mes),
+                            mes: {
+                                type: mesObj.type,
+                                data: mesObj.data,
+                            },
                             createAt: new Date().toISOString(),
                         };
                         setListMessage((prev) => [...prev, newMessage]);
@@ -153,7 +192,7 @@ function MainContent({ username }: any) {
             ) : listMessage.length === 0 ? (
                 <div className="h-full flex items-center justify-center">
                     <h2
-                        className="p-2 text-center text-3xl font-bold bg-gradient-to-r from-purple-500 to-pink-500 
+                        className="p-2 text-center text-3xl font-bold bg-gradient-to-r from-purple-500 to-pink-500
                 bg-clip-text text-transparent"
                     >
                         Hãy bắt đầu nhắn tin

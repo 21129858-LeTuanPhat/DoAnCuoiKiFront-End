@@ -3,6 +3,9 @@ export interface ChatMessage {
     name: string | null;
     type: number;
     to: string;
-    mes: string;
+    mes: {
+        type: number;
+        data: string;
+    };
     createAt: string;
 }
