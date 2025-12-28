@@ -1,4 +1,4 @@
-import supabaseClient from '../config/supabaseConfig';
+import { supabaseClient } from '../config/supaBaseConfig';
 
 async function handleUploadImage(file: File, bucket: string) {
     console.log('HANDLE UPLOAD IMAGE CALLED');

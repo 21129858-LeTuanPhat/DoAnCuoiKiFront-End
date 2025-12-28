@@ -5,12 +5,9 @@ import { routers } from './routes/router';
 
 function App() {
     const user = useSelector((state: RootState) => state.user);
-
     return (
         <div>
-            <RouterProvider router={routers}>
-                <Outlet />
-            </RouterProvider>
+            <RouterProvider router={routers} />;
         </div>
     );
 }

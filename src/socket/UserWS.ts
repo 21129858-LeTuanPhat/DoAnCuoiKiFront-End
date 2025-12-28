@@ -8,7 +8,6 @@ export async function loginWS(
 ): Promise<{ status: 'success' | 'error'; message: string; username?: string; reCode?: string }> {
     const ws = WebSocketManager.getInstance();
     await ws.connect2(SOCKET_BASE_URL);
-
     return new Promise((resolve) => {
         let resolved = false;
         const handler = (msg: any) => {
@@ -35,7 +34,6 @@ export async function loginWS(
                     resolve({
                         status: 'error',
                         message: 'Sai tên đăng nhập hoặc mật khẩu',
-                        
                     });
                 }
             }

@@ -1,8 +1,0 @@
-import { createClient } from '@supabase/supabase-js';
-
-const supabaseClient = createClient(
-    'https://tyeuofltkvcttybbyatf.supabase.co',
-    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR5ZXVvZmx0a3ZjdHR5YmJ5YXRmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjYyNjAzMDYsImV4cCI6MjA4MTgzNjMwNn0.68j7d_q7dQRnAGYSo582VUfgLLS8RG3PglrhnR19fPk',
-);
-
-export default supabaseClient;

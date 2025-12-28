@@ -1,8 +1,12 @@
 import { useEffect, useRef, useState, useLayoutEffect } from 'react';
-import WebSocketManager from '../../../socket/WebSocketManager';
-import ContentItem from './ContentItem';
-import { useBoardContext } from '../../../hooks/useBoardContext';
-import { ChatMessage } from '../../../model/ChatMessage';
+import WebSocketManager from '../../../../socket/WebSocketManager';
+import ContentItem from '../MainContent/ContentItem';
+import { useBoardContext } from '../../../../hooks/useBoardContext';
+import { ChatMessage } from '../../../../model/ChatMessage';
+import ContentItemCall from '../ItemCall';
+import RingingModal from '../../../modal/RingingModal';
+import { CallInterface, CallStatus } from '../../../../model/CallProps';
+
 function MainContent({ username }: any) {
     const [page, setPage] = useState<number>(1);
     const divRef = useRef<HTMLDivElement>(null);
@@ -15,11 +19,7 @@ function MainContent({ username }: any) {
         setListMessage([]);
         setPage(1);
     }, [username]);
-
     useEffect(() => {
-        console.log('useeff2');
-
-        console.log('e2');
         const ws = WebSocketManager.getInstance();
         if (page === 1) {
             setInitialLoading(true);
@@ -31,20 +31,41 @@ function MainContent({ username }: any) {
                 if (msg.status === 'success') {
                     if (msg.event === 'GET_PEOPLE_CHAT_MES') {
                         oldScrollHeightRef.current = divRef.current?.scrollHeight || 0;
+
+                        const parsedList: ChatMessage[] = msg.data.map((item: any) => {
+                            const mesObj = JSON.parse(decodeURIComponent(item.mes));
+
+                            return {
+                                id: item.id,
+                                name: item.name,
+                                type: item.type,
+                                to: item.to,
+                                mes: {
+                                    type: mesObj.type,
+                                    data: mesObj.data,
+                                },
+                                createAt: item.createAt,
+                            };
+                        });
+
                         setListMessage((prev) => {
-                            const newList = [...msg.data].reverse().concat(prev);
+                            const newList = parsedList.reverse().concat(prev);
                             return newList;
                         });
                         setInitialLoading(false);
                         setFetchingMore(false);
                     } else if (msg.event === 'SEND_CHAT') {
                         oldScrollHeightRef.current = divRef.current?.scrollHeight || 0;
+                        const mesObj = JSON.parse(decodeURIComponent(msg.data.mes));
                         const newMessage: ChatMessage = {
                             id: msg.data.id,
                             name: msg.data.name,
                             type: msg.data.tpye,
                             to: msg.data.to,
-                            mes: decodeURIComponent(msg.data.mes),
+                            mes: {
+                                type: mesObj.type,
+                                data: mesObj.data,
+                            },
                             createAt: new Date().toISOString(),
                         };
                         setListMessage((prev) => [...prev, newMessage]);
@@ -68,20 +89,39 @@ function MainContent({ username }: any) {
                 if (msg.status === 'success') {
                     if (msg.event === 'GET_ROOM_CHAT_MES') {
                         oldScrollHeightRef.current = divRef.current?.scrollHeight || 0;
+                        const parsedList: ChatMessage[] = msg.data.map((item: any) => {
+                            const mesObj = JSON.parse(decodeURIComponent(item.mes));
+                            return {
+                                id: item.id,
+                                name: item.name,
+                                type: item.type,
+                                to: item.to,
+                                mes: {
+                                    type: mesObj.type,
+                                    data: mesObj.data,
+                                },
+                                createAt: item.createAt,
+                            };
+                        });
+
                         setListMessage((prev) => {
-                            const newList = [...msg.data.chatData].reverse().concat(prev);
+                            const newList = parsedList.reverse().concat(prev);
                             return newList;
                         });
                         setInitialLoading(false);
                         setFetchingMore(false);
                     } else if (msg.event === 'SEND_CHAT') {
                         oldScrollHeightRef.current = divRef.current?.scrollHeight || 0;
+                        const mesObj = JSON.parse(decodeURIComponent(msg.data.mes));
                         const newMessage: ChatMessage = {
                             id: msg.data.id,
                             name: msg.data.name,
                             type: msg.data.tpye,
                             to: msg.data.to,
-                            mes: decodeURIComponent(msg.data.mes),
+                            mes: {
+                                type: mesObj.type,
+                                data: mesObj.data,
+                            },
                             createAt: new Date().toISOString(),
                         };
                         setListMessage((prev) => [...prev, newMessage]);
@@ -144,6 +184,19 @@ function MainContent({ username }: any) {
         }
     }, [listMessage]);
 
+    // listMessage.forEach((message) => {
+    //     try {
+    //         const obj = JSON.parse(message.mes);
+
+    //         if (obj && typeof obj === 'object' && obj.roomID) {
+    //             // ghi đè => luôn là trạng thái cuối
+    //             lastCallByRoom[obj.roomID] = message;
+    //         }
+    //     } catch {
+    //         // message thường thì bỏ qua ở bước này
+    //     }
+    // });
+    console.log('list mess', listMessage);
     return (
         <section className="bg-[#f0f4fa] h-[calc(737.6px-72px-65px)]">
             {initialLoading ? (
@@ -153,7 +206,7 @@ function MainContent({ username }: any) {
             ) : listMessage.length === 0 ? (
                 <div className="h-full flex items-center justify-center">
                     <h2
-                        className="p-2 text-center text-3xl font-bold bg-gradient-to-r from-purple-500 to-pink-500 
+                        className="p-2 text-center text-3xl font-bold bg-gradient-to-r from-purple-500 to-pink-500
                 bg-clip-text text-transparent"
                     >
                         Hãy bắt đầu nhắn tin
@@ -169,9 +222,21 @@ function MainContent({ username }: any) {
                     )}
 
                     <ul className="p-2">
-                        {listMessage.map((message, index) => (
-                            <ContentItem message={message} key={index} />
-                        ))}
+                        {listMessage.map((message, index) => {
+                            // if (message.type > 10) {
+                            //     const obj: CallInterface = JSON.parse(message.mes.data);
+                            //     // console.log('try', obj)
+                            //     if (Object.prototype.toString.call(obj) === '[object Object]') {
+                            //         return (
+                            //             <>
+                            //                 {/* {obj.status === CallStatus.CALLING && (< RingingModal open={true} />)} */}
+                            //                 <ContentItemCall message={message} key={index} />
+                            //             </>
+                            //         );
+                            //     }
+                            // }
+                            return <ContentItem message={message} key={index} />;
+                        })}
                     </ul>
                 </div>
             )}
