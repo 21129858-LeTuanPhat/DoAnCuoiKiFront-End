@@ -89,7 +89,9 @@ function ProfilePopup({ username, onClose }: { username: string; onClose: () => 
             </div>
 
             {openProfile && <InforProfile onClose={() => setOpenProfile(false)} username={username} />}
-            {openNotification && <Notification onClose={() => setOpenNotification(false)} />}
+            {openNotification && (
+                <Notification onClose={() => setOpenNotification(false)} onCloseProfile={() => onClose()} />
+            )}
         </div>
     );
 }

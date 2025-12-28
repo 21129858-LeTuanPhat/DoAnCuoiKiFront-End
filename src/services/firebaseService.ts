@@ -3,6 +3,7 @@ import { ref, set, get } from 'firebase/database';
 import ProfileForm from '../model/ProfileForm';
 import RequestConnect, { ResponseStatus } from '../model/RequestConnect';
 import { create } from 'domain';
+import InforGroup from '../model/InforGroup';
 
 async function handleChangeProfile({ profileData }: { profileData: ProfileForm }) {
     const key = `profiles/${profileData.username}`;
@@ -19,6 +20,7 @@ async function handleChangeProfile({ profileData }: { profileData: ProfileForm }
 }
 
 async function getUserProfile(username: string): Promise<ProfileForm | null> {
+    console.log('GET USER PROFILE', username);
     const key = `profiles/${username}`;
 
     const profileRef = ref(db, key);
@@ -141,4 +143,22 @@ async function changeStatusRoomResponse({
     }
 }
 
-export { handleChangeProfile, getUserProfile, getInvitation, createGroup, changeStatusRoomResponse };
+async function getInforGroup(groupName: string): Promise<InforGroup | null> {
+    const InforGroupRef = ref(db, `groups/${groupName}`);
+    const snapshot = await get(InforGroupRef);
+    if (!snapshot.exists()) {
+        return null;
+    }
+    const menbersCountRef = ref(db, `group_members/${groupName}`);
+    const menbersSnapshot = await get(menbersCountRef);
+    const menbersCount = menbersSnapshot.exists() ? Object.keys(menbersSnapshot.val()).length : 0;
+
+    const inforGroup = {
+        ...snapshot.val(),
+        imageUrl: snapshot.val().imageUrl === '' ? null : snapshot.val().imageUrl,
+        menbersCount: menbersCount,
+    };
+    return inforGroup as InforGroup;
+}
+
+export { handleChangeProfile, getUserProfile, getInvitation, createGroup, changeStatusRoomResponse, getInforGroup };

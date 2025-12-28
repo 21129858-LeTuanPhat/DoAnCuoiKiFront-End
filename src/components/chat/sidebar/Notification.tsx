@@ -1,17 +1,29 @@
-import { CircleX } from 'lucide-react';
-import { useContext, useEffect, useMemo, useState } from 'react';
+import { CircleX, View } from 'lucide-react';
+import { useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { getInvitation, changeStatusRoomResponse } from './../../../services/firebaseService';
 import { ProfileContext } from '../Context/ProfileCotext';
 import WebSocketManager from '../../../socket/WebSocketManager';
 import { ResponseStatus } from '../../../model/RequestConnect';
 
 import RequestConnect from '../../../model/RequestConnect';
+import { ViewInforProfile } from './ViewInforProfile';
 
-function Notification({ onClose }: { onClose: () => void }) {
+function Notification({ onClose, onCloseProfile }: { onClose: () => void; onCloseProfile: () => void }) {
     const [tab, setTab] = useState<'sent' | 'received'>('sent');
     const { profileInfor } = useContext(ProfileContext)!;
     const [listConnect, setListConnect] = useState<RequestConnect[]>([]);
+    const [open, setOpen] = useState(false);
+    const usernameSelectedRef = useRef<string | null>(null);
+    const typeRef = useRef<string | null>(null);
+    const statusRef = useRef<ResponseStatus | null>(null);
 
+    const handleViewProfile = (username: string, type: string, status: ResponseStatus) => {
+        usernameSelectedRef.current = username;
+        typeRef.current = type;
+        statusRef.current = status;
+        console.log('view profile', username, type, status);
+        setOpen((prev) => !prev);
+    };
     const peopleRequests = useMemo(() => listConnect.filter((item) => item.type === 'people'), [listConnect]);
 
     const roomRequests = useMemo(() => listConnect.filter((item) => item.type === 'room'), [listConnect]);
@@ -119,7 +131,10 @@ function Notification({ onClose }: { onClose: () => void }) {
                                     key={`people-${connect.username}`}
                                     className="w-full flex justify-between items-center p-2 rounded-lg hover:bg-gray-100"
                                 >
-                                    <div className="flex gap-3 items-center">
+                                    <div
+                                        className="flex gap-3 items-center"
+                                        onClick={() => handleViewProfile(connect.username, 'people', connect.status)}
+                                    >
                                         <img
                                             src={
                                                 connect.imageUrl ||
@@ -157,7 +172,10 @@ function Notification({ onClose }: { onClose: () => void }) {
                                     key={`room-${connect.username}`}
                                     className="w-full flex justify-between items-center p-2 rounded-lg hover:bg-gray-100"
                                 >
-                                    <div className="flex gap-3 items-center">
+                                    <div
+                                        className="flex gap-3 items-center"
+                                        onClick={() => handleViewProfile(connect.username, 'room', connect.status)}
+                                    >
                                         <img
                                             src={
                                                 connect.imageUrl ||
@@ -185,6 +203,16 @@ function Notification({ onClose }: { onClose: () => void }) {
                     </div>
                 </div>
             </div>
+
+            {open && (
+                <ViewInforProfile
+                    onClose={() => setOpen(false)}
+                    onCloseNotification={onCloseProfile}
+                    username={usernameSelectedRef.current ?? ''}
+                    type={typeRef.current ?? ''}
+                    status={statusRef.current ?? 'pending'}
+                />
+            )}
         </div>
     );
 }
