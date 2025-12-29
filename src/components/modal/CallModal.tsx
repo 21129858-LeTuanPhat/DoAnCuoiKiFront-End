@@ -6,7 +6,7 @@ import { REACT_BASE_URL } from '../../config/utils';
 import WebSocketManager from '../../socket/WebSocketManager';
 import { useBoardContext } from '../../hooks/useBoardContext';
 import nokiaSound from '../../assets/sound/instagram_call.mp3';
-import { TypeMess } from '../../model/ChatMessage';
+import { ChatMessage, TypeMess } from '../../model/ChatMessage';
 export default function CallModal({
     open,
     setOpen,
@@ -21,10 +21,9 @@ export default function CallModal({
     const username = localStorage.getItem('username');
     console.log('room id:', roomID, ' name', username, 'selected user', selectedUser, ' type: ', type);
     const callMess = {
-        callMode: typeCall,
         status: CallStatus.CALLING,
         roomURL: `${REACT_BASE_URL}/call?roomID=${roomID}&call_mode=${typeCall}`,
-        roomID: roomID,
+        roomID: 'abcabcroomid',
     };
     const audioRef = useRef<HTMLAudioElement | null>(null);
     useEffect(() => {
@@ -38,6 +37,8 @@ export default function CallModal({
             audioRef.current = null;
         };
     }, []);
+
+
 
     const sendMessage = () => {
         const ws = WebSocketManager.getInstance();
@@ -54,7 +55,7 @@ export default function CallModal({
                     data: {
                         type: type,
                         to: selectedUser,
-                        mes: encodeURIComponent(JSON.stringify({ type: TypeMess.SIGNAL_REQUEST, data: callMess })),
+                        mes: encodeURIComponent(JSON.stringify({ type: TypeMess.VIDEO_CALL, data: callMess })),
                     },
                 },
             }),

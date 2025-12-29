@@ -37,6 +37,7 @@ export default function RingingModal({ open }: { open: boolean }) {
         );
         sendSignal(callStore.caller as string, { type: callStore.callMode as string, roomID: callStore.roomID as string, status: CallStatus.ACCEPTED })
     }
+
     return (
         <div>
             <Modal open={open}>

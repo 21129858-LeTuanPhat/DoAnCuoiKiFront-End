@@ -29,6 +29,12 @@ function MainContent({ username }: any) {
         if (type === 'people') {
             ws.onMessage('GET_PEOPLE_CHAT_MES', (msg) => {
                 console.log('msg nè', msg)
+
+                if (msg.status === 'success' && msg.event === 'SEND_CHAT') {
+                    console.log('msg send chat', msg)
+                    const mesObj = JSON.parse(decodeURIComponent(msg.data.mes));
+                    console.log('mess send data', mesObj)
+                }
                 if (msg.status === 'success') {
                     if (msg.event === 'GET_PEOPLE_CHAT_MES') {
                         console.log('GET_PEOPLE_CHAT_MES nè')
@@ -75,6 +81,7 @@ function MainContent({ username }: any) {
                             },
                             createAt: new Date().toISOString(),
                         };
+
                         setListMessage((prev) => [...prev, newMessage]);
                     }
                 }
@@ -159,6 +166,42 @@ function MainContent({ username }: any) {
         };
     }, [page]);
     console.log('list mess nè', listMessage)
+    const filterListMess = (messages: ChatMessage[]) => {
+        const lastCallByRoomID = new Map<string, ChatMessage>();
+        const otherMessages: ChatMessage[] = [];
+
+        // Duyệt qua tất cả messages
+        messages.forEach((item) => {
+            // Kiểm tra nếu là VIDEO_CALL hoặc VOICE_CALL
+            if (
+                item.mes.type === TypeMess.VIDEO_CALL ||
+                item.mes.type === TypeMess.VOICE_CALL
+            ) {
+                try {
+                    // Parse data để lấy roomID
+                    const callData: any = item.mes.data;
+                    const roomID = callData.roomID;
+                    console.log('roomID nè', roomID)
+                    if (roomID) {
+                        // Luôn cập nhật để lấy message cuối cùng (vì đã sort)
+                        lastCallByRoomID.set(roomID, item);
+                    }
+                } catch (error) {
+                    console.error('Error parsing message data:', error);
+                    // Nếu parse lỗi thì vẫn giữ lại message này
+                    otherMessages.push(item);
+                }
+            } else {
+                // Các loại message khác thì giữ nguyên
+                otherMessages.push(item);
+            }
+        });
+
+        // Kết hợp: messages khác + messages call cuối cùng theo roomID
+        const callMessages = Array.from(lastCallByRoomID.values());
+
+        return [...otherMessages, ...callMessages];
+    };
     useEffect(() => {
         console.log('e3');
         const div = divRef.current;
@@ -232,12 +275,10 @@ function MainContent({ username }: any) {
                     )}
                     <ul className="p-2">
                         {listMessage.map((message, index) => {
-                            console.log('hihi  mess', message.mes)
-                            console.log('type of', typeof message.mes.data)
+
                             try {
                                 const objectMess: { type: number, data: any } = message.mes
                                 if (objectMess.type >= 10) {
-                                    console.log('type >= 10 nè ')
 
                                     return (
                                         <>
