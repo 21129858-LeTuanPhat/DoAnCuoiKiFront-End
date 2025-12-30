@@ -6,12 +6,15 @@ import { deepOrange } from '@mui/material/colors';
 import nokiaSound from '../../assets/sound/nokia_ringirng.mp3'
 import { useDispatch, useSelector } from 'react-redux';
 import { RootState } from '../../redux/store';
-import { CallStatus, ICallMode } from '../../model/CallProps';
+import { CallStatus } from '../../model/CallProps';
 import { REACT_BASE_URL } from '../../config/utils';
-import { inCall } from '../../redux/callReducer'
 import { sendSignal } from '../../socket/CallWS';
+import WebSocketManager from '../../socket/WebSocketManager';
+import { TypeMess } from '../../model/ChatMessage';
+import { useBoardContext } from '../../hooks/useBoardContext';
 
 export default function RingingModal({ open }: { open: boolean }) {
+    const { type, selectedUser } = useBoardContext();
     const dispatch = useDispatch()
     const audioRef = useRef<HTMLAudioElement | null>(null)
     const callStore = useSelector((state: RootState) => state.call)
@@ -19,6 +22,7 @@ export default function RingingModal({ open }: { open: boolean }) {
     const paddingLeft = 100;
     const width = window.innerWidth - paddingLeft * 2;
     const height = window.innerHeight - paddingTop * 2;
+    const selection = useSelector((state: RootState) => state.call)
     useEffect(() => {
         // audioRef.current = new Audio(nokiaSound)
         // audioRef.current.volume = 0.7
@@ -29,13 +33,35 @@ export default function RingingModal({ open }: { open: boolean }) {
         // }
     }, [])
     const handleAccept = () => {
-        dispatch(inCall())
+        // dispatch(inCall())
         window.open(
             `${callStore.roomURL}`,
             "_blank",
             `width=${width},height=${height},left=${paddingLeft},top=${paddingTop}`
         );
-        sendSignal(callStore.caller as string, { type: callStore.callMode as string, roomID: callStore.roomID as string, status: CallStatus.ACCEPTED })
+        // sendSignal(callStore.caller as string, { type: callStore.callMode as string, roomID: callStore.roomID as string, status: CallStatus.ACCEPTED })
+    }
+    const callMess = {
+        status: CallStatus.REJECT,
+        roomURL: `${REACT_BASE_URL}/call?roomID=${selection.roomID}&call_mode=${selection.callMode}`,
+        roomID: selection.roomID,
+    };
+    const handleClose = () => {
+        const ws = WebSocketManager.getInstance();
+        ws.sendMessage(
+            JSON.stringify({
+                action: 'onchat',
+                data: {
+                    event: 'SEND_CHAT',
+                    data: {
+                        type: type,
+                        to: selectedUser,
+                        mes: encodeURIComponent(JSON.stringify({ type: selection.callMode, data: callMess })),
+                    },
+                },
+            }),
+        );
+
     }
 
     return (
@@ -75,10 +101,10 @@ export default function RingingModal({ open }: { open: boolean }) {
                                 color="success"
                                 sx={{ mt: 3, borderRadius: '50%', minWidth: 0, width: 50, height: 50 }}
                             >
-                                {callStore.callMode === ICallMode.VOICE ? (<Phone sx={{ fontSize: 25 }} ></Phone>
+                                {callStore.callMode === TypeMess.VOICE_CALL ? (<Phone sx={{ fontSize: 25 }} ></Phone>
                                 ) : (<VideoCall sx={{ fontSize: 25 }} ></VideoCall>)}
                             </Button>
-                            <Button variant="contained" color='error'
+                            <Button variant="contained" color='error' onClick={handleClose}
                                 sx={{ mt: 3, borderRadius: '50%', minWidth: 0, width: 50, height: 50 }}>
                                 <CloseIcon sx={{ fontSize: 25 }}></CloseIcon>
                             </Button>

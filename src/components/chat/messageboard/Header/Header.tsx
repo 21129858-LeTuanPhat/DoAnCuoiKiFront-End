@@ -5,22 +5,22 @@ import { REACT_BASE_URL } from '../../../../config/utils';
 import { useState } from 'react';
 import CallModal from '../../../modal/CallModal';
 import { useBoardContext } from '../../../../hooks/useBoardContext';
-import { ICallMode } from '../../../../model/CallProps';
+import { TypeMess } from '../../../../model/ChatMessage';
 function Header({ username }: { username: string }) {
     // const paddingTop = 50;
     // const paddingLeft = 100;
     // const width = window.innerWidth - paddingLeft * 2;
     // const height = window.innerHeight - paddingTop * 2;
     const [openModal, setModal] = useState(false);
-    const [type, setType] = useState<string>('');
+    const [type, setType] = useState<number>(100);
     const { selectedUser } = useBoardContext();
     const hanldeVoice = () => {
         setModal(true);
-        setType(ICallMode.VIDEO);
+        setType(TypeMess.VIDEO_CALL);
     };
     const hanldeVideo = () => {
         setModal(true);
-        setType(ICallMode.VIDEO);
+        setType(TypeMess.VIDEO_CALL);
         // window.open(
         //     `${REACT_BASE_URL}/groupcall?call_id=`,
         //     "_blank",

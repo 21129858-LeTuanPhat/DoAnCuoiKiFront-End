@@ -7,7 +7,7 @@ interface ReducerCall {
     // true cuộc gọi đến, false cuộc gọi đi 
     isIncoming?: boolean,
     caller?: string | null,
-    callMode?: string,
+    callMode?: number,
     roomID?: string,
     roomURL?: string,
 }
@@ -20,7 +20,7 @@ const callReducer = createSlice({
     initialState: initialValue,
     reducers: {
         // cuộc gọi đến
-        incomingCall(state, action: PayloadAction<{ roomURL: string, roomID: string, caller: string | null, callMode: string }>) {
+        incomingCall(state, action: PayloadAction<{ roomURL: string, roomID: string, caller: string | null, callMode: number }>) {
             console.log('trong reducer imcom ne')
             state.callStatus = CallStatus.RINGING
             state.isIncoming = true
@@ -29,19 +29,11 @@ const callReducer = createSlice({
             state.caller = action.payload.caller
             state.callMode = action.payload.callMode
         },
-        //cuộc gọi đi
-        outGoingCall(state, action: PayloadAction<{ roomURL: string, roomID: string, caller: string | null }>) {
-            state.callStatus = CallStatus.CALLING
-            state.isIncoming = false
-        },
-        //trong cuộc gọi
-        inCall(state) {
-            state.callStatus = CallStatus.IN_CALL
-        },
-        cancelCall(state) {
-            state.callStatus = CallStatus.IDLE
+        updateStatus(state, action: PayloadAction<{ status: CallStatus }>) {
+            state.callStatus = action.payload.status
         }
+
     }
 })
 export default callReducer.reducer
-export const { incomingCall, outGoingCall, inCall, cancelCall } = callReducer.actions
+export const { incomingCall, updateStatus } = callReducer.actions

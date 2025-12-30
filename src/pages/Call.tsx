@@ -1,7 +1,8 @@
 import React from 'react';
 import { ZegoUIKitPrebuilt } from '@zegocloud/zego-uikit-prebuilt';
-import { ICallMode, randomRoomID, VIDEO_CONFIG, VOICE_CONFIG } from '../model/CallProps';
+import { randomRoomID, VIDEO_CONFIG, VOICE_CONFIG } from '../model/CallProps';
 import { useQueryParams, NumberParam, StringParam } from 'use-query-params';
+import { TypeMess } from '../model/ChatMessage';
 export default function Call() {
     const [query, setQuery] = useQueryParams({
         roomID: StringParam,
@@ -40,7 +41,7 @@ export default function Call() {
             },
             showPreJoinView: false,
             maxUsers: 2,
-            ...(query.call_mode === ICallMode.VOICE ? VOICE_CONFIG : VIDEO_CONFIG),
+            ...(query.call_mode === 'voice' ? VOICE_CONFIG : VIDEO_CONFIG),
             // onUserAvatarSetter: (userList) => {
             //     userList.forEach(user => {
             //         // Bạn có thể set avatar khác nhau cho từng user

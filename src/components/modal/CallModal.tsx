@@ -14,7 +14,7 @@ export default function CallModal({
 }: {
     open: boolean;
     setOpen: Dispatch<SetStateAction<boolean>>;
-    typeCall: string;
+    typeCall: number;
 }) {
     const roomID = randomRoomID();
     const { type, selectedUser } = useBoardContext();
@@ -23,7 +23,7 @@ export default function CallModal({
     const callMess = {
         status: CallStatus.CALLING,
         roomURL: `${REACT_BASE_URL}/call?roomID=${roomID}&call_mode=${typeCall}`,
-        roomID: 'abcabcroomid',
+        roomID: roomID,
     };
     const audioRef = useRef<HTMLAudioElement | null>(null);
     useEffect(() => {

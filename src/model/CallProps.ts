@@ -19,6 +19,7 @@ export enum CallStatus {
     ACCEPTED = 'accepted',
     IN_CALL = 'inCall',
     ENDED = 'ended',
+    REJECT = 'reject'
 }
 
 export interface CallInterface {
@@ -27,11 +28,7 @@ export interface CallInterface {
     roomURL: string,
     status: string
 }
-export enum ICallMode {
-    VOICE = 'voice',
-    VIDEO = 'video'
 
-}
 
 
 export const VOICE_CONFIG = {

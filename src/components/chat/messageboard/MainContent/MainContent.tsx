@@ -6,14 +6,20 @@ import { ChatMessage, TypeMess } from '../../../../model/ChatMessage';
 import ContentItemCall from '../ItemCall';
 import RingingModal from '../../../modal/RingingModal';
 import { CallInterface, CallStatus } from '../../../../model/CallProps';
+import { useDispatch, useSelector } from 'react-redux';
+import { incomingCall, updateStatus } from '../../../../redux/callReducer';
+import RejectModal from '../../../modal/RejectModal';
+import { RootState } from '../../../../redux/store';
 
 function MainContent({ username }: any) {
+    const selection = useSelector((state: RootState) => state.call)
     const [page, setPage] = useState<number>(1);
     const divRef = useRef<HTMLDivElement>(null);
     const { listMessage, setListMessage, type } = useBoardContext();
     const [initialLoading, setInitialLoading] = useState(false);
     const [fetchingMore, setFetchingMore] = useState(false);
     const oldScrollHeightRef = useRef(0);
+    const dispatch = useDispatch()
     useEffect(() => {
         console.log('useeff1');
         setListMessage([]);
@@ -32,8 +38,17 @@ function MainContent({ username }: any) {
 
                 if (msg.status === 'success' && msg.event === 'SEND_CHAT') {
                     console.log('msg send chat', msg)
-                    const mesObj = JSON.parse(decodeURIComponent(msg.data.mes));
+                    const mesObj: any = JSON.parse(decodeURIComponent(msg.data.mes));
                     console.log('mess send data', mesObj)
+                    if (mesObj.type === TypeMess.VIDEO_CALL || mesObj.type === TypeMess.VOICE_CALL) {
+                        if (mesObj.data.status === CallStatus.CALLING) {
+                            dispatch(incomingCall({ roomURL: mesObj.data.roomURL, roomID: mesObj.data.roomID, caller: msg.data.name, callMode: mesObj.type === TypeMess.VIDEO_CALL ? TypeMess.VIDEO_CALL : TypeMess.VOICE_CALL }))
+                        }
+                        if (mesObj.data.status === CallStatus.REJECT) {
+                            dispatch(updateStatus({ status: CallStatus.REJECT }))
+                        }
+                    }
+
                 }
                 if (msg.status === 'success') {
                     if (msg.event === 'GET_PEOPLE_CHAT_MES') {
@@ -249,54 +264,56 @@ function MainContent({ username }: any) {
     //     roomID: '123123',
     // };
     // console.log('taiabc den tai 123', encodeURIComponent(JSON.stringify({ type: TypeMess.SIGNAL_REQUEST, data: callMess })))
-
+    // const [openReject, setReject] = useState<boolean>(false)
     return (
-        <section className="bg-[#f0f4fa] h-[calc(737.6px-72px-65px)]">
-            {initialLoading ? (
-                <div className="h-full flex items-center justify-center">
-                    <div className="w-10 h-10 border-4 border-gray-300 border-t-blue-500 rounded-full animate-spin" />
-                </div>
-            ) : listMessage.length === 0 ? (
-                <div className="h-full flex items-center justify-center">
-                    <h2
-                        className="p-2 text-center text-3xl font-bold bg-gradient-to-r from-purple-500 to-pink-500
+        <>
+            {selection.callStatus === CallStatus.REJECT && (<RejectModal open={true}></RejectModal>)}
+            <section className="bg-[#f0f4fa] h-[calc(737.6px-72px-65px)]">
+                {initialLoading ? (
+                    <div className="h-full flex items-center justify-center">
+                        <div className="w-10 h-10 border-4 border-gray-300 border-t-blue-500 rounded-full animate-spin" />
+                    </div>
+                ) : listMessage.length === 0 ? (
+                    <div className="h-full flex items-center justify-center">
+                        <h2
+                            className="p-2 text-center text-3xl font-bold bg-gradient-to-r from-purple-500 to-pink-500
                 bg-clip-text text-transparent"
+                        >
+                            Hãy bắt đầu nhắn tin
+                        </h2>
+                    </div>
+                ) : (
+                    <div
+                        ref={divRef}
+                        className="h-full overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-200"
                     >
-                        Hãy bắt đầu nhắn tin
-                    </h2>
-                </div>
-            ) : (
-                <div
-                    ref={divRef}
-                    className="h-full overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-200"
-                >
-                    {fetchingMore && (
-                        <div className="text-center text-sm text-gray-500 py-2">Đang tải tin nhắn cũ...</div>
-                    )}
-                    <ul className="p-2">
-                        {listMessage.map((message, index) => {
+                        {fetchingMore && (
+                            <div className="text-center text-sm text-gray-500 py-2">Đang tải tin nhắn cũ...</div>
+                        )}
+                        <ul className="p-2">
+                            {listMessage.map((message, index) => {
 
-                            try {
-                                const objectMess: { type: number, data: any } = message.mes
-                                if (objectMess.type >= 10) {
+                                try {
+                                    const objectMess: { type: number, data: any } = message.mes
+                                    if (objectMess.type >= 10) {
 
-                                    return (
-                                        <>
-                                            {/* {objectMess.data.status === CallStatus.CALLING && (< RingingModal open={true} />)} */}
-                                            <ContentItemCall message={message} key={index} />
-                                        </>
-                                    );
+                                        return (
+                                            <>
+                                                {/* {objectMess.data.status === CallStatus.CALLING && (< RingingModal open={true} />)} */}
+                                                <ContentItemCall message={message} key={index} />
+                                            </>
+                                        );
+                                    }
                                 }
-                            }
-                            catch {
-                                console.log('catch type >= 10 nè ', message.mes)
-                            }
-                            return <ContentItem message={message} key={index} />;
-                        })}
-                    </ul>
-                </div>
-            )}
-        </section>
+                                catch {
+                                    console.log('catch type >= 10 nè ', message.mes)
+                                }
+                                return <ContentItem message={message} key={index} />;
+                            })}
+                        </ul>
+                    </div>
+                )}
+            </section></>
     );
 }
 
