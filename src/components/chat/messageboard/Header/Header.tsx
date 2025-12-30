@@ -2,10 +2,13 @@ import { PanelLeft } from 'lucide-react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faPhone, faVideo } from '@fortawesome/free-solid-svg-icons';
 import { REACT_BASE_URL } from '../../../../config/utils';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import CallModal from '../../../modal/CallModal';
 import { useBoardContext } from '../../../../hooks/useBoardContext';
 import { TypeMess } from '../../../../model/ChatMessage';
+import { useSelector } from 'react-redux';
+import { RootState } from '../../../../redux/store';
+import { CallStatus } from '../../../../model/CallProps';
 function Header({ username }: { username: string }) {
     // const paddingTop = 50;
     // const paddingLeft = 100;
@@ -27,6 +30,12 @@ function Header({ username }: { username: string }) {
         //     `width=${width},height=${height},left=${paddingLeft},top=${paddingTop}`
         // );
     };
+    const selector = useSelector((state: RootState) => state.call)
+    useEffect(() => {
+        if (selector.callStatus === CallStatus.REJECT) {
+            setModal(false);
+        }
+    }, [selector.callStatus]);
     return (
         <>
             {openModal && <CallModal open={openModal} setOpen={setModal} typeCall={type} />}

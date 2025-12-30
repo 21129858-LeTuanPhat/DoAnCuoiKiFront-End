@@ -40,7 +40,7 @@ export const VOICE_CONFIG = {
     showScreenSharingButton: false,
     showTextChat: false,
     showUserList: true,
-    showRoomTimer: true,
+    showRoomTimer: false,
 }
 
 export const VIDEO_CONFIG = {
@@ -52,6 +52,6 @@ export const VIDEO_CONFIG = {
     showScreenSharingButton: true,
     showTextChat: true,
     showUserList: true,
-    showRoomTimer: true,
+    showRoomTimer: false,
 }
 

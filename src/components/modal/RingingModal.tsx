@@ -1,7 +1,7 @@
 import { Phone, VideoCall } from '@mui/icons-material'
 import { Avatar, Box, Button, Modal, Typography } from '@mui/material'
 import CloseIcon from '@mui/icons-material/Close';
-import React, { useEffect, useRef } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import { deepOrange } from '@mui/material/colors';
 import nokiaSound from '../../assets/sound/nokia_ringirng.mp3'
 import { useDispatch, useSelector } from 'react-redux';
@@ -14,6 +14,7 @@ import { TypeMess } from '../../model/ChatMessage';
 import { useBoardContext } from '../../hooks/useBoardContext';
 
 export default function RingingModal({ open }: { open: boolean }) {
+    const [openModal, setModal] = useState<boolean>(open)
     const { type, selectedUser } = useBoardContext();
     const dispatch = useDispatch()
     const audioRef = useRef<HTMLAudioElement | null>(null)
@@ -61,12 +62,12 @@ export default function RingingModal({ open }: { open: boolean }) {
                 },
             }),
         );
-
+        setModal(false)
     }
 
     return (
         <div>
-            <Modal open={open}>
+            <Modal open={openModal}>
                 <Box
                     sx={{
                         position: 'absolute' as 'absolute',
