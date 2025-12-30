@@ -9,27 +9,42 @@ import { useSelector } from 'react-redux';
 import { RootState } from '../../../redux/store';
 import { Profile } from './Profile';
 import { ProfileProvider } from '../Context/ProfileCotext';
+import { LoadingProfileSkeleton } from '../../modal/LoadingSkeleton';
 
 function SideBar() {
     const [users, setUsers] = useState<User[]>([]);
     const loginname = useSelector((state: RootState) => state.user);
+    const [loading, setLoading] = useState(true);
     useEffect(() => {
         const ws = WebSocketManager.getInstance();
-        const offGetUserList = ws.onMessage('GET_USER_LIST', (msg) => {
-            if (msg.status == 'success' && msg.event == 'GET_USER_LIST') {
-                ws.unSubcribe('GET_USER_LIST');
-                setUsers(msg.data as User[]);
+        let isMounted = true;
+
+        ws.onMessage('GET_USER_LIST', (msg) => {
+            if (msg.status === 'success' && msg.event === 'GET_USER_LIST') {
+                console.log(' Received user list:', msg.data);
+
+                if (isMounted) {
+                    const userData = msg.data as User[];
+                    setUsers(userData);
+                    setLoading(false);
+                }
             }
         });
+
         ws.sendMessage(
             JSON.stringify({
                 action: 'onchat',
-                data: {
-                    event: 'GET_USER_LIST',
-                },
+                data: { event: 'GET_USER_LIST' },
             }),
         );
+
+        return () => {
+            isMounted = false;
+            ws.unSubcribe('GET_USER_LIST');
+        };
     }, []);
+
+    if (loading) return <LoadingProfileSkeleton />;
 
     return (
         <div className="flex flex-col h-full items-start space-y-5 p-3 shadow-sm ">
