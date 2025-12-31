@@ -5,6 +5,7 @@ import SignUpPage from '../pages/SignUpPage';
 import SignInPage from '../pages/SignInPage';
 import Call from '../pages/Call';
 import RootLayout from '../RootLayout';
+import CallModalPage from '../components/modal/CallModalPage';
 
 export const routers = createBrowserRouter(
     [{
@@ -24,6 +25,9 @@ export const routers = createBrowserRouter(
         {
             path: '/call',
             element: <Call />,
+        }, {
+            path: '/call-modal',
+            element: <CallModalPage />,
         },]
     }
     ],

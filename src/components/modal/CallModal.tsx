@@ -31,14 +31,14 @@ export default function CallModal({
     };
     const audioRef = useRef<HTMLAudioElement | null>(null);
     useEffect(() => {
-        audioRef.current = new Audio(nokiaSound);
-        audioRef.current.volume = 0.7;
-        audioRef.current.loop = true;
-        audioRef.current.play();
-        return () => {
-            audioRef.current?.pause();
-            audioRef.current = null;
-        };
+        // audioRef.current = new Audio(nokiaSound);
+        // audioRef.current.volume = 0.7;
+        // audioRef.current.loop = true;
+        // audioRef.current.play();
+        // return () => {
+        //     audioRef.current?.pause();
+        //     audioRef.current = null;
+        // };
     }, []);
     const sendMessage = () => {
         const ws = WebSocketManager.getInstance();

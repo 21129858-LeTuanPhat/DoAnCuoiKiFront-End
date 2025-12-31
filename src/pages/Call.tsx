@@ -113,7 +113,7 @@ export default function Call() {
         });
     };
     return (
-        <div style={{ position: 'relative', width: '100%', height: '100vh' }}>
+        <div style={{ position: 'relative', width: '100%', height: '90vh' }}>
             {isWaiting && (
                 <div
                     style={{

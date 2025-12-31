@@ -11,6 +11,7 @@ import { incomingCall, updateStatus } from '../../../../redux/callReducer';
 import RejectModal from '../../../modal/RejectModal';
 import { RootState } from '../../../../redux/store';
 import { REACT_BASE_URL } from '../../../../config/utils';
+import { useLocation, useNavigate } from 'react-router-dom';
 
 function MainContent({ username }: any) {
     const selection = useSelector((state: RootState) => state.call)
@@ -32,8 +33,14 @@ function MainContent({ username }: any) {
         setListMessage([]);
         setPage(1);
     }, [username]);
-    const sendInCall = (status: CallInterface) => {
+    const sendInCall = () => {
         const ws = WebSocketManager.getInstance();
+        const callMess = {
+            status: CallStatus.IN_CALL,
+            roomURL: `${REACT_BASE_URL}/call?roomID=${selection.roomID}&call_mode=${selection.callMode}`,
+            roomID: selection.roomID,
+        };
+
         ws.sendMessage(
             JSON.stringify({
                 action: 'onchat',
@@ -42,21 +49,29 @@ function MainContent({ username }: any) {
                     data: {
                         type: type,
                         to: selectedUser,
-                        mes: encodeURIComponent(JSON.stringify({ type: selection.callMode, data: status })),
+                        mes: encodeURIComponent(JSON.stringify({ type: selection.callMode, data: callMess })),
                     },
                 },
             }),
         );
+        console.log('vao function sendincall nè', JSON.stringify({ type: selection.callMode, data: callMess }))
     }
-    useEffect(() => {
-        if (selection.callStatus === CallStatus.IN_CALL) {
-            window.open(
-                `${selection.roomURL}`,
-                "_blank",
-                `width=${width},height=${height},left=${paddingLeft},top=${paddingTop}`
-            );
-        }
-    }, [selection.callStatus])
+    const navigate = useNavigate();
+    const location = useLocation();
+    // useEffect(() => {
+    //     if (selection.callStatus === CallStatus.IN_CALL) {
+    //         console.log('in call selection nè trời', selection.roomURL)
+    //         navigate(
+    //             `/call-modal?roomID=${selection.roomID}&call_mode=${selection.callMode}`,
+    //             {
+    //                 state: {
+    //                     backgroundLocation: location,
+    //                     roomURL: selection.roomURL
+    //                 }
+    //             }
+    //         );
+    //     }
+    // }, [selection.callStatus])
     useEffect(() => {
         const ws = WebSocketManager.getInstance();
         if (page === 1) {
@@ -68,27 +83,53 @@ function MainContent({ username }: any) {
             ws.onMessage('GET_PEOPLE_CHAT_MES', (msg) => {
                 console.log('msg nè', msg)
                 if (msg.status === 'success' && msg.event === 'SEND_CHAT') {
-                    console.log('msg send chat', msg)
+                    //     console.log('msg send chat', msg)
                     const mesObj: any = JSON.parse(decodeURIComponent(msg.data.mes));
-                    console.log('mess send data', mesObj)
+
                     if (mesObj.type === TypeMess.VIDEO_CALL || mesObj.type === TypeMess.VOICE_CALL) {
-                        if (mesObj.data.status === CallStatus.CALLING) {
-                            dispatch(incomingCall({ roomURL: mesObj.data.roomURL, roomID: mesObj.data.roomID, caller: msg.data.name, callMode: mesObj.type === TypeMess.VIDEO_CALL ? TypeMess.VIDEO_CALL : TypeMess.VOICE_CALL }))
+                        // const newCallMessage: ChatMessage = {
+                        //     id: msg.data.id,
+                        //     name: msg.data.name,
+                        //     type: msg.data.type, // ✅ FIX: Sửa typo từ tpye -> type
+                        //     to: msg.data.to,
+                        //     mes: {
+                        //         type: mesObj.type,
+                        //         data: mesObj.data,
+                        //     },
+                        //     createAt: new Date().toISOString(),
+                        // };
+                        // setListMessage((prev) => [...prev, newCallMessage]);
+                        // Xử lý các trạng thái
+                        switch (mesObj.data.status) {
+                            case CallStatus.CALLING:
+                                dispatch(incomingCall({
+                                    roomURL: mesObj.data.roomURL,
+                                    roomID: mesObj.data.roomID,
+                                    caller: msg.data.name,
+                                    callMode: mesObj.type === TypeMess.VIDEO_CALL ? TypeMess.VIDEO_CALL : TypeMess.VOICE_CALL
+                                }))
+                                break;
+
+                            case CallStatus.REJECT:
+                                dispatch(updateStatus({ status: CallStatus.REJECT }))
+                                break;
+
+                            case CallStatus.CONNECTING:
+                                console.log('Nhận được CONNECTING, gửi IN_CALL')
+                                setTimeout(() => {
+                                    sendInCall()
+                                    dispatch(updateStatus({ status: CallStatus.IN_CALL }))
+                                }, 100)
+                                break;
+
+                            case CallStatus.IN_CALL:
+                                dispatch(updateStatus({ status: CallStatus.IN_CALL }))
+                                console.log('Nhận được IN_CALL từ người gửi')
+
+                                break;
                         }
-                        if (mesObj.data.status === CallStatus.REJECT) {
-                            dispatch(updateStatus({ status: CallStatus.REJECT }))
-                        }
-                        if (mesObj.data.status === CallStatus.CONNECTING) {
-                            sendInCall({
-                                status: CallStatus.IN_CALL,
-                                roomURL: `${REACT_BASE_URL}/call?roomID=${selection.roomID}&call_mode=${selection.callMode}`,
-                                roomID: selection.roomID as string,
-                            })
-                            dispatch(updateStatus({ status: CallStatus.IN_CALL }))
-                        }
-                        // if (mesObj.data.status === CallStatus.IN_CALL) {
-                        //     dispatch(updateStatus({ status: CallStatus.IN_CALL }))
-                        // }
+
+                        return;
                     }
                 }
                 if (msg.status === 'success') {

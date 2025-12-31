@@ -28,7 +28,8 @@ function ContentItem({ message }: { message: ChatMessage }) {
                         ) : message.mes.type === 1 ? (
                             <FileImage data={message.mes.data} check={false} />
                         ) : (
-                            <FileItem data={message.mes.data} check={true} />
+                            // <FileItem data={message.mes.data} check={true} />
+                            <p>hello file nè</p>
                         )}
                     </div>
                     <div className="text-xs text-gray-500 mt-1">
@@ -55,7 +56,9 @@ function ContentItem({ message }: { message: ChatMessage }) {
                         ) : message.mes.type === 1 ? (
                             <FileImage data={message.mes.data} check={true} />
                         ) : (
-                            <FileItem data={message.mes.data} check={true} />
+                            // <FileItem data={message.mes.data} check={true} />
+                            <p>file nè</p>
+
                         )}
                     </div>
                     <div className="text-xs text-gray-500 mt-1 text-right">
@@ -88,7 +91,8 @@ function ContentItem({ message }: { message: ChatMessage }) {
                     ) : message.mes.type === 1 ? (
                         <FileImage data={message.mes.data} check={false} />
                     ) : (
-                        <FileItem data={message.mes.data} check={false} />
+                        // <FileItem data={message.mes.data} check={false} />
+                        <p>file nè</p>
                     )}
                 </div>
                 <div className="text-xs text-gray-500 mt-1">
@@ -115,7 +119,8 @@ function ContentItem({ message }: { message: ChatMessage }) {
                     ) : message.mes.type === 1 ? (
                         <FileImage data={message.mes.data} check={true} />
                     ) : (
-                        <FileItem data={message.mes.data} check={true} />
+                        // <FileItem data={message.mes.data} check={true} />
+                        <p>file nè</p>
                     )}
                 </div>
                 <div className="text-xs text-gray-500 mt-1 text-right">

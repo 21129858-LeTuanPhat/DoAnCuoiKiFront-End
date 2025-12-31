@@ -13,6 +13,7 @@ import WebSocketManager from '../socket/WebSocketManager';
 import { ChatMessage, ISendMessage, TypeMess } from '../model/ChatMessage';
 import { CallInterface, CallStatus } from '../model/CallProps';
 import RingingModal from '../components/modal/RingingModal';
+import CallModalPage from '../components/modal/CallModalPage';
 function Home() {
 
     const { listMessage, setListMessage, selectedUser } = useBoardContext();
@@ -27,6 +28,7 @@ function Home() {
         }
     }, [user.username, navigate]);
     const dispatch = useDispatch();
+    const selection = useSelector((state: RootState) => state.call)
     // useEffect(() => {
     //     const socket = WebSocketManager.getInstance();
     //     socket.onMessage('haha', (msg: any) => {
@@ -87,6 +89,7 @@ function Home() {
     return (
         <>
             {callStore.callStatus === CallStatus.RINGING && <RingingModal open={true} />}
+            {/* {selection.callStatus === CallStatus.IN_CALL && <CallModalPage></CallModalPage>} */}
             <div className="flex h-screen ">
                 <aside className="hidden md:block w-[25%] relative">
                     <SideBar />
