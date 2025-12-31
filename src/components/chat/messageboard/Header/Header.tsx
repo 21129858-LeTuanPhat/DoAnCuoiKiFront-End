@@ -19,7 +19,7 @@ function Header({ username }: { username: string }) {
     const { selectedUser } = useBoardContext();
     const hanldeVoice = () => {
         setModal(true);
-        setType(TypeMess.VIDEO_CALL);
+        setType(TypeMess.VOICE_CALL);
     };
     const hanldeVideo = () => {
         setModal(true);

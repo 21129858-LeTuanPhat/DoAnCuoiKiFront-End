@@ -10,21 +10,53 @@ import { useDispatch, useSelector } from 'react-redux';
 import { incomingCall, updateStatus } from '../../../../redux/callReducer';
 import RejectModal from '../../../modal/RejectModal';
 import { RootState } from '../../../../redux/store';
+import { REACT_BASE_URL } from '../../../../config/utils';
 
 function MainContent({ username }: any) {
     const selection = useSelector((state: RootState) => state.call)
     const [page, setPage] = useState<number>(1);
     const divRef = useRef<HTMLDivElement>(null);
-    const { listMessage, setListMessage, type } = useBoardContext();
+    const { listMessage, setListMessage, type, selectedUser } = useBoardContext();
     const [initialLoading, setInitialLoading] = useState(false);
     const [fetchingMore, setFetchingMore] = useState(false);
     const oldScrollHeightRef = useRef(0);
     const dispatch = useDispatch()
+
+    const paddingTop = 50;
+    const paddingLeft = 100;
+    const width = window.innerWidth - paddingLeft * 2;
+    const height = window.innerHeight - paddingTop * 2;
+
     useEffect(() => {
         console.log('useeff1');
         setListMessage([]);
         setPage(1);
     }, [username]);
+    const sendInCall = (status: CallInterface) => {
+        const ws = WebSocketManager.getInstance();
+        ws.sendMessage(
+            JSON.stringify({
+                action: 'onchat',
+                data: {
+                    event: 'SEND_CHAT',
+                    data: {
+                        type: type,
+                        to: selectedUser,
+                        mes: encodeURIComponent(JSON.stringify({ type: selection.callMode, data: status })),
+                    },
+                },
+            }),
+        );
+    }
+    useEffect(() => {
+        if (selection.callStatus === CallStatus.IN_CALL) {
+            window.open(
+                `${selection.roomURL}`,
+                "_blank",
+                `width=${width},height=${height},left=${paddingLeft},top=${paddingTop}`
+            );
+        }
+    }, [selection.callStatus])
     useEffect(() => {
         const ws = WebSocketManager.getInstance();
         if (page === 1) {
@@ -35,7 +67,6 @@ function MainContent({ username }: any) {
         if (type === 'people') {
             ws.onMessage('GET_PEOPLE_CHAT_MES', (msg) => {
                 console.log('msg nè', msg)
-
                 if (msg.status === 'success' && msg.event === 'SEND_CHAT') {
                     console.log('msg send chat', msg)
                     const mesObj: any = JSON.parse(decodeURIComponent(msg.data.mes));
@@ -47,8 +78,18 @@ function MainContent({ username }: any) {
                         if (mesObj.data.status === CallStatus.REJECT) {
                             dispatch(updateStatus({ status: CallStatus.REJECT }))
                         }
+                        if (mesObj.data.status === CallStatus.CONNECTING) {
+                            sendInCall({
+                                status: CallStatus.IN_CALL,
+                                roomURL: `${REACT_BASE_URL}/call?roomID=${selection.roomID}&call_mode=${selection.callMode}`,
+                                roomID: selection.roomID as string,
+                            })
+                            dispatch(updateStatus({ status: CallStatus.IN_CALL }))
+                        }
+                        // if (mesObj.data.status === CallStatus.IN_CALL) {
+                        //     dispatch(updateStatus({ status: CallStatus.IN_CALL }))
+                        // }
                     }
-
                 }
                 if (msg.status === 'success') {
                     if (msg.event === 'GET_PEOPLE_CHAT_MES') {
@@ -220,9 +261,7 @@ function MainContent({ username }: any) {
     useEffect(() => {
         console.log('e3');
         const div = divRef.current;
-
         if (!div) return;
-
         if (listMessage.length === 0) return;
 
         if (page === 1) {
@@ -252,19 +291,19 @@ function MainContent({ username }: any) {
     }, [listMessage]);
     console.log('list mess nè', listMessage)
 
-    // const newMess =
-    //     { type: 0, data: 'cuc cung' }
-    // const newMess2 = { type: 0, data: 'hao han' }
-    // console.log('taiabc den tai 123', encodeURIComponent(JSON.stringify(newMess)))
-    // console.log('tai123 den taiabc', encodeURIComponent(JSON.stringify(newMess2)))
-    // const callMess = {
-    //     callMode: 'voice',
-    //     status: 'calling',
-    //     roomURL: `localhost:3000/call?roomID=1231212&call_mode=12121212`,
-    //     roomID: '123123',
-    // };
-    // console.log('taiabc den tai 123', encodeURIComponent(JSON.stringify({ type: TypeMess.SIGNAL_REQUEST, data: callMess })))
-    // const [openReject, setReject] = useState<boolean>(false)
+    const newMess =
+        { type: 0, data: 'cuc cung' }
+    const newMess2 = { type: 0, data: 'hao han' }
+    console.log('taiabc den tai 123', encodeURIComponent(JSON.stringify(newMess)))
+    console.log('tai123 den taiabc', encodeURIComponent(JSON.stringify(newMess2)))
+    const callMess = {
+        callMode: 'voice',
+        status: 'calling',
+        roomURL: `localhost:3000/call?roomID=1231212&call_mode=12121212`,
+        roomID: '123123',
+    };
+    console.log('taiabc den tai 123', encodeURIComponent(JSON.stringify({ type: TypeMess.VIDEO_CALL, data: callMess })))
+    const [openReject, setReject] = useState<boolean>(false)
     return (
         <>
             {selection.callStatus === CallStatus.REJECT && (<RejectModal open={true}></RejectModal>)}
@@ -292,21 +331,14 @@ function MainContent({ username }: any) {
                         )}
                         <ul className="p-2">
                             {listMessage.map((message, index) => {
-
-                                try {
-                                    const objectMess: { type: number, data: any } = message.mes
-                                    if (objectMess.type >= 10) {
-
-                                        return (
-                                            <>
-                                                {/* {objectMess.data.status === CallStatus.CALLING && (< RingingModal open={true} />)} */}
-                                                <ContentItemCall message={message} key={index} />
-                                            </>
-                                        );
-                                    }
-                                }
-                                catch {
-                                    console.log('catch type >= 10 nè ', message.mes)
+                                const objectMess: { type: number, data: any } = message.mes
+                                if (objectMess.type >= 10) {
+                                    return (
+                                        <>
+                                            {/* {objectMess.data.status === CallStatus.CALLING && (< RingingModal open={true} />)} */}
+                                            <ContentItemCall message={message} key={index} />
+                                        </>
+                                    );
                                 }
                                 return <ContentItem message={message} key={index} />;
                             })}

@@ -167,7 +167,6 @@ export default function Call() {
                 </div>
             )}
 
-            {/* Container cho Zego */}
             <div
                 ref={myMeeting as any}
                 style={{ width: '100%', height: '100%' }}

@@ -7,6 +7,9 @@ import WebSocketManager from '../../socket/WebSocketManager';
 import { useBoardContext } from '../../hooks/useBoardContext';
 import nokiaSound from '../../assets/sound/instagram_call.mp3';
 import { ChatMessage, TypeMess } from '../../model/ChatMessage';
+import { incomingCall, outgoingCall } from '../../redux/callReducer'
+import { useDispatch } from 'react-redux';
+
 export default function CallModal({
     open,
     setOpen,
@@ -16,6 +19,7 @@ export default function CallModal({
     setOpen: Dispatch<SetStateAction<boolean>>;
     typeCall: number;
 }) {
+    const dispatch = useDispatch()
     const roomID = randomRoomID();
     const { type, selectedUser } = useBoardContext();
     const username = localStorage.getItem('username');
@@ -32,21 +36,13 @@ export default function CallModal({
         audioRef.current.loop = true;
         audioRef.current.play();
         return () => {
-            // cleanup khi component unmount
             audioRef.current?.pause();
             audioRef.current = null;
         };
     }, []);
-
-
-
     const sendMessage = () => {
         const ws = WebSocketManager.getInstance();
-        ws.onMessage('SEND_CHAT', (msg) => {
-            if (msg.status === 'success' && msg.event === 'SEND_CHAT') {
-                ws.unSubcribe('SEND_CHAT');
-            }
-        });
+        dispatch(outgoingCall({ roomID: roomID, caller: selectedUser, callMode: typeCall, roomURL: callMess.roomURL }))
         ws.sendMessage(
             JSON.stringify({
                 action: 'onchat',
@@ -68,9 +64,11 @@ export default function CallModal({
     //     // audio.loop = true;
     //     audio.play().catch((e) => { console.log('catch sound', e.message) });
     // }, [])
-    if (open) {
-        sendMessage();
-    }
+    useEffect(() => {
+        if (open) {
+            sendMessage();
+        }
+    }, [open])
 
     // useEffect(() => {
 
@@ -112,7 +110,6 @@ export default function CallModal({
                             <p className="text-gray-500 text-sm">Đang gọi...</p>
                         </div>
                     </div>
-                    {/* Nút hành động */}
                     <div className="flex items-center justify-center gap-6">
                         <button
                             onClick={handleClose}

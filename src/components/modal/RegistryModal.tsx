@@ -8,9 +8,6 @@ import WebSocketManager from '../../socket/WebSocketManager';
 export default function RegistryModal({ openModal }: { openModal: boolean }) {
     const navigate = useNavigate()
     const [open, setOpen] = useState(openModal);
-
-
-
     return (
         <>
             <Modal

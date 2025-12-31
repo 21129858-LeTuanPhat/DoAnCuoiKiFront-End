@@ -26,7 +26,6 @@ function Home() {
             navigate('/login', { replace: true });
         }
     }, [user.username, navigate]);
-
     const dispatch = useDispatch();
     // useEffect(() => {
     //     const socket = WebSocketManager.getInstance();

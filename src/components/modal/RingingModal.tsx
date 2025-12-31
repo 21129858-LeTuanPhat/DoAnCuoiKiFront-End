@@ -12,6 +12,7 @@ import { sendSignal } from '../../socket/CallWS';
 import WebSocketManager from '../../socket/WebSocketManager';
 import { TypeMess } from '../../model/ChatMessage';
 import { useBoardContext } from '../../hooks/useBoardContext';
+import { updateStatus, resetCall } from '../../redux/callReducer'
 
 export default function RingingModal({ open }: { open: boolean }) {
     const [openModal, setModal] = useState<boolean>(open)
@@ -19,11 +20,11 @@ export default function RingingModal({ open }: { open: boolean }) {
     const dispatch = useDispatch()
     const audioRef = useRef<HTMLAudioElement | null>(null)
     const callStore = useSelector((state: RootState) => state.call)
-    const paddingTop = 50;
-    const paddingLeft = 100;
-    const width = window.innerWidth - paddingLeft * 2;
-    const height = window.innerHeight - paddingTop * 2;
+
+    console.log('type trong ringing nè', type)
+
     const selection = useSelector((state: RootState) => state.call)
+
     useEffect(() => {
         // audioRef.current = new Audio(nokiaSound)
         // audioRef.current.volume = 0.7
@@ -33,20 +34,50 @@ export default function RingingModal({ open }: { open: boolean }) {
         //     audioRef.current?.pause()
         // }
     }, [])
-    const handleAccept = () => {
-        // dispatch(inCall())
-        window.open(
-            `${callStore.roomURL}`,
-            "_blank",
-            `width=${width},height=${height},left=${paddingLeft},top=${paddingTop}`
-        );
-        // sendSignal(callStore.caller as string, { type: callStore.callMode as string, roomID: callStore.roomID as string, status: CallStatus.ACCEPTED })
-    }
     const callMess = {
+        status: CallStatus.CONNECTING,
+        roomURL: `${REACT_BASE_URL}/call?roomID=${selection.roomID}&call_mode=${selection.callMode}`,
+        roomID: selection.roomID,
+    };
+    const messReject = {
         status: CallStatus.REJECT,
         roomURL: `${REACT_BASE_URL}/call?roomID=${selection.roomID}&call_mode=${selection.callMode}`,
         roomID: selection.roomID,
     };
+
+    const handleAccept = () => {
+        // dispatch(inCall())
+        dispatch(updateStatus({ status: CallStatus.CONNECTING }))
+        sendMessAccept()
+        // sendSignal(callStore.caller as string, { type: callStore.callMode as string, roomID: callStore.roomID as string, status: CallStatus.ACCEPTED })
+    }
+    const sendMessAccept = () => {
+        const ws = WebSocketManager.getInstance();
+        ws.sendMessage(
+            JSON.stringify({
+                action: 'onchat',
+                data: {
+                    event: 'SEND_CHAT',
+                    data: {
+                        type: type as string,
+                        to: selectedUser,
+                        mes: encodeURIComponent(JSON.stringify({ type: selection.callMode, data: callMess }))
+                    },
+                },
+            }),
+        );
+        console.log('accept nè', JSON.stringify({
+            action: 'onchat',
+            data: {
+                event: 'SEND_CHAT',
+                data: {
+                    type: type as string,
+                    to: selectedUser,
+                    mes: JSON.stringify({ type: selection.callMode, data: callMess })
+                },
+            },
+        }),)
+    }
     const handleClose = () => {
         const ws = WebSocketManager.getInstance();
         ws.sendMessage(
@@ -55,13 +86,15 @@ export default function RingingModal({ open }: { open: boolean }) {
                 data: {
                     event: 'SEND_CHAT',
                     data: {
-                        type: type,
+                        type: type as string,
                         to: selectedUser,
-                        mes: encodeURIComponent(JSON.stringify({ type: selection.callMode, data: callMess })),
+                        mes: encodeURIComponent(JSON.stringify({ type: selection.callMode, data: messReject })),
                     },
                 },
             }),
         );
+        console.log('reject nè', { type: selection.callMode, data: messReject })
+        dispatch(resetCall())
         setModal(false)
     }
 

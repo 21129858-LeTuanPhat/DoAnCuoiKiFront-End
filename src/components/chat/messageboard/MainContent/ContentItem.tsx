@@ -8,6 +8,9 @@ import { Camera, CameraOff, Phone, PhoneOff } from 'lucide-react';
 function ContentItem({ message }: { message: ChatMessage }) {
     const { selectedUser, type } = useBoardContext();
     const user = useSelector((state: RootState) => state.user);
+    if (message.mes.type >= 1) {
+        console.log('bị lỗi nè', message.mes.data)
+    }
     return type === 'people' ? (
         selectedUser === message.name ? (
             <li>

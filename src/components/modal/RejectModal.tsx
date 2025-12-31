@@ -3,7 +3,7 @@ import HighlightOffIcon from '@mui/icons-material/HighlightOff';
 import React, { useState } from 'react'
 import { useDispatch } from 'react-redux';
 import { CallStatus } from '../../model/CallProps';
-import { updateStatus } from '../../redux/callReducer'
+import { resetCall } from '../../redux/callReducer'
 
 export default function RejectModal({ open }: { open: boolean }) {
     const [openModal, setModal] = useState(open)
@@ -45,7 +45,7 @@ export default function RejectModal({ open }: { open: boolean }) {
                         sx={{ mt: 3, width: '100%' }}
                         onClick={() => {
                             setModal(false)
-                            dispatch(updateStatus({ status: CallStatus.IDLE }))
+                            dispatch(resetCall())
                         }}
                     >
                         Thoát

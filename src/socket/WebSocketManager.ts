@@ -50,7 +50,6 @@ class WebSocketManager {
             this.socket.onclose = () => {
                 this.socket = null;
                 console.log('WebSocket disconnected');
-
                 this.connect2(SOCKET_BASE_URL)
                     .then(() => {
                         this.reCode();
@@ -63,7 +62,7 @@ class WebSocketManager {
     }
 
     public reCode() {
-        this.unSubcribe('RE_LOGIN');
+        // this.unSubcribe('RE_LOGIN');
         console.log('dis connet rồi');
         this.onMessage('RE_LOGIN', (mes: any) => {
             console.log('re code trong ws', mes)
@@ -100,7 +99,8 @@ class WebSocketManager {
         console.log('Sending message:', message);
         if (this.socket && this.socket.readyState === WebSocket.OPEN) {
             this.socket.send(message);
-        } else {
+        }
+        else {
             console.log('WebSocket is not connected.');
             this.connect2(SOCKET_BASE_URL)
                 .then(() => {

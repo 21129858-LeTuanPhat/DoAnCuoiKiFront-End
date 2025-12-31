@@ -17,13 +17,13 @@ export enum CallStatus {
     CALLING = 'calling',
     RINGING = 'ringing',
     ACCEPTED = 'accepted',
-    IN_CALL = 'inCall',
+    CONNECTING = 'connecting',
+    IN_CALL = 'incall',
     ENDED = 'ended',
     REJECT = 'reject'
 }
 
 export interface CallInterface {
-    callMode: string,
     roomID: string,
     roomURL: string,
     status: string
