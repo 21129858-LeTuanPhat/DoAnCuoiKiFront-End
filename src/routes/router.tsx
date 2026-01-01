@@ -22,10 +22,11 @@ export const routers = createBrowserRouter(
             path: '/register',
             element: <SignUpPage />,
         },
+        // {
+        //     path: '/call',
+        //     element: <Call setModal={setModal} />,
+        // }, 
         {
-            path: '/call',
-            element: <Call />,
-        }, {
             path: '/call-modal',
             element: <CallModalPage />,
         },]

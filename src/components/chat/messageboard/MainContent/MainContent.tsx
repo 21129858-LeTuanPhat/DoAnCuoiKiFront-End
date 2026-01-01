@@ -118,12 +118,10 @@ function MainContent({ username }: any) {
                                     callMode: mesObj.type === TypeMess.VIDEO_CALL ? TypeMess.VIDEO_CALL : TypeMess.VOICE_CALL
                                 }))
                                 break;
-
                             case CallStatus.REJECT:
                                 console.log('trong switch nè', mesObj.data.status)
                                 dispatch(updateStatus({ status: CallStatus.REJECT }))
                                 break;
-
                             case CallStatus.CONNECTING:
                                 console.log('trong switch nè', mesObj.data.status)
                                 console.log('Nhận được CONNECTING, gửi IN_CALL')
@@ -136,6 +134,11 @@ function MainContent({ username }: any) {
                                 console.log('trong switch nè', mesObj.data.status)
                                 dispatch(updateStatus({ status: CallStatus.IN_CALL }))
                                 console.log('Nhận được IN_CALL từ người gửi')
+                                break;
+                            case CallStatus.ENDED:
+                                console.log('trong switch nè', mesObj.data.status)
+                                dispatch(updateStatus({ status: CallStatus.ENDED }))
+                                console.log('Nhận được end từ người gửi')
                                 break;
                         }
                         return;

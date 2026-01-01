@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Box, Modal } from '@mui/material';
 import { Phone } from 'lucide-react';
@@ -10,6 +10,7 @@ import Call from '../../pages/Call';
 // Import component Call hiện tại của bạn
 
 export default function CallModalPage() {
+    const [openModal, setModal] = useState<boolean>(true)
     // const navigate = useNavigate();
     // const dispatch = useDispatch();
     // const [searchParams] = useSearchParams();
@@ -20,7 +21,7 @@ export default function CallModalPage() {
 
     return (
         <Modal
-            open={true}
+            open={openModal}
 
             sx={{
                 display: 'flex',
@@ -49,7 +50,7 @@ export default function CallModalPage() {
                         position: 'relative',
                     }}
                 >
-                    <Call />
+                    <Call setModal={setModal} />
                 </Box>
             </Box>
         </Modal>

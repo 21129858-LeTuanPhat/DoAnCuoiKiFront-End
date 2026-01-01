@@ -3,19 +3,23 @@ import { ZegoUIKitPrebuilt } from '@zegocloud/zego-uikit-prebuilt';
 import { CallStatus, randomRoomID, VIDEO_CONFIG, VOICE_CONFIG } from '../model/CallProps';
 import { useQueryParams, NumberParam, StringParam } from 'use-query-params';
 import { TypeMess } from '../model/ChatMessage';
-import { useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import store, { RootState } from '../redux/store';
 import { callbackify } from 'util';
-export default function Call() {
-
+import WebSocketManager from '../socket/WebSocketManager';
+import { REACT_BASE_URL } from '../config/utils';
+import { useBoardContext } from '../hooks/useBoardContext';
+import { updateStatus } from '../redux/callReducer';
+export default function Call({ setModal }: { setModal: React.Dispatch<React.SetStateAction<boolean>> }) {
     const callStore = useSelector((state: RootState) => state.call)
-
-
+    const zpRef = useRef<any>(null);
     const timerRef = useRef<NodeJS.Timeout | null>(null);
+    const userLeftFirstRef = useRef(false); // Flag đánh dấu ai rời trước
     const [userCount, setUserCount] = useState(0);
     const [callDuration, setCallDuration] = useState(0);
     const callStartTimeRef = useRef<number | null>(null);
     const [isWaiting, setIsWaiting] = useState(true);
+
     const startTimer = () => {
         if (!callStartTimeRef.current) {
             callStartTimeRef.current = Date.now();
@@ -25,20 +29,49 @@ export default function Call() {
             }, 1000);
         }
     };
-    console.log('roomid trong call nè', callStore.roomID)
+
     const stopTimer = () => {
         if (timerRef.current) {
             clearInterval(timerRef.current);
             timerRef.current = null;
         }
     };
+
+    const { type, selectedUser } = useBoardContext();
+
+    const sendEnd = () => {
+        console.log('gửi kết thúc cuộc gọi nè')
+        const ws = WebSocketManager.getInstance();
+        const callMess = {
+            status: CallStatus.ENDED,
+            roomURL: `${REACT_BASE_URL}/call?roomID=${callStore.roomID}&call_mode=${callStore.callMode}`,
+            roomID: callStore.roomID,
+        };
+        ws.sendMessage(
+            JSON.stringify({
+                action: 'onchat',
+                data: {
+                    event: 'SEND_CHAT',
+                    data: {
+                        type: type,
+                        to: selectedUser,
+                        mes: encodeURIComponent(JSON.stringify({ type: callStore.callMode, data: callMess })),
+                    },
+                },
+            }),
+        );
+    }
+
     const formatTime = (seconds: number) => {
         const hrs = Math.floor(seconds / 3600);
         const mins = Math.floor((seconds % 3600) / 60);
         const secs = seconds % 60;
         return `${hrs.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
     };
+    const dispatch = useDispatch()
+
     const roomID = randomRoomID();
+
     let myMeeting = async (element: any) => {
         const appID = Number(process.env.REACT_APP_ZEGO_APPID);
         const serverSecret = process.env.REACT_APP_ZEGO_SERVER;
@@ -50,6 +83,8 @@ export default function Call() {
             localStorage.getItem('username') || 'haha',
         );
         const zp = ZegoUIKitPrebuilt.create(kitToken);
+        zpRef.current = zp;
+
         zp.joinRoom({
             container: element,
             sharedLinks: [
@@ -70,10 +105,10 @@ export default function Call() {
             showPreJoinView: false,
             maxUsers: 2,
             ...(VOICE_CONFIG),
-            // ...(query.call_mode === TypeMess.VOICE_CALL ? VOICE_CONFIG : VIDEO_CONFIG),
+
             onUserJoin: (users: any[]) => {
                 console.log('Users joined:', users);
-                const currentUserCount = users.length + 1; // +1 cho chính mình
+                const currentUserCount = users.length + 1;
                 setUserCount(currentUserCount);
 
                 if (currentUserCount >= 2) {
@@ -84,35 +119,51 @@ export default function Call() {
 
             onUserLeave: (users: any[]) => {
                 console.log('Users left:', users);
-                const currentUserCount = users.length + 1;
+                const currentUserCount = users.length;
+                console.log('current user count:', currentUserCount);
                 setUserCount(currentUserCount);
 
-                if (currentUserCount < 2) {
+                if (currentUserCount < 2 && !userLeftFirstRef.current) {
+                    // Người kia rời trước -> Mình là người bị động
+                    userLeftFirstRef.current = true;
                     setIsWaiting(true);
                     stopTimer();
+
+                    // Tự động rời sau 1 giây
+                    setTimeout(() => {
+                        if (zpRef.current) {
+                            zpRef.current.hangUp();
+                        }
+                        setModal(false);
+                    }, 1000);
                 }
             },
 
             onJoinRoom: () => {
                 console.log('Joined room successfully');
                 setUserCount(1);
+                userLeftFirstRef.current = false;
             },
 
             onLeaveRoom: () => {
                 console.log('Left room');
+                console.log('userLeftFirstRef:', userLeftFirstRef.current);
+
                 stopTimer();
+                setModal(false);
+                if (!userLeftFirstRef.current) {
+                    sendEnd();
+                    console.log(' thằng rời nè');
+                    dispatch(updateStatus({ status: CallStatus.ENDED }))
+                } else {
+                    console.log('thằng ');
+                }
                 console.log('Call duration:', callDuration, 'seconds');
+                userLeftFirstRef.current = false;
             },
-            // onUserAvatarSetter: (userList) => {
-            //     userList.forEach(user => {
-            //         // Bạn có thể set avatar khác nhau cho từng user
-            //         if (user && typeof user.setUserAvatar === 'function') {
-            //             user.setUserAvatar("https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSHuY484VNuH6DQea0DwgHsAYgZCbR0a-jxmLbciys8zoHjd1JJZut8oRSdcQE0lQnAyckwew&s=10");
-            //         }
-            //     });
-            // },
         });
     };
+
     return (
         <div style={{ position: 'relative', width: '100%', height: '90vh' }}>
             {isWaiting && (
