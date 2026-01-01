@@ -17,7 +17,6 @@ import CallModalPage from '../components/modal/CallModalPage';
 function Home() {
 
     const { listMessage, setListMessage, selectedUser } = useBoardContext();
-
     const callStore = useSelector((state: RootState) => state.call);
     const user = useSelector((state: RootState) => state.user);
     const navigate = useNavigate();
@@ -89,7 +88,7 @@ function Home() {
     return (
         <>
             {callStore.callStatus === CallStatus.RINGING && <RingingModal open={true} />}
-            {/* {selection.callStatus === CallStatus.IN_CALL && <CallModalPage></CallModalPage>} */}
+            {selection.callStatus === CallStatus.IN_CALL && <CallModalPage></CallModalPage>}
             <div className="flex h-screen ">
                 <aside className="hidden md:block w-[25%] relative">
                     <SideBar />

@@ -45,6 +45,7 @@ export default function CallModalPage() {
                     sx={{
                         flex: 1,
                         background: '#000',
+                        // width: '1200px',
                         position: 'relative',
                     }}
                 >

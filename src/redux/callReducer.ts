@@ -2,7 +2,7 @@ import { createSlice, PayloadAction } from "@reduxjs/toolkit"
 import { CallStatus } from "../model/CallProps"
 import { stat } from "fs"
 
-interface ReducerCall {
+export interface ReducerCall {
     callStatus: CallStatus,
     // true cuộc gọi đến, false cuộc gọi đi 
     isIncoming?: boolean,

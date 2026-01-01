@@ -1,6 +1,6 @@
 import { Box, CircularProgress, Modal, Typography } from '@mui/material';
 import { Phone } from 'lucide-react';
-import React, { Dispatch, SetStateAction, useEffect, useRef } from 'react';
+import React, { Dispatch, SetStateAction, useEffect, useRef, useState } from 'react';
 import { CallStatus, randomRoomID } from '../../model/CallProps';
 import { REACT_BASE_URL } from '../../config/utils';
 import WebSocketManager from '../../socket/WebSocketManager';
@@ -8,7 +8,8 @@ import { useBoardContext } from '../../hooks/useBoardContext';
 import nokiaSound from '../../assets/sound/instagram_call.mp3';
 import { ChatMessage, TypeMess } from '../../model/ChatMessage';
 import { incomingCall, outgoingCall } from '../../redux/callReducer'
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
+import { RootState } from '../../redux/store';
 
 export default function CallModal({
     open,
@@ -19,7 +20,14 @@ export default function CallModal({
     setOpen: Dispatch<SetStateAction<boolean>>;
     typeCall: number;
 }) {
+    const callStore = useSelector((state: RootState) => state.call)
     const dispatch = useDispatch()
+    // const openModal = useState<boolean>(open)
+    useEffect(() => {
+        if (callStore.callStatus === CallStatus.IN_CALL) {
+            setOpen(false)
+        }
+    }, [callStore.callStatus])
     const roomID = randomRoomID();
     const { type, selectedUser } = useBoardContext();
     const username = localStorage.getItem('username');

@@ -7,7 +7,7 @@ import ContentItemCall from '../ItemCall';
 import RingingModal from '../../../modal/RingingModal';
 import { CallInterface, CallStatus } from '../../../../model/CallProps';
 import { useDispatch, useSelector } from 'react-redux';
-import { incomingCall, updateStatus } from '../../../../redux/callReducer';
+import { incomingCall, ReducerCall, updateStatus } from '../../../../redux/callReducer';
 import RejectModal from '../../../modal/RejectModal';
 import { RootState } from '../../../../redux/store';
 import { REACT_BASE_URL } from '../../../../config/utils';
@@ -33,14 +33,27 @@ function MainContent({ username }: any) {
         setListMessage([]);
         setPage(1);
     }, [username]);
+    const selectionRef = useRef<ReducerCall>({
+        callStatus: CallStatus.IDLE,
+        isIncoming: false,
+        caller: null,
+        callMode: undefined,
+        roomID: undefined,
+        roomURL: undefined,
+    });
+
+    useEffect(() => {
+        selectionRef.current = selection;
+    }, [selection]);
+    console.log('selection trong mainContent', selection, 'roomid: ', selection.roomID, 'selection.callMode: ', selection.callMode)
     const sendInCall = () => {
+        const callSelection = selectionRef.current
         const ws = WebSocketManager.getInstance();
         const callMess = {
             status: CallStatus.IN_CALL,
-            roomURL: `${REACT_BASE_URL}/call?roomID=${selection.roomID}&call_mode=${selection.callMode}`,
-            roomID: selection.roomID,
+            roomURL: `${REACT_BASE_URL}/call?roomID=${callSelection.roomID}&call_mode=${callSelection.callMode}`,
+            roomID: callSelection.roomID,
         };
-
         ws.sendMessage(
             JSON.stringify({
                 action: 'onchat',
@@ -49,29 +62,23 @@ function MainContent({ username }: any) {
                     data: {
                         type: type,
                         to: selectedUser,
-                        mes: encodeURIComponent(JSON.stringify({ type: selection.callMode, data: callMess })),
+                        mes: encodeURIComponent(JSON.stringify({ type: selectionRef.current.callMode, data: callMess })),
                     },
                 },
             }),
         );
-        console.log('vao function sendincall nè', JSON.stringify({ type: selection.callMode, data: callMess }))
+        console.log('vao function sendincall nè', JSON.stringify({
+            action: 'onchat',
+            data: {
+                event: 'SEND_CHAT',
+                data: {
+                    type: type,
+                    to: selectedUser,
+                    mes: (JSON.stringify({ type: selectionRef.current.callMode, data: callMess })),
+                },
+            },
+        }),)
     }
-    const navigate = useNavigate();
-    const location = useLocation();
-    // useEffect(() => {
-    //     if (selection.callStatus === CallStatus.IN_CALL) {
-    //         console.log('in call selection nè trời', selection.roomURL)
-    //         navigate(
-    //             `/call-modal?roomID=${selection.roomID}&call_mode=${selection.callMode}`,
-    //             {
-    //                 state: {
-    //                     backgroundLocation: location,
-    //                     roomURL: selection.roomURL
-    //                 }
-    //             }
-    //         );
-    //     }
-    // }, [selection.callStatus])
     useEffect(() => {
         const ws = WebSocketManager.getInstance();
         if (page === 1) {
@@ -83,14 +90,15 @@ function MainContent({ username }: any) {
             ws.onMessage('GET_PEOPLE_CHAT_MES', (msg) => {
                 console.log('msg nè', msg)
                 if (msg.status === 'success' && msg.event === 'SEND_CHAT') {
-                    //     console.log('msg send chat', msg)
+
                     const mesObj: any = JSON.parse(decodeURIComponent(msg.data.mes));
+                    console.log('msg nhận về nè', mesObj)
 
                     if (mesObj.type === TypeMess.VIDEO_CALL || mesObj.type === TypeMess.VOICE_CALL) {
                         // const newCallMessage: ChatMessage = {
                         //     id: msg.data.id,
                         //     name: msg.data.name,
-                        //     type: msg.data.type, // ✅ FIX: Sửa typo từ tpye -> type
+                        //     type: msg.data.type, 
                         //     to: msg.data.to,
                         //     mes: {
                         //         type: mesObj.type,
@@ -102,6 +110,7 @@ function MainContent({ username }: any) {
                         // Xử lý các trạng thái
                         switch (mesObj.data.status) {
                             case CallStatus.CALLING:
+                                console.log('trong switch nè', mesObj.data.status)
                                 dispatch(incomingCall({
                                     roomURL: mesObj.data.roomURL,
                                     roomID: mesObj.data.roomID,
@@ -111,24 +120,24 @@ function MainContent({ username }: any) {
                                 break;
 
                             case CallStatus.REJECT:
+                                console.log('trong switch nè', mesObj.data.status)
                                 dispatch(updateStatus({ status: CallStatus.REJECT }))
                                 break;
 
                             case CallStatus.CONNECTING:
+                                console.log('trong switch nè', mesObj.data.status)
                                 console.log('Nhận được CONNECTING, gửi IN_CALL')
                                 setTimeout(() => {
                                     sendInCall()
                                     dispatch(updateStatus({ status: CallStatus.IN_CALL }))
                                 }, 100)
                                 break;
-
                             case CallStatus.IN_CALL:
+                                console.log('trong switch nè', mesObj.data.status)
                                 dispatch(updateStatus({ status: CallStatus.IN_CALL }))
                                 console.log('Nhận được IN_CALL từ người gửi')
-
                                 break;
                         }
-
                         return;
                     }
                 }

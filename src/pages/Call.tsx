@@ -3,13 +3,15 @@ import { ZegoUIKitPrebuilt } from '@zegocloud/zego-uikit-prebuilt';
 import { CallStatus, randomRoomID, VIDEO_CONFIG, VOICE_CONFIG } from '../model/CallProps';
 import { useQueryParams, NumberParam, StringParam } from 'use-query-params';
 import { TypeMess } from '../model/ChatMessage';
+import { useSelector } from 'react-redux';
+import store, { RootState } from '../redux/store';
+import { callbackify } from 'util';
 export default function Call() {
-    const [query, setQuery] = useQueryParams({
-        roomID: StringParam,
-        call_mode: NumberParam,
-    });
+
+    const callStore = useSelector((state: RootState) => state.call)
+
+
     const timerRef = useRef<NodeJS.Timeout | null>(null);
-    console.log(query.roomID);
     const [userCount, setUserCount] = useState(0);
     const [callDuration, setCallDuration] = useState(0);
     const callStartTimeRef = useRef<number | null>(null);
@@ -23,7 +25,7 @@ export default function Call() {
             }, 1000);
         }
     };
-
+    console.log('roomid trong call nè', callStore.roomID)
     const stopTimer = () => {
         if (timerRef.current) {
             clearInterval(timerRef.current);
@@ -36,7 +38,6 @@ export default function Call() {
         const secs = seconds % 60;
         return `${hrs.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
     };
-
     const roomID = randomRoomID();
     let myMeeting = async (element: any) => {
         const appID = Number(process.env.REACT_APP_ZEGO_APPID);
@@ -44,7 +45,7 @@ export default function Call() {
         const kitToken = ZegoUIKitPrebuilt.generateKitTokenForTest(
             appID,
             serverSecret as string,
-            query.roomID as string,
+            callStore.roomID as string,
             randomRoomID(5),
             localStorage.getItem('username') || 'haha',
         );
@@ -68,8 +69,8 @@ export default function Call() {
             },
             showPreJoinView: false,
             maxUsers: 2,
-
-            ...(query.call_mode === TypeMess.VOICE_CALL ? VOICE_CONFIG : VIDEO_CONFIG),
+            ...(VOICE_CONFIG),
+            // ...(query.call_mode === TypeMess.VOICE_CALL ? VOICE_CONFIG : VIDEO_CONFIG),
             onUserJoin: (users: any[]) => {
                 console.log('Users joined:', users);
                 const currentUserCount = users.length + 1; // +1 cho chính mình
@@ -146,7 +147,6 @@ export default function Call() {
                     </p>
                 </div>
             )}
-
             {!isWaiting && callDuration > 0 && (
                 <div
                     style={{
