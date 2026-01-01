@@ -9,8 +9,11 @@ function BoardProvider({ children }: BoardProviderProps) {
     const [selectedUser, setSelectedUser] = useState<string>('');
     const [listMessage, setListMessage] = useState<ChatMessage[]>([]);
     const [type, setType] = useState<string>('');
+    const [right, setRight] = useState<boolean>(false);
     return (
-        <BoardContext.Provider value={{ selectedUser, setSelectedUser, listMessage, setListMessage, type, setType }}>
+        <BoardContext.Provider
+            value={{ selectedUser, setSelectedUser, listMessage, setListMessage, type, setType, right, setRight }}
+        >
             {children}
         </BoardContext.Provider>
     );

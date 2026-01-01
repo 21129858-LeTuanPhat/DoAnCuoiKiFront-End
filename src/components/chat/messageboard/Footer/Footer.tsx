@@ -17,7 +17,7 @@ function Footer({ username }: { username: string }) {
     const MAX_SIZE = 20 * 1024;
     const [files, setFiles] = useState<any[]>([]);
     const [message, setMessage] = useState('');
-    const { listMessage, setListMessage, type } = useBoardContext();
+    const { listMessage, setListMessage, type, setRight } = useBoardContext();
     const inputRef = useRef<any>(null);
     const user = useSelector((state: RootState) => state.user);
     const [popUp, setPopUp] = useState<boolean>(false);
@@ -95,10 +95,12 @@ function Footer({ username }: { username: string }) {
 
     const handleSendMessage = () => {
         sendMessage(message);
+        setRight(true);
     };
     const handleSendMessageKeyUp = (e: any) => {
         if (e.keyCode === 13) {
             sendMessage(message);
+            setRight(true);
         }
     };
 
