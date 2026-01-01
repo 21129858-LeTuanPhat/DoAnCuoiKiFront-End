@@ -140,7 +140,7 @@ function Footer({ username }: { username: string }) {
                         onChange={handleMessage}
                         onKeyUp={handleSendMessageKeyUp}
                     />
-                    <button className="p-2">
+                    <button disabled className="p-2">
                         <HeadlessTippy
                             interactive
                             render={(attrs) => {

@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, useLayoutEffect } from 'react';
 import WebSocketManager from '../../../../socket/WebSocketManager';
-import ContentItem from '../MainContent/ContentItem';
+import Content from './Content';
 import { useBoardContext } from '../../../../hooks/useBoardContext';
 import { ChatMessage, TypeMess } from '../../../../model/ChatMessage';
 import ContentItemCall from '../ItemCall';
@@ -257,7 +257,7 @@ function MainContent({ username }: any) {
                             // } catch {
                             //     console.log('catch type >= 10 nè ', message.mes);
                             // }
-                            return <ContentItem message={message} key={index} />;
+                            return <Content message={message} key={index} />;
                         })}
                     </ul>
                 </div>
