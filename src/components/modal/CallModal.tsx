@@ -1,13 +1,13 @@
 import { Box, CircularProgress, Modal, Typography } from '@mui/material';
 import { Phone } from 'lucide-react';
 import React, { Dispatch, SetStateAction, useEffect, useRef, useState } from 'react';
-import { CallStatus, randomRoomID } from '../../model/CallProps';
+import { CallInterface, CallStatus, randomRoomID } from '../../model/CallProps';
 import { REACT_BASE_URL } from '../../config/utils';
 import WebSocketManager from '../../socket/WebSocketManager';
 import { useBoardContext } from '../../hooks/useBoardContext';
 import nokiaSound from '../../assets/sound/instagram_call.mp3';
 import { ChatMessage, TypeMess } from '../../model/ChatMessage';
-import { incomingCall, outgoingCall, updateStatus } from '../../redux/callReducer'
+import { incomingCall, outgoingCall, ReducerCall, updateStatus } from '../../redux/callReducer'
 import { useDispatch, useSelector } from 'react-redux';
 import { RootState } from '../../redux/store';
 
@@ -22,13 +22,24 @@ export default function CallModal({
 }) {
     const callStore = useSelector((state: RootState) => state.call)
     const dispatch = useDispatch()
+    const refSendMess = useRef<ReducerCall>({
+        callStatus: CallStatus.IDLE,
+        isIncoming: false,
+        caller: null,
+        callMode: undefined,
+        roomID: undefined,
+        roomURL: undefined,
+    })
+    useEffect(() => {
+        refSendMess.current = callStore
+    }, [callStore])
     const sendEnd = () => {
         console.log('gửi kết thúc cuộc gọi nè')
         const ws = WebSocketManager.getInstance();
         const callMess = {
             status: CallStatus.CANCEL,
-            roomURL: `${REACT_BASE_URL}/call?roomID=${callStore.roomID}&call_mode=${callStore.callMode}`,
-            roomID: callStore.roomID,
+            roomURL: `${REACT_BASE_URL}/call?roomID=${refSendMess.current.roomID}&call_mode=${refSendMess.current.callMode}`,
+            roomID: refSendMess.current.roomID,
         };
         ws.sendMessage(
             JSON.stringify({
@@ -38,20 +49,43 @@ export default function CallModal({
                     data: {
                         type: type,
                         to: selectedUser,
-                        mes: encodeURIComponent(JSON.stringify({ type: callStore.callMode, data: callMess })),
+                        mes: encodeURIComponent(JSON.stringify({ type: refSendMess.current.callMode, data: callMess })),
                     },
                 },
             }),
         );
     }
+    const sendTimeout = () => {
+        console.log('gửi timeout nè')
+        const ws = WebSocketManager.getInstance();
+        const timeout = {
+            status: CallStatus.TIMEOUT,
+            roomURL: `${REACT_BASE_URL}/call?roomID=${refSendMess.current.roomID}&call_mode=${refSendMess.current.callMode}`,
+            roomID: refSendMess.current.roomID,
+        };
 
+        ws.sendMessage(
+            JSON.stringify({
+                action: 'onchat',
+                data: {
+                    event: 'SEND_CHAT',
+                    data: {
+                        type: type,
+                        to: selectedUser,
+                        mes: encodeURIComponent(JSON.stringify({ type: refSendMess.current.callMode, data: timeout })),
+                    },
+                },
+            }),
+        );
+    }
     useEffect(() => {
         if (open) {
             const timer = setTimeout(() => {
+                sendTimeout()
+                dispatch(updateStatus({ status: CallStatus.TIMEOUT }))
                 setOpen(false)
-
             }, 5000)
-            return () => clearInterval(timer)
+            return () => clearTimeout(timer)
         }
     }, [open])
     // const openModal = useState<boolean>(open)

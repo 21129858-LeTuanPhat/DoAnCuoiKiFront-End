@@ -7,18 +7,11 @@ import { RootState } from '../../redux/store';
 import { updateStatus } from '../../redux/callReducer';
 import { CallStatus } from '../../model/CallProps';
 import Call from '../../pages/Call';
-// Import component Call hiện tại của bạn
+import { TypeMess } from '../../model/ChatMessage';
 
 export default function CallModalPage() {
     console.log('dô call modal page nè')
     const [openModal, setModal] = useState<boolean>(true)
-    // const navigate = useNavigate();
-    // const dispatch = useDispatch();
-    // const [searchParams] = useSearchParams();
-    // const selection = useSelector((state: RootState) => state.call);
-
-    // const roomID = searchParams.get('roomID') || selection.roomID;
-    // const callMode = searchParams.get('call_mode') || selection.callMode;
     const callStore = useSelector((state: RootState) => state.call)
     const [callKey, setCallKey] = useState(0);
     console.log('call key', callKey)
@@ -52,13 +45,15 @@ export default function CallModalPage() {
                     sx={{
                         flex: 1,
                         background: '#000',
-                        // width: '1200px',
+                        ...(callStore.callMode === TypeMess.VIDEO_CALL && {
+                            width: '1200px',
+                        }),
                         position: 'relative',
                     }}
                 >
                     <Call key={callKey} setModal={setModal} />
                 </Box>
             </Box>
-        </Modal>
+        </Modal >
     );
 }

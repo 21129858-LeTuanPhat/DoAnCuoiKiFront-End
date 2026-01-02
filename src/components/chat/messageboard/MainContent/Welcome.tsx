@@ -1,5 +1,102 @@
 import { MessageCircleMore } from 'lucide-react';
+import { useEffect, useRef } from 'react';
+import WebSocketManager from '../../../../socket/WebSocketManager';
+import { TypeMess } from '../../../../model/ChatMessage';
+import { CallStatus } from '../../../../model/CallProps';
+import { useDispatch, useSelector } from 'react-redux';
+import { incomingCall, ReducerCall, updateStatus } from '../../../../redux/callReducer';
+import { RootState } from '../../../../redux/store';
+import { REACT_BASE_URL } from '../../../../config/utils';
 function Welcome() {
+    const dispatch = useDispatch()
+
+    const selection = useSelector((state: RootState) => state.call)
+    const selectionRef = useRef<ReducerCall>({
+        callStatus: CallStatus.IDLE,
+        isIncoming: false,
+        caller: null,
+        callMode: undefined,
+        roomID: undefined,
+        roomURL: undefined,
+    });
+
+    useEffect(() => {
+        selectionRef.current = selection;
+    }, [selection]);
+    const sendInCall = () => {
+
+        const callSelection = selectionRef.current
+        const ws = WebSocketManager.getInstance();
+        const callMess = {
+            status: CallStatus.IN_CALL,
+            roomURL: `${REACT_BASE_URL}/call?roomID=${callSelection.roomID}&call_mode=${callSelection.callMode}`,
+            roomID: callSelection.roomID,
+        };
+        ws.sendMessage(
+            JSON.stringify({
+                action: 'onchat',
+                data: {
+                    event: 'SEND_CHAT',
+                    data: {
+                        type: 1,
+                        to: selection.caller,
+                        mes: encodeURIComponent(JSON.stringify({ type: selectionRef.current.callMode, data: callMess })),
+                    },
+                },
+            }),
+        );
+    }
+    useEffect(() => {
+        const ws = WebSocketManager.getInstance();
+        ws.onMessage('GET_PEOPLE_CHAT_MES', (msg) => {
+            if (msg.status === 'success' && msg.event === 'SEND_CHAT') {
+
+                const mesObj: any = JSON.parse(decodeURIComponent(msg.data.mes));
+                if (mesObj.type === TypeMess.VIDEO_CALL || mesObj.type === TypeMess.VOICE_CALL) {
+                    switch (mesObj.data.status) {
+                        case CallStatus.CALLING:
+
+                            dispatch(incomingCall({
+                                roomURL: mesObj.data.roomURL,
+                                roomID: mesObj.data.roomID,
+                                caller: msg.data.name,
+                                callMode: mesObj.type === TypeMess.VIDEO_CALL ? TypeMess.VIDEO_CALL : TypeMess.VOICE_CALL,
+                            }))
+                            break;
+                        case CallStatus.REJECT:
+                            dispatch(updateStatus({ status: CallStatus.REJECT }))
+                            break;
+                        case CallStatus.CONNECTING:
+
+                            console.log('Nhận được CONNECTING, gửi IN_CALL')
+                            setTimeout(() => {
+                                sendInCall()
+                                dispatch(updateStatus({ status: CallStatus.IN_CALL }))
+                            }, 100)
+                            break;
+                        case CallStatus.IN_CALL:
+                            dispatch(updateStatus({ status: CallStatus.IN_CALL }))
+                            break;
+                        case CallStatus.ENDED:
+
+                            dispatch(updateStatus({ status: CallStatus.ENDED }))
+
+                            break;
+                        case CallStatus.CANCEL:
+                            dispatch(updateStatus({ status: CallStatus.CANCEL }))
+                            break;
+                        case CallStatus.TIMEOUT:
+                            dispatch(updateStatus({ status: CallStatus.TIMEOUT }))
+                            break;
+                    }
+                    return;
+
+                }
+            }
+        })
+
+    }, [])
+
     return (
         <div className="flex flex-col justify-center items-center h-full">
             <div>

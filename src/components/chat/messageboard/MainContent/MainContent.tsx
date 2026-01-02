@@ -12,7 +12,6 @@ import RejectModal from '../../../modal/RejectModal';
 import { RootState } from '../../../../redux/store';
 import { REACT_BASE_URL } from '../../../../config/utils';
 import { useLocation, useNavigate } from 'react-router-dom';
-
 function MainContent({ username }: any) {
     const selection = useSelector((state: RootState) => state.call)
     const [page, setPage] = useState<number>(1);
@@ -67,17 +66,7 @@ function MainContent({ username }: any) {
                 },
             }),
         );
-        console.log('vao function sendincall nè', JSON.stringify({
-            action: 'onchat',
-            data: {
-                event: 'SEND_CHAT',
-                data: {
-                    type: type,
-                    to: selectedUser,
-                    mes: (JSON.stringify({ type: selectionRef.current.callMode, data: callMess })),
-                },
-            },
-        }),)
+
     }
     useEffect(() => {
         const ws = WebSocketManager.getInstance();
@@ -142,6 +131,9 @@ function MainContent({ username }: any) {
                                 break;
                             case CallStatus.CANCEL:
                                 dispatch(updateStatus({ status: CallStatus.CANCEL }))
+                                break;
+                            case CallStatus.TIMEOUT:
+                                dispatch(updateStatus({ status: CallStatus.TIMEOUT }))
                                 break;
                         }
                         return;
@@ -362,7 +354,6 @@ function MainContent({ username }: any) {
     const [openReject, setReject] = useState<boolean>(false)
     return (
         <>
-            {selection.callStatus === CallStatus.REJECT && (<RejectModal open={true}></RejectModal>)}
             <section className="bg-[#f0f4fa] h-[calc(737.6px-72px-65px)]">
                 {initialLoading ? (
                     <div className="h-full flex items-center justify-center">

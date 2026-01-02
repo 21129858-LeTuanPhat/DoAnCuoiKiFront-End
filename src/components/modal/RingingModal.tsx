@@ -39,6 +39,12 @@ export default function RingingModal({ open }: { open: boolean }) {
         roomURL: `${REACT_BASE_URL}/call?roomID=${selection.roomID}&call_mode=${selection.callMode}`,
         roomID: selection.roomID,
     };
+
+    useEffect(() => {
+        if (callStore.callStatus === CallStatus.TIMEOUT) {
+            setModal(false)
+        }
+    }, [callStore.callStatus])
     const messReject = {
         status: CallStatus.REJECT,
         roomURL: `${REACT_BASE_URL}/call?roomID=${selection.roomID}&call_mode=${selection.callMode}`,
