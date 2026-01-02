@@ -15,6 +15,7 @@ import { CallInterface, CallStatus } from '../model/CallProps';
 import RingingModal from '../components/modal/RingingModal';
 import CallModalPage from '../components/modal/CallModalPage';
 import EndCallModal from '../components/modal/EndCallModal';
+import CancelModal from '../components/modal/CancelModal';
 function Home() {
 
     const { listMessage, setListMessage, selectedUser } = useBoardContext();
@@ -91,6 +92,7 @@ function Home() {
             {callStore.callStatus === CallStatus.RINGING && <RingingModal open={true} />}
             {selection.callStatus === CallStatus.IN_CALL && <CallModalPage></CallModalPage>}
             {selection.callStatus === CallStatus.ENDED && <EndCallModal open={true}></EndCallModal>}
+            {selection.callStatus === CallStatus.CANCEL && <CancelModal open={true}></CancelModal>}
 
             <div className="flex h-screen ">
                 <aside className="hidden md:block w-[25%] relative">

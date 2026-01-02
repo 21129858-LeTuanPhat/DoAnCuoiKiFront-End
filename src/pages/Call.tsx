@@ -1,4 +1,4 @@
-import React, { useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { ZegoUIKitPrebuilt } from '@zegocloud/zego-uikit-prebuilt';
 import { CallStatus, randomRoomID, VIDEO_CONFIG, VOICE_CONFIG } from '../model/CallProps';
 import { useQueryParams, NumberParam, StringParam } from 'use-query-params';
@@ -10,15 +10,24 @@ import WebSocketManager from '../socket/WebSocketManager';
 import { REACT_BASE_URL } from '../config/utils';
 import { useBoardContext } from '../hooks/useBoardContext';
 import { updateStatus } from '../redux/callReducer';
+
 export default function Call({ setModal }: { setModal: React.Dispatch<React.SetStateAction<boolean>> }) {
+    console.log('dô call nè')
+
     const callStore = useSelector((state: RootState) => state.call)
     const zpRef = useRef<any>(null);
     const timerRef = useRef<NodeJS.Timeout | null>(null);
-    const userLeftFirstRef = useRef(false); // Flag đánh dấu ai rời trước
+    const userLeftFirstRef = useRef(false);
+    const hasJoinedRef = useRef(false);
+    const containerRef = useRef<HTMLDivElement>(null); // ✅ Thêm ref cho container
+
     const [userCount, setUserCount] = useState(0);
     const [callDuration, setCallDuration] = useState(0);
     const callStartTimeRef = useRef<number | null>(null);
     const [isWaiting, setIsWaiting] = useState(true);
+
+    const dispatch = useDispatch();
+    const { type, selectedUser } = useBoardContext();
 
     const startTimer = () => {
         if (!callStartTimeRef.current) {
@@ -35,9 +44,8 @@ export default function Call({ setModal }: { setModal: React.Dispatch<React.SetS
             clearInterval(timerRef.current);
             timerRef.current = null;
         }
+        callStartTimeRef.current = null;
     };
-
-    const { type, selectedUser } = useBoardContext();
 
     const sendEnd = () => {
         console.log('gửi kết thúc cuộc gọi nè')
@@ -68,101 +76,124 @@ export default function Call({ setModal }: { setModal: React.Dispatch<React.SetS
         const secs = seconds % 60;
         return `${hrs.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
     };
-    const dispatch = useDispatch()
 
-    const roomID = randomRoomID();
+    useEffect(() => {
+        if (!containerRef.current || hasJoinedRef.current) return;
 
-    let myMeeting = async (element: any) => {
-        const appID = Number(process.env.REACT_APP_ZEGO_APPID);
-        const serverSecret = process.env.REACT_APP_ZEGO_SERVER;
-        const kitToken = ZegoUIKitPrebuilt.generateKitTokenForTest(
-            appID,
-            serverSecret as string,
-            callStore.roomID as string,
-            randomRoomID(5),
-            localStorage.getItem('username') || 'haha',
-        );
-        const zp = ZegoUIKitPrebuilt.create(kitToken);
-        zpRef.current = zp;
+        hasJoinedRef.current = true;
 
-        zp.joinRoom({
-            container: element,
-            sharedLinks: [
-                {
-                    name: 'Personal link',
-                    url:
-                        window.location.protocol +
-                        '//' +
-                        window.location.host +
-                        window.location.pathname +
-                        '?roomID=' +
-                        roomID,
-                },
-            ],
-            scenario: {
-                mode: ZegoUIKitPrebuilt.OneONoneCall,
-            },
-            showPreJoinView: false,
-            maxUsers: 2,
-            ...(VOICE_CONFIG),
+        const initCall = async () => {
+            try {
+                const appID = Number(process.env.REACT_APP_ZEGO_APPID);
+                const serverSecret = process.env.REACT_APP_ZEGO_SERVER;
+                const roomID = randomRoomID();
 
-            onUserJoin: (users: any[]) => {
-                console.log('Users joined:', users);
-                const currentUserCount = users.length + 1;
-                setUserCount(currentUserCount);
+                const kitToken = ZegoUIKitPrebuilt.generateKitTokenForTest(
+                    appID,
+                    serverSecret as string,
+                    callStore.roomID as string,
+                    randomRoomID(5),
+                    localStorage.getItem('username') || 'haha',
+                );
 
-                if (currentUserCount >= 2) {
-                    setIsWaiting(false);
-                    startTimer();
-                }
-            },
+                const zp = ZegoUIKitPrebuilt.create(kitToken);
+                zpRef.current = zp;
 
-            onUserLeave: (users: any[]) => {
-                console.log('Users left:', users);
-                const currentUserCount = users.length;
-                console.log('current user count:', currentUserCount);
-                setUserCount(currentUserCount);
+                await zp.joinRoom({
+                    container: containerRef.current,
+                    sharedLinks: [
+                        {
+                            name: 'Personal link',
+                            url: `${window.location.protocol}//${window.location.host}${window.location.pathname}?roomID=${roomID}`,
+                        },
+                    ],
+                    scenario: {
+                        mode: ZegoUIKitPrebuilt.OneONoneCall,
+                    },
+                    showPreJoinView: false,
+                    maxUsers: 2,
+                    ...VOICE_CONFIG,
 
-                if (currentUserCount < 2 && !userLeftFirstRef.current) {
-                    // Người kia rời trước -> Mình là người bị động
-                    userLeftFirstRef.current = true;
-                    setIsWaiting(true);
-                    stopTimer();
+                    onUserJoin: (users: any[]) => {
+                        console.log('Users joined:', users);
+                        const currentUserCount = users.length + 1;
+                        setUserCount(currentUserCount);
 
-                    // Tự động rời sau 1 giây
-                    setTimeout(() => {
-                        if (zpRef.current) {
-                            zpRef.current.hangUp();
+                        if (currentUserCount >= 2) {
+                            setIsWaiting(false);
+                            startTimer();
                         }
+                    },
+
+                    onUserLeave: (users: any[]) => {
+                        console.log('Users left:', users);
+                        const currentUserCount = users.length;
+                        console.log('current user count:', currentUserCount);
+                        setUserCount(currentUserCount);
+
+                        if (currentUserCount < 2 && !userLeftFirstRef.current) {
+                            userLeftFirstRef.current = true;
+                            setIsWaiting(true);
+                            stopTimer();
+
+                            setTimeout(() => {
+                                if (zpRef.current) {
+                                    zpRef.current.hangUp();
+                                }
+                                setModal(false);
+                            }, 1000);
+                        }
+                    },
+
+                    onJoinRoom: () => {
+                        console.log('Joined room successfully');
+                        setUserCount(1);
+                        userLeftFirstRef.current = false;
+                    },
+
+                    onLeaveRoom: () => {
+                        console.log('Left room');
+                        console.log('userLeftFirstRef:', userLeftFirstRef.current);
+
+                        stopTimer();
                         setModal(false);
-                    }, 1000);
-                }
-            },
 
-            onJoinRoom: () => {
-                console.log('Joined room successfully');
-                setUserCount(1);
-                userLeftFirstRef.current = false;
-            },
+                        if (!userLeftFirstRef.current) {
+                            sendEnd();
+                            console.log('thằng rời nè');
+                        } else {
+                            console.log('thằng bị động');
+                        }
 
-            onLeaveRoom: () => {
-                console.log('Left room');
-                console.log('userLeftFirstRef:', userLeftFirstRef.current);
-
-                stopTimer();
+                        console.log('Call duration:', callDuration, 'seconds');
+                        userLeftFirstRef.current = false;
+                        dispatch(updateStatus({ status: CallStatus.ENDED }));
+                    },
+                });
+            } catch (error) {
+                console.error('Error joining room:', error);
                 setModal(false);
-                if (!userLeftFirstRef.current) {
-                    sendEnd();
-                    console.log(' thằng rời nè');
-                    dispatch(updateStatus({ status: CallStatus.ENDED }))
-                } else {
-                    console.log('thằng ');
+            }
+        };
+
+        initCall();
+        return () => {
+            console.log('Cleanup call component');
+            stopTimer();
+
+            if (zpRef.current) {
+                try {
+                    // Destroy instance ZEGOCLOUD
+                    zpRef.current.destroy();
+                    zpRef.current = null;
+                } catch (error) {
+                    console.error('Error destroying zego instance:', error);
                 }
-                console.log('Call duration:', callDuration, 'seconds');
-                userLeftFirstRef.current = false;
-            },
-        });
-    };
+            }
+
+            hasJoinedRef.current = false;
+        };
+    }, []);
 
     return (
         <div style={{ position: 'relative', width: '100%', height: '90vh' }}>
@@ -217,9 +248,8 @@ export default function Call({ setModal }: { setModal: React.Dispatch<React.SetS
                     {formatTime(callDuration)}
                 </div>
             )}
-
             <div
-                ref={myMeeting as any}
+                ref={containerRef}
                 style={{ width: '100%', height: '100%' }}
             />
             <style>{`

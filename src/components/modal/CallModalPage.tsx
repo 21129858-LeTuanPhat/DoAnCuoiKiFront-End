@@ -10,6 +10,7 @@ import Call from '../../pages/Call';
 // Import component Call hiện tại của bạn
 
 export default function CallModalPage() {
+    console.log('dô call modal page nè')
     const [openModal, setModal] = useState<boolean>(true)
     // const navigate = useNavigate();
     // const dispatch = useDispatch();
@@ -18,7 +19,12 @@ export default function CallModalPage() {
 
     // const roomID = searchParams.get('roomID') || selection.roomID;
     // const callMode = searchParams.get('call_mode') || selection.callMode;
-
+    const callStore = useSelector((state: RootState) => state.call)
+    const [callKey, setCallKey] = useState(0);
+    console.log('call key', callKey)
+    useEffect(() => {
+        setCallKey(prev => prev + 1);
+    }, [callStore.roomID]);
     return (
         <Modal
             open={openModal}
@@ -50,7 +56,7 @@ export default function CallModalPage() {
                         position: 'relative',
                     }}
                 >
-                    <Call setModal={setModal} />
+                    <Call key={callKey} setModal={setModal} />
                 </Box>
             </Box>
         </Modal>

@@ -7,7 +7,7 @@ import WebSocketManager from '../../socket/WebSocketManager';
 import { useBoardContext } from '../../hooks/useBoardContext';
 import nokiaSound from '../../assets/sound/instagram_call.mp3';
 import { ChatMessage, TypeMess } from '../../model/ChatMessage';
-import { incomingCall, outgoingCall } from '../../redux/callReducer'
+import { incomingCall, outgoingCall, updateStatus } from '../../redux/callReducer'
 import { useDispatch, useSelector } from 'react-redux';
 import { RootState } from '../../redux/store';
 
@@ -22,6 +22,38 @@ export default function CallModal({
 }) {
     const callStore = useSelector((state: RootState) => state.call)
     const dispatch = useDispatch()
+    const sendEnd = () => {
+        console.log('gửi kết thúc cuộc gọi nè')
+        const ws = WebSocketManager.getInstance();
+        const callMess = {
+            status: CallStatus.CANCEL,
+            roomURL: `${REACT_BASE_URL}/call?roomID=${callStore.roomID}&call_mode=${callStore.callMode}`,
+            roomID: callStore.roomID,
+        };
+        ws.sendMessage(
+            JSON.stringify({
+                action: 'onchat',
+                data: {
+                    event: 'SEND_CHAT',
+                    data: {
+                        type: type,
+                        to: selectedUser,
+                        mes: encodeURIComponent(JSON.stringify({ type: callStore.callMode, data: callMess })),
+                    },
+                },
+            }),
+        );
+    }
+
+    useEffect(() => {
+        if (open) {
+            const timer = setTimeout(() => {
+                setOpen(false)
+
+            }, 5000)
+            return () => clearInterval(timer)
+        }
+    }, [open])
     // const openModal = useState<boolean>(open)
     useEffect(() => {
         if (callStore.callStatus === CallStatus.IN_CALL) {
@@ -82,6 +114,8 @@ export default function CallModal({
 
     // }, [open])
     const handleClose = () => {
+        sendEnd()
+        dispatch(updateStatus({ status: CallStatus.CANCEL }));
         setOpen(false);
     };
 
@@ -108,11 +142,10 @@ export default function CallModal({
                         padding: '40px',
                     }}
                 >
-                    {/* Nội dung chính */}
                     <div className="flex-1 flex items-center justify-center">
                         <div className="text-center">
                             <div className="w-32 h-32 mx-auto mb-6 rounded-full bg-gradient-to-br from-gray-400 to-gray-500 flex items-center justify-center">
-                                {/* Có thể thêm avatar hoặc icon ở đây */}
+
                             </div>
                             <h1 className="text-gray-900 text-2xl font-semibold mb-2">{type}</h1>
                             <p className="text-gray-500 text-sm">Đang gọi...</p>

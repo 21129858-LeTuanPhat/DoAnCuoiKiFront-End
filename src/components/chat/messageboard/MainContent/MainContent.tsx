@@ -115,7 +115,7 @@ function MainContent({ username }: any) {
                                     roomURL: mesObj.data.roomURL,
                                     roomID: mesObj.data.roomID,
                                     caller: msg.data.name,
-                                    callMode: mesObj.type === TypeMess.VIDEO_CALL ? TypeMess.VIDEO_CALL : TypeMess.VOICE_CALL
+                                    callMode: mesObj.type === TypeMess.VIDEO_CALL ? TypeMess.VIDEO_CALL : TypeMess.VOICE_CALL,
                                 }))
                                 break;
                             case CallStatus.REJECT:
@@ -139,6 +139,9 @@ function MainContent({ username }: any) {
                                 console.log('trong switch nè', mesObj.data.status)
                                 dispatch(updateStatus({ status: CallStatus.ENDED }))
                                 console.log('Nhận được end từ người gửi')
+                                break;
+                            case CallStatus.CANCEL:
+                                dispatch(updateStatus({ status: CallStatus.CANCEL }))
                                 break;
                         }
                         return;

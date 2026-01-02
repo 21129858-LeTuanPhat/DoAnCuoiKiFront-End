@@ -20,6 +20,7 @@ export enum CallStatus {
     CONNECTING = 'connecting',
     IN_CALL = 'incall',
     ENDED = 'ended',
+    CANCEL = 'cancel',
     REJECT = 'reject'
 }
 
