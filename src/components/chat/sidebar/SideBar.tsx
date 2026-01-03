@@ -51,9 +51,14 @@ function SideBar() {
     if (loading) return <LoadingProfileSkeleton />;
 
     return (
-        <div className="flex flex-col h-full w-full *:items-start space-y-5 p-3 shadow-sm ">
+        <div className="flex flex-col h-full w-full *:items-start  p-3 shadow-sm ">
             <Moji />
-            <ListStory />
+            <ListStory
+                onOpenCreateStory={() => {
+                    alert('open create story');
+                    setopenStory(true);
+                }}
+            />
             <div className="flex-1 w-full overflow-y-auto px-3 py-1 space-y-3">
                 <ConversationPeople
                     users={users.filter((user) => user.type === 0 && user.name !== loginname.username)}
