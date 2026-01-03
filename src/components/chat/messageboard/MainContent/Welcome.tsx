@@ -46,56 +46,57 @@ function Welcome() {
             }),
         );
     }
-    useEffect(() => {
-        const ws = WebSocketManager.getInstance();
-        ws.onMessage('GET_PEOPLE_CHAT_MES', (msg) => {
-            if (msg.status === 'success' && msg.event === 'SEND_CHAT') {
-
-                const mesObj: any = JSON.parse(decodeURIComponent(msg.data.mes));
-                if (mesObj.type === TypeMess.VIDEO_CALL || mesObj.type === TypeMess.VOICE_CALL) {
-                    switch (mesObj.data.status) {
-                        case CallStatus.CALLING:
-
-                            dispatch(incomingCall({
-                                roomURL: mesObj.data.roomURL,
-                                roomID: mesObj.data.roomID,
-                                caller: msg.data.name,
-                                callMode: mesObj.type === TypeMess.VIDEO_CALL ? TypeMess.VIDEO_CALL : TypeMess.VOICE_CALL,
-                            }))
-                            break;
-                        case CallStatus.REJECT:
-                            dispatch(updateStatus({ status: CallStatus.REJECT }))
-                            break;
-                        case CallStatus.CONNECTING:
-
-                            console.log('Nhận được CONNECTING, gửi IN_CALL')
-                            setTimeout(() => {
-                                sendInCall()
-                                dispatch(updateStatus({ status: CallStatus.IN_CALL }))
-                            }, 100)
-                            break;
-                        case CallStatus.IN_CALL:
-                            dispatch(updateStatus({ status: CallStatus.IN_CALL }))
-                            break;
-                        case CallStatus.ENDED:
-
-                            dispatch(updateStatus({ status: CallStatus.ENDED }))
-
-                            break;
-                        case CallStatus.CANCEL:
-                            dispatch(updateStatus({ status: CallStatus.CANCEL }))
-                            break;
-                        case CallStatus.TIMEOUT:
-                            dispatch(updateStatus({ status: CallStatus.TIMEOUT }))
-                            break;
-                    }
-                    return;
-
-                }
-            }
-        })
-
-    }, [])
+    // useEffect(() => {
+    //     const ws = WebSocketManager.getInstance();
+    //     ws.onMessage('GET_PEOPLE_CHAT_MES', (msg) => {
+    //         if (msg.status === 'success' && msg.event === 'SEND_CHAT') {
+    //             const mesObj: any = JSON.parse(decodeURIComponent(msg.data.mes));
+    //             if (mesObj.type === TypeMess.VIDEO_CALL || mesObj.type === TypeMess.VOICE_CALL) {
+    //                 switch (mesObj.data.status) {
+    //                     case CallStatus.CALLING:
+    //                         console.log('trong switch nè', mesObj.data.status)
+    //                         dispatch(incomingCall({
+    //                             roomURL: mesObj.data.roomURL,
+    //                             roomID: mesObj.data.roomID,
+    //                             caller: msg.data.name,
+    //                             callMode: mesObj.type === TypeMess.VIDEO_CALL ? TypeMess.VIDEO_CALL : TypeMess.VOICE_CALL,
+    //                             type: msg.data.type
+    //                         }))
+    //                         break;
+    //                     case CallStatus.REJECT:
+    //                         console.log('trong switch nè', mesObj.data.status)
+    //                         dispatch(updateStatus({ status: CallStatus.REJECT }))
+    //                         break;
+    //                     case CallStatus.CONNECTING:
+    //                         console.log('trong switch nè', mesObj.data.status)
+    //                         console.log('Nhận được CONNECTING, gửi IN_CALL')
+    //                         setTimeout(() => {
+    //                             sendInCall()
+    //                             dispatch(updateStatus({ status: CallStatus.IN_CALL }))
+    //                         }, 100)
+    //                         break;
+    //                     case CallStatus.IN_CALL:
+    //                         console.log('trong switch nè', mesObj.data.status)
+    //                         dispatch(updateStatus({ status: CallStatus.IN_CALL }))
+    //                         console.log('Nhận được IN_CALL từ người gửi')
+    //                         break;
+    //                     case CallStatus.ENDED:
+    //                         console.log('trong switch nè', mesObj.data.status)
+    //                         dispatch(updateStatus({ status: CallStatus.ENDED }))
+    //                         console.log('Nhận được end từ người gửi')
+    //                         break;
+    //                     case CallStatus.CANCEL:
+    //                         dispatch(updateStatus({ status: CallStatus.CANCEL }))
+    //                         break;
+    //                     case CallStatus.TIMEOUT:
+    //                         dispatch(updateStatus({ status: CallStatus.TIMEOUT }))
+    //                         break;
+    //                 }
+    //                 return;
+    //             }
+    //         }
+    //     })
+    // }, [])
 
     return (
         <div className="flex flex-col justify-center items-center h-full">

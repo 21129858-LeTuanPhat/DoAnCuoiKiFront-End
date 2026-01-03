@@ -4,8 +4,9 @@ import { stat } from "fs"
 
 export interface ReducerCall {
     callStatus: CallStatus,
-    // true cuộc gọi đến, false cuộc gọi đi 
+    // true cuộc gọi đến, false cuộc gọi đi
     isIncoming?: boolean,
+    type?: string,
     caller?: string | null,
     callMode?: number,
     roomID?: string,
@@ -20,7 +21,7 @@ const callReducer = createSlice({
     initialState: initialValue,
     reducers: {
         // cuộc gọi đến
-        incomingCall(state, action: PayloadAction<{ roomURL: string, roomID: string, caller: string | null, callMode: number }>) {
+        incomingCall(state, action: PayloadAction<{ roomURL: string, roomID: string, caller: string | null, callMode: number, type: string }>) {
             console.log('trong reducer imcom ne')
             state.callStatus = CallStatus.RINGING
             state.isIncoming = true
@@ -28,14 +29,16 @@ const callReducer = createSlice({
             state.roomID = action.payload.roomID
             state.caller = action.payload.caller
             state.callMode = action.payload.callMode
+            state.type = action.payload.type
         },
-        outgoingCall(state, action: PayloadAction<{ roomURL: string, roomID: string, caller: string | null, callMode: number }>) {
+        outgoingCall(state, action: PayloadAction<{ roomURL: string, roomID: string, caller: string | null, callMode: number, type: string }>) {
             state.callStatus = CallStatus.CALLING
             state.isIncoming = false
             state.roomURL = action.payload.roomURL
             state.roomID = action.payload.roomID
             state.caller = action.payload.caller
             state.callMode = action.payload.callMode
+            state.type = action.payload.type
         },
 
         updateStatus(state, action: PayloadAction<{ status: CallStatus }>) {

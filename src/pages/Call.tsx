@@ -7,7 +7,6 @@ import { useDispatch, useSelector } from 'react-redux';
 import store, { RootState } from '../redux/store';
 import { callbackify } from 'util';
 import WebSocketManager from '../socket/WebSocketManager';
-import { REACT_BASE_URL } from '../config/utils';
 import { useBoardContext } from '../hooks/useBoardContext';
 import { updateStatus } from '../redux/callReducer';
 
@@ -19,7 +18,7 @@ export default function Call({ setModal }: { setModal: React.Dispatch<React.SetS
     const timerRef = useRef<NodeJS.Timeout | null>(null);
     const userLeftFirstRef = useRef(false);
     const hasJoinedRef = useRef(false);
-    const containerRef = useRef<HTMLDivElement>(null); // ✅ Thêm ref cho container
+    const containerRef = useRef<HTMLDivElement>(null);
 
     const [userCount, setUserCount] = useState(0);
     const [callDuration, setCallDuration] = useState(0);
@@ -27,7 +26,6 @@ export default function Call({ setModal }: { setModal: React.Dispatch<React.SetS
     const [isWaiting, setIsWaiting] = useState(true);
 
     const dispatch = useDispatch();
-    const { type, selectedUser } = useBoardContext();
 
     const startTimer = () => {
         if (!callStartTimeRef.current) {
@@ -52,7 +50,7 @@ export default function Call({ setModal }: { setModal: React.Dispatch<React.SetS
         const ws = WebSocketManager.getInstance();
         const callMess = {
             status: CallStatus.ENDED,
-            roomURL: `${REACT_BASE_URL}/call?roomID=${callStore.roomID}&call_mode=${callStore.callMode}`,
+            roomURL: `/call?roomID=${callStore.roomID}&call_mode=${callStore.callMode}`,
             roomID: callStore.roomID,
         };
         ws.sendMessage(
@@ -61,8 +59,8 @@ export default function Call({ setModal }: { setModal: React.Dispatch<React.SetS
                 data: {
                     event: 'SEND_CHAT',
                     data: {
-                        type: type,
-                        to: selectedUser,
+                        type: callStore.type,
+                        to: callStore.caller,
                         mes: encodeURIComponent(JSON.stringify({ type: callStore.callMode, data: callMess })),
                     },
                 },
@@ -190,7 +188,6 @@ export default function Call({ setModal }: { setModal: React.Dispatch<React.SetS
                     console.error('Error destroying zego instance:', error);
                 }
             }
-
             hasJoinedRef.current = false;
         };
     }, []);

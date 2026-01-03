@@ -7,7 +7,6 @@ import nokiaSound from '../../assets/sound/nokia_ringirng.mp3'
 import { useDispatch, useSelector } from 'react-redux';
 import { RootState } from '../../redux/store';
 import { CallStatus } from '../../model/CallProps';
-import { REACT_BASE_URL } from '../../config/utils';
 import { sendSignal } from '../../socket/CallWS';
 import WebSocketManager from '../../socket/WebSocketManager';
 import { TypeMess } from '../../model/ChatMessage';
@@ -16,13 +15,11 @@ import { updateStatus, resetCall } from '../../redux/callReducer'
 
 export default function RingingModal({ open }: { open: boolean }) {
     const [openModal, setModal] = useState<boolean>(open)
-    const { type, selectedUser } = useBoardContext();
+    const { type } = useBoardContext();
     const dispatch = useDispatch()
     const audioRef = useRef<HTMLAudioElement | null>(null)
     const callStore = useSelector((state: RootState) => state.call)
-
     console.log('type trong ringing nè', type)
-
     const selection = useSelector((state: RootState) => state.call)
 
     useEffect(() => {
@@ -36,7 +33,7 @@ export default function RingingModal({ open }: { open: boolean }) {
     }, [])
     const callMess = {
         status: CallStatus.CONNECTING,
-        roomURL: `${REACT_BASE_URL}/call?roomID=${selection.roomID}&call_mode=${selection.callMode}`,
+        roomURL: `/call?roomID=${selection.roomID}&call_mode=${selection.callMode}`,
         roomID: selection.roomID,
     };
 
@@ -47,7 +44,7 @@ export default function RingingModal({ open }: { open: boolean }) {
     }, [callStore.callStatus])
     const messReject = {
         status: CallStatus.REJECT,
-        roomURL: `${REACT_BASE_URL}/call?roomID=${selection.roomID}&call_mode=${selection.callMode}`,
+        roomURL: `/call?roomID=${selection.roomID}&call_mode=${selection.callMode}`,
         roomID: selection.roomID,
     };
 
@@ -65,24 +62,13 @@ export default function RingingModal({ open }: { open: boolean }) {
                 data: {
                     event: 'SEND_CHAT',
                     data: {
-                        type: type as string,
-                        to: selectedUser,
+                        type: callStore.type,
+                        to: callStore.caller,
                         mes: encodeURIComponent(JSON.stringify({ type: selection.callMode, data: callMess }))
                     },
                 },
             }),
         );
-        console.log('accept nè', JSON.stringify({
-            action: 'onchat',
-            data: {
-                event: 'SEND_CHAT',
-                data: {
-                    type: type as string,
-                    to: selectedUser,
-                    mes: JSON.stringify({ type: selection.callMode, data: callMess })
-                },
-            },
-        }),)
     }
     const handleClose = () => {
         const ws = WebSocketManager.getInstance();
@@ -92,14 +78,26 @@ export default function RingingModal({ open }: { open: boolean }) {
                 data: {
                     event: 'SEND_CHAT',
                     data: {
-                        type: type as string,
-                        to: selectedUser,
+                        type: callStore.type,
+                        to: selection.caller,
                         mes: encodeURIComponent(JSON.stringify({ type: selection.callMode, data: messReject })),
                     },
                 },
             }),
         );
-        console.log('reject nè', { type: selection.callMode, data: messReject })
+        console.log('reject nè', {
+            type: selection.callMode, data: JSON.stringify({
+                action: 'onchat',
+                data: {
+                    event: 'SEND_CHAT',
+                    data: {
+                        type: callStore.type,
+                        to: selection.caller,
+                        mes: (JSON.stringify({ type: selection.callMode, data: messReject })),
+                    },
+                },
+            })
+        })
         dispatch(resetCall())
         setModal(false)
     }

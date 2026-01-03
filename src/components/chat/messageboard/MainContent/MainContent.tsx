@@ -36,6 +36,7 @@ function MainContent({ username }: any) {
         callStatus: CallStatus.IDLE,
         isIncoming: false,
         caller: null,
+        type: undefined,
         callMode: undefined,
         roomID: undefined,
         roomURL: undefined,
@@ -50,7 +51,7 @@ function MainContent({ username }: any) {
         const ws = WebSocketManager.getInstance();
         const callMess = {
             status: CallStatus.IN_CALL,
-            roomURL: `${REACT_BASE_URL}/call?roomID=${callSelection.roomID}&call_mode=${callSelection.callMode}`,
+            roomURL: `/call?roomID=${callSelection.roomID}&call_mode=${callSelection.callMode}`,
             roomID: callSelection.roomID,
         };
         ws.sendMessage(
@@ -59,14 +60,13 @@ function MainContent({ username }: any) {
                 data: {
                     event: 'SEND_CHAT',
                     data: {
-                        type: type,
-                        to: selectedUser,
+                        type: selectionRef.current.type,
+                        to: selectionRef.current.caller,
                         mes: encodeURIComponent(JSON.stringify({ type: selectionRef.current.callMode, data: callMess })),
                     },
                 },
             }),
         );
-
     }
     useEffect(() => {
         const ws = WebSocketManager.getInstance();
@@ -79,7 +79,6 @@ function MainContent({ username }: any) {
             ws.onMessage('GET_PEOPLE_CHAT_MES', (msg) => {
                 console.log('msg nè', msg)
                 if (msg.status === 'success' && msg.event === 'SEND_CHAT') {
-
                     const mesObj: any = JSON.parse(decodeURIComponent(msg.data.mes));
                     console.log('msg nhận về nè', mesObj)
 
@@ -105,10 +104,11 @@ function MainContent({ username }: any) {
                                     roomID: mesObj.data.roomID,
                                     caller: msg.data.name,
                                     callMode: mesObj.type === TypeMess.VIDEO_CALL ? TypeMess.VIDEO_CALL : TypeMess.VOICE_CALL,
+                                    type: msg.data.type === 0 ? 'people' : 'room'
                                 }))
                                 break;
                             case CallStatus.REJECT:
-                                console.log('trong switch nè', mesObj.data.status)
+                                console.log('trong switch  REJECT nè', mesObj.data.status)
                                 dispatch(updateStatus({ status: CallStatus.REJECT }))
                                 break;
                             case CallStatus.CONNECTING:
@@ -133,6 +133,7 @@ function MainContent({ username }: any) {
                                 dispatch(updateStatus({ status: CallStatus.CANCEL }))
                                 break;
                             case CallStatus.TIMEOUT:
+                                console.log('trong switch  TIMEOUT nè', mesObj.data.status)
                                 dispatch(updateStatus({ status: CallStatus.TIMEOUT }))
                                 break;
                         }
@@ -382,7 +383,6 @@ function MainContent({ username }: any) {
                                 if (objectMess.type >= 10) {
                                     return (
                                         <>
-                                            {/* {objectMess.data.status === CallStatus.CALLING && (< RingingModal open={true} />)} */}
                                             <ContentItemCall message={message} key={index} />
                                         </>
                                     );
