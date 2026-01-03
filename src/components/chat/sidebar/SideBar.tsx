@@ -10,11 +10,15 @@ import { RootState } from '../../../redux/store';
 import { Profile } from './Profile';
 import { ProfileProvider } from '../Context/ProfileCotext';
 import { LoadingProfileSkeleton } from '../../modal/LoadingSkeleton';
+import FormCreateGroup from './FormCreateGroup';
+import FormCreateStory from './FormCreateStory';
+import ListStory from './ListStory';
 
 function SideBar() {
     const [users, setUsers] = useState<User[]>([]);
     const loginname = useSelector((state: RootState) => state.user);
     const [loading, setLoading] = useState(true);
+    const [openStory, setopenStory] = useState(false);
     useEffect(() => {
         const ws = WebSocketManager.getInstance();
         let isMounted = true;
@@ -47,9 +51,10 @@ function SideBar() {
     if (loading) return <LoadingProfileSkeleton />;
 
     return (
-        <div className="flex flex-col h-full items-start space-y-5 p-3 shadow-sm ">
+        <div className="flex flex-col h-full w-full *:items-start space-y-5 p-3 shadow-sm ">
             <Moji />
-            <div className="flex-1 w-full overflow-y-auto p-3 space-y-3">
+            <ListStory />
+            <div className="flex-1 w-full overflow-y-auto px-3 py-1 space-y-3">
                 <ConversationPeople
                     users={users.filter((user) => user.type === 0 && user.name !== loginname.username)}
                 />
@@ -59,6 +64,8 @@ function SideBar() {
             <ProfileProvider>
                 <Profile />
             </ProfileProvider>
+
+            {openStory && <FormCreateStory />}
         </div>
     );
 }
