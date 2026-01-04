@@ -53,12 +53,14 @@ function SideBar() {
     return (
         <div className="flex flex-col h-full w-full *:items-start  p-3 shadow-sm ">
             <Moji />
-            <ListStory
-                onOpenCreateStory={() => {
-                    alert('open create story');
-                    setopenStory(true);
-                }}
-            />
+            <ProfileProvider>
+                <ListStory
+                    onOpenCreateStory={() => {
+                        setopenStory(true);
+                    }}
+                />{' '}
+            </ProfileProvider>
+
             <div className="flex-1 w-full overflow-y-auto px-3 py-1 space-y-3">
                 <ConversationPeople
                     users={users.filter((user) => user.type === 0 && user.name !== loginname.username)}

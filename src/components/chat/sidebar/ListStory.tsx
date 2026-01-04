@@ -1,47 +1,46 @@
 import { Plus } from 'lucide-react';
+import { Root } from 'react-dom/client';
+import { useSelector } from 'react-redux';
+import { RootState } from '../../../redux/store';
+import useStories from '../../../hooks/useStories';
+import Story from '../../../model/Story';
+import { useContext } from 'react';
+import { ProfileContext } from '../Context/ProfileCotext';
 function ListStory({ onOpenCreateStory }: { onOpenCreateStory?: () => void }) {
+    const { profileInfor } = useContext(ProfileContext)!;
+
+    const user = useSelector((state: RootState) => state.user);
+    const [stories, loadMore, loading] = useStories({ username: user.username! });
+
+    if (loading) return <></>;
     return (
         <div className="flex flex-col  px-3 pt-1">
             <p className="text-gray-500 select-none mb-2">Story</p>
             <div className="flex gap-3 overflow-x-auto scrollbar-hide items-center  w-full max-w-full pb-2 ">
                 <StoryUpLoad
-                    avatarUrl="https://tse3.mm.bing.net/th/id/OIP.cGz8NopJvAgdkioxkugKoQHaHa?pid=Api&P=0&h=220"
+                    avatarUrl={
+                        profileInfor?.imageUrl ??
+                        'https://tse3.mm.bing.net/th/id/OIP.cGz8NopJvAgdkioxkugKoQHaHa?pid=Api&P=0&h=220'
+                    }
                     onOpenCreateStory={onOpenCreateStory}
                 />
-                <StoryItem
-                    name="Van A"
-                    avatarUrl="https://tse3.mm.bing.net/th/id/OIP.cGz8NopJvAgdkioxkugKoQHaHa?pid=Api&P=0&h=220"
-                />
-                <StoryItem
-                    name="Van B"
-                    avatarUrl="https://tse3.mm.bing.net/th/id/OIP.cGz8NopJvAgdkioxkugKoQHaHa?pid=Api&P=0&h=220"
-                />
-                <StoryItem
-                    name="Van C"
-                    avatarUrl="https://tse3.mm.bing.net/th/id/OIP.cGz8NopJvAgdkioxkugKoQHaHa?pid=Api&P=0&h=220"
-                />
-                <StoryItem
-                    name="Van D"
-                    avatarUrl="https://tse3.mm.bing.net/th/id/OIP.cGz8NopJvAgdkioxkugKoQHaHa?pid=Api&P=0&h=220"
-                />
-                <StoryItem
-                    name="Van E"
-                    avatarUrl="https://tse3.mm.bing.net/th/id/OIP.cGz8NopJvAgdkioxkugKoQHaHa?pid=Api&P=0&h=220"
-                />
-                <StoryItem
-                    name="Van E"
-                    avatarUrl="https://tse3.mm.bing.net/th/id/OIP.cGz8NopJvAgdkioxkugKoQHaHa?pid=Api&P=0&h=220"
-                />
+                {stories.map((story: Story) => (
+                    <StoryItem key={story.id} name={story.ownerUsername} imageUrl={story.imageUrl} />
+                ))}
             </div>
         </div>
     );
 }
 export default ListStory;
-function StoryItem({ name, avatarUrl }: { name: string; avatarUrl: string }) {
+function StoryItem({ name, imageUrl }: { name: string; imageUrl?: string }) {
     return (
         <div className="flex flex-col items-center cursor-pointer shrink-0">
             <div className="w-12 h-12 rounded-full border border-blue-400">
-                <img src={avatarUrl} alt={name} className="w-full h-full rounded-full object-cover" />
+                <img
+                    src={imageUrl ?? 'https://tse3.mm.bing.net/th/id/OIP.cGz8NopJvAgdkioxkugKoQHaHa?pid=Api&P=0&h=220'}
+                    alt={name}
+                    className="w-full h-full rounded-full object-cover"
+                />
             </div>
             <p className="text-sm font-semibold mt-1 whitespace-nowrap">{name}</p>
         </div>
