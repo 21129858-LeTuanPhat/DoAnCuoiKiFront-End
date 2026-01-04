@@ -4,6 +4,7 @@ import ProfileForm from '../model/ProfileForm';
 import RequestConnect, { ResponseStatus } from '../model/RequestConnect';
 import { create } from 'domain';
 import InforGroup from '../model/InforGroup';
+import exp from 'constants';
 
 async function handleChangeProfile({ profileData }: { profileData: ProfileForm }) {
     const key = `profiles/${profileData.username}`;
@@ -205,6 +206,56 @@ async function getAllInforGroup(): Promise<InforGroup[] | null> {
     return inforGroups;
 }
 
+async function createStory({
+    imageUrl,
+    content,
+    username,
+}: {
+    imageUrl: string | null | undefined;
+    content: string;
+    username: string;
+}) {
+    const key = `stories/${username}_${Date.now()}`;
+    await set(ref(db, key), {
+        id: key,
+        ownerusername: username,
+        imageUrl: imageUrl || '',
+        content,
+        createAt: Date.now(),
+        expireAt: Date.now() + 24 * 60 * 60 * 1000,
+        like: 0,
+        view: 0,
+    });
+
+    const connectionsRef = ref(db, `connections/people/`);
+    const connSnapshot = await get(connectionsRef);
+    if (!connSnapshot.exists()) {
+        return;
+    }
+
+    const connData = connSnapshot.val();
+
+    const feedRef = `story_feed/${username}`;
+    await set(ref(db, feedRef), {
+        storyId: key,
+        fromUsername: username,
+        createAt: Date.now(),
+    });
+    Object.keys(connData).forEach(async (key) => {
+        const members = key.split('_');
+        if (members.includes(username)) {
+            const friendName = members[0] === username ? members[1] : members[0];
+            if (friendName) {
+                const feedRef = `story_feed/${friendName}`;
+                await set(ref(db, feedRef), {
+                    storyId: key,
+                    fromUsername: username,
+                    createAt: Date.now(),
+                });
+            }
+        }
+    });
+}
 export {
     handleChangeProfile,
     getUserProfile,
@@ -214,4 +265,5 @@ export {
     getInforGroup,
     getAllInforGroup,
     getAllProfile,
+    createStory,
 };

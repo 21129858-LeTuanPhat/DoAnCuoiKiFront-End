@@ -70,7 +70,7 @@ function SideBar() {
                 <Profile />
             </ProfileProvider>
 
-            {openStory && <FormCreateStory />}
+            {openStory && <FormCreateStory onClose={() => setopenStory(false)} />}
         </div>
     );
 }
