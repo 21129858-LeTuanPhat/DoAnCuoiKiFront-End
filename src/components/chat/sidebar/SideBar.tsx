@@ -1,7 +1,7 @@
 import ConversationGroup from './ConversationGroup';
 import ConversationPeople from './ConversationPeople';
 import Moji from './Moji';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import WebSocketManager from '../../../socket/WebSocketManager';
 import { User } from '../../../model/User';
 import SearchBar from './SearchBar';
@@ -9,32 +9,69 @@ import { useSelector } from 'react-redux';
 import { RootState } from '../../../redux/store';
 import { Profile } from './Profile';
 import { ProfileProvider } from '../Context/ProfileCotext';
+import { LoadingProfileSkeleton } from '../../modal/LoadingSkeleton';
+import FormCreateGroup from './FormCreateGroup';
+import FormCreateStory from './FormCreateStory';
+import ListStory from './ListStory';
+import StoryViewer from './StoryView';
+import Story from '../../../model/Story';
 
 function SideBar() {
     const [users, setUsers] = useState<User[]>([]);
     const loginname = useSelector((state: RootState) => state.user);
+    const [loading, setLoading] = useState(true);
+    const [openStory, setopenStory] = useState(false);
+    const [openStoryView, setOpenStoryView] = useState(false);
+    const storiesRef = useRef<Story[]>([]);
+    const indexRef = useRef(0);
     useEffect(() => {
         const ws = WebSocketManager.getInstance();
-        const offGetUserList = ws.onMessage('GET_USER_LIST', (msg) => {
-            if (msg.status == 'success' && msg.event == 'GET_USER_LIST') {
-                ws.unSubcribe('GET_USER_LIST');
-                setUsers(msg.data as User[]);
+        let isMounted = true;
+
+        ws.onMessage('GET_USER_LIST', (msg) => {
+            if (msg.status === 'success' && msg.event === 'GET_USER_LIST') {
+                console.log(' Received user list:', msg.data);
+
+                if (isMounted) {
+                    const userData = msg.data as User[];
+                    setUsers(userData);
+                    setLoading(false);
+                }
             }
         });
+
         ws.sendMessage(
             JSON.stringify({
                 action: 'onchat',
-                data: {
-                    event: 'GET_USER_LIST',
-                },
+                data: { event: 'GET_USER_LIST' },
             }),
         );
+
+        return () => {
+            isMounted = false;
+            ws.unSubcribe('GET_USER_LIST');
+        };
     }, []);
 
+    if (loading) return <LoadingProfileSkeleton />;
+
     return (
-        <div className="flex flex-col h-full items-start space-y-5 p-3 shadow-sm ">
+        <div className="flex flex-col h-full w-full *:items-start  p-3 shadow-sm ">
             <Moji />
-            <div className="flex-1 w-full overflow-y-auto p-3 space-y-3">
+            <ProfileProvider>
+                <ListStory
+                    onOpenCreateStory={() => {
+                        setopenStory(true);
+                    }}
+                    onOpenStoryView={(index, stories) => {
+                        storiesRef.current = stories;
+                        indexRef.current = index;
+                        setOpenStoryView(true);
+                    }}
+                />
+            </ProfileProvider>
+
+            <div className="flex-1 w-full overflow-y-auto px-3 py-1 space-y-3">
                 <ConversationPeople
                     users={users.filter((user) => user.type === 0 && user.name !== loginname.username)}
                 />
@@ -44,6 +81,15 @@ function SideBar() {
             <ProfileProvider>
                 <Profile />
             </ProfileProvider>
+
+            {openStory && <FormCreateStory onClose={() => setopenStory(false)} />}
+            {openStoryView && (
+                <StoryViewer
+                    stories={storiesRef.current}
+                    index={indexRef.current}
+                    onClose={() => setOpenStoryView(false)}
+                />
+            )}
         </div>
     );
 }

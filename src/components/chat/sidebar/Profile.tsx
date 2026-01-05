@@ -10,6 +10,7 @@ export function Profile() {
     const img_url =
         profileInfor?.imageUrl ?? 'https://tse3.mm.bing.net/th/id/OIP.cGz8NopJvAgdkioxkugKoQHaHa?pid=Api&P=0&h=220';
     const [open, setOpen] = useState(false);
+
     return (
         <>
             <div className="flex justify-between items-center bg-gray-200 shadow-sm w-full p-2  my-1 rounded-xl select-none ">

@@ -1,9 +1,11 @@
 import { db } from './../config/firebaseConfig';
-import { ref, set, get } from 'firebase/database';
+import { ref, set, get, query, orderByChild, endBefore, limitToLast } from 'firebase/database';
 import ProfileForm from '../model/ProfileForm';
 import RequestConnect, { ResponseStatus } from '../model/RequestConnect';
 import { create } from 'domain';
 import InforGroup from '../model/InforGroup';
+import exp from 'constants';
+import Story from '../model/Story';
 
 async function handleChangeProfile({ profileData }: { profileData: ProfileForm }) {
     const key = `profiles/${profileData.username}`;
@@ -32,6 +34,21 @@ async function getUserProfile(username: string): Promise<ProfileForm | null> {
     }
 
     return snapshot.val() as ProfileForm;
+}
+
+async function getAllProfile(): Promise<ProfileForm[] | null> {
+    console.log('GET All PROFILE');
+    const key = `profiles`;
+
+    const profileRef = ref(db, key);
+    const snapshot = await get(profileRef);
+    console.log('snapshot value', snapshot.val());
+
+    if (!snapshot.exists()) {
+        return null;
+    }
+
+    return Object.keys(snapshot.val()).map<ProfileForm>((key) => snapshot.val()[key]);
 }
 
 async function getInvitation(
@@ -161,4 +178,121 @@ async function getInforGroup(groupName: string): Promise<InforGroup | null> {
     return inforGroup as InforGroup;
 }
 
-export { handleChangeProfile, getUserProfile, getInvitation, createGroup, changeStatusRoomResponse, getInforGroup };
+async function getAllInforGroup(): Promise<InforGroup[] | null> {
+    console.log('GET All INFOR GROUP');
+    const InforGroupRef = ref(db, `groups`);
+    const snapshot = await get(InforGroupRef);
+    if (!snapshot.exists()) {
+        return null;
+    }
+
+    const groupsData = snapshot.val();
+    console.log('groupsData:', groupsData);
+    const inforGroups: InforGroup[] = [];
+
+    for (const groupName in groupsData) {
+        const menbersCountRef = ref(db, `group_members/${groupName}`);
+        const menbersSnapshot = await get(menbersCountRef);
+
+        const menbersCount = menbersSnapshot.exists() ? Object.keys(menbersSnapshot.val()).length : 0;
+
+        const inforGroup = {
+            ...snapshot.child(groupName).val(),
+            imageUrl: snapshot.child(groupName).val().imageUrl === '' ? null : snapshot.child(groupName).val().imageUrl,
+            menbersCount: menbersCount,
+        };
+        inforGroups.push(inforGroup as InforGroup);
+    }
+
+    return inforGroups;
+}
+
+async function createStory({
+    imageUrl,
+    content,
+    username,
+}: {
+    imageUrl: string | null | undefined;
+    content: string;
+    username: string;
+}) {
+    const key = `${username}_${Date.now()}`;
+    await set(ref(db, `stories/${key}`), {
+        id: key,
+        ownerUsername: username,
+        imageUrl: imageUrl || '',
+        content,
+        createAt: Date.now(),
+        expireAt: Date.now() + 24 * 60 * 60 * 1000,
+        like: 0,
+        view: 0,
+    });
+
+    const connectionsRef = ref(db, `connections/people/`);
+    const connSnapshot = await get(connectionsRef);
+    if (!connSnapshot.exists()) {
+        return;
+    }
+
+    const connData = connSnapshot.val();
+
+    const feedRef = `story_feed/${username}/${key}`;
+    await set(ref(db, feedRef), {
+        storyId: key,
+        fromUsername: username,
+        createAt: Date.now(),
+    });
+    Object.keys(connData).forEach(async (data) => {
+        const members = data.split('_');
+        if (members.includes(username)) {
+            const friendName = members[0] === username ? members[1] : members[0];
+            if (friendName) {
+                const feedRef = `story_feed/${friendName}/${key}`;
+                await set(ref(db, feedRef), {
+                    storyId: key,
+                    fromUsername: username,
+                    createAt: Date.now(),
+                });
+            }
+        }
+    });
+}
+
+async function LoadStoryFeed(username: string, lastestDate?: number): Promise<Story[]> {
+    let q;
+    if (!lastestDate) {
+        q = query(ref(db, `story_feed/${username}`), orderByChild('createAt'), limitToLast(15));
+    } else {
+        q = query(ref(db, `story_feed/${username}`), orderByChild('createAt'), endBefore(lastestDate), limitToLast(15));
+    }
+
+    const snapshot = await get(q);
+    if (!snapshot.exists()) return [];
+
+    const feedData = snapshot.val();
+
+    const storyIds: string[] = Object.values(feedData).map((item: any) => item.storyId);
+
+    console.log('STORY IDS:', storyIds);
+
+    const storyPromises = storyIds.map((id) => get(ref(db, `stories/${id}`)).then((snap) => snap.val()));
+
+    const stories = (await Promise.all(storyPromises)) as Story[];
+
+    console.log('STORIES:', stories);
+
+    return stories;
+}
+
+export {
+    handleChangeProfile,
+    getUserProfile,
+    getInvitation,
+    createGroup,
+    changeStatusRoomResponse,
+    getInforGroup,
+    getAllInforGroup,
+    getAllProfile,
+    createStory,
+    LoadStoryFeed,
+};
