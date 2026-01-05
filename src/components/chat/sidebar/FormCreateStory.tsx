@@ -56,7 +56,10 @@ function FormCreateStory({ onClose }: { onClose: () => void }) {
     return (
         <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
             <div className="mt-2 w-3/12 p-3 flex flex-col items-center rounded-lg bg-slate-100 relative">
-                <h2 className="text-lg font-semibold mt-2">Tạo Story Mới</h2>
+                <div className="flex justify-between p-2 w-full items-center">
+                    <h2 className="text-lg font-semibold ">Tạo Story Mới</h2>
+                    <XCircle className="cursor-pointer" color="gray" onClick={onClose} />
+                </div>
 
                 <SeparatorHorizontal />
 

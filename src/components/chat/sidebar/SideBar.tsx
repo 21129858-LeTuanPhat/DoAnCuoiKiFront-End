@@ -1,7 +1,7 @@
 import ConversationGroup from './ConversationGroup';
 import ConversationPeople from './ConversationPeople';
 import Moji from './Moji';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import WebSocketManager from '../../../socket/WebSocketManager';
 import { User } from '../../../model/User';
 import SearchBar from './SearchBar';
@@ -13,12 +13,17 @@ import { LoadingProfileSkeleton } from '../../modal/LoadingSkeleton';
 import FormCreateGroup from './FormCreateGroup';
 import FormCreateStory from './FormCreateStory';
 import ListStory from './ListStory';
+import StoryViewer from './StoryView';
+import Story from '../../../model/Story';
 
 function SideBar() {
     const [users, setUsers] = useState<User[]>([]);
     const loginname = useSelector((state: RootState) => state.user);
     const [loading, setLoading] = useState(true);
     const [openStory, setopenStory] = useState(false);
+    const [openStoryView, setOpenStoryView] = useState(false);
+    const storiesRef = useRef<Story[]>([]);
+    const indexRef = useRef(0);
     useEffect(() => {
         const ws = WebSocketManager.getInstance();
         let isMounted = true;
@@ -58,7 +63,12 @@ function SideBar() {
                     onOpenCreateStory={() => {
                         setopenStory(true);
                     }}
-                />{' '}
+                    onOpenStoryView={(index, stories) => {
+                        storiesRef.current = stories;
+                        indexRef.current = index;
+                        setOpenStoryView(true);
+                    }}
+                />
             </ProfileProvider>
 
             <div className="flex-1 w-full overflow-y-auto px-3 py-1 space-y-3">
@@ -73,6 +83,13 @@ function SideBar() {
             </ProfileProvider>
 
             {openStory && <FormCreateStory onClose={() => setopenStory(false)} />}
+            {openStoryView && (
+                <StoryViewer
+                    stories={storiesRef.current}
+                    index={indexRef.current}
+                    onClose={() => setOpenStoryView(false)}
+                />
+            )}
         </div>
     );
 }

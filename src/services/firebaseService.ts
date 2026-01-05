@@ -219,7 +219,7 @@ async function createStory({
     const key = `${username}_${Date.now()}`;
     await set(ref(db, `stories/${key}`), {
         id: key,
-        ownerusername: username,
+        ownerUsername: username,
         imageUrl: imageUrl || '',
         content,
         createAt: Date.now(),
@@ -257,6 +257,7 @@ async function createStory({
         }
     });
 }
+
 async function LoadStoryFeed(username: string, lastestDate?: number): Promise<Story[]> {
     let q;
     if (!lastestDate) {
