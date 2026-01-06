@@ -13,19 +13,81 @@ import { RootState } from '../../../../redux/store';
 import { REACT_BASE_URL } from '../../../../config/utils';
 import { useLocation, useNavigate } from 'react-router-dom';
 function MainContent({ username }: any) {
+
+    interface CallHistoryState {
+        roomID: string;
+        caller: string; // người gọi đầu tiên
+        lastStatus: string; // trạng thái cuối cùng
+    }
+
+    const { listMessage, setListMessage, type, selectedUser } = useBoardContext();
+    const [callHistory, setCallHistory] = useState<Map<string, CallHistoryState>>(new Map());
+
+    useEffect(() => {
+        const callMessages = listMessage.filter(msg => msg.mes.type >= 10);
+
+        if (callMessages.length === 0) return;
+
+        setCallHistory((prev) => {
+            const newHistory = new Map(prev);
+
+            callMessages.forEach((message) => {
+                const dataCall: any = message.mes.data
+                const roomID: any = dataCall.roomID
+                const status = dataCall.status
+                const existing = newHistory.get(roomID);
+
+                if (!existing) {
+                    if (status === 'calling') {
+                        newHistory.set(roomID, {
+                            roomID,
+                            caller: message.name as string,
+                            lastStatus: status,
+                        });
+                    }
+                } else {
+                    const currentMsg = callMessages.find(m => {
+                        const data: any = m.mes?.data;
+                        if (!data) return false;
+                        return (
+                            data.roomID === roomID &&
+                            data.status === existing.lastStatus
+                        );
+                    });
+
+                    if (!currentMsg || message.id > currentMsg.id) {
+                        newHistory.set(roomID, {
+                            ...existing,
+                            lastStatus: status,
+                        });
+                    }
+                }
+            });
+
+            return newHistory;
+        });
+    }, [listMessage]);
+
+
+
+
+    console.log('filter list nè', callHistory)
+
+
+
+
+
+
+
     const selection = useSelector((state: RootState) => state.call)
     const [page, setPage] = useState<number>(1);
     const divRef = useRef<HTMLDivElement>(null);
-    const { listMessage, setListMessage, type, selectedUser } = useBoardContext();
+
     const [initialLoading, setInitialLoading] = useState(false);
     const [fetchingMore, setFetchingMore] = useState(false);
     const oldScrollHeightRef = useRef(0);
     const dispatch = useDispatch()
 
-    const paddingTop = 50;
-    const paddingLeft = 100;
-    const width = window.innerWidth - paddingLeft * 2;
-    const height = window.innerHeight - paddingTop * 2;
 
     useEffect(() => {
         console.log('useeff1');
@@ -271,42 +333,7 @@ function MainContent({ username }: any) {
         };
     }, [page]);
     console.log('list mess nè', listMessage)
-    const filterListMess = (messages: ChatMessage[]) => {
-        const lastCallByRoomID = new Map<string, ChatMessage>();
-        const otherMessages: ChatMessage[] = [];
 
-        // Duyệt qua tất cả messages
-        messages.forEach((item) => {
-            // Kiểm tra nếu là VIDEO_CALL hoặc VOICE_CALL
-            if (
-                item.mes.type === TypeMess.VIDEO_CALL ||
-                item.mes.type === TypeMess.VOICE_CALL
-            ) {
-                try {
-                    // Parse data để lấy roomID
-                    const callData: any = item.mes.data;
-                    const roomID = callData.roomID;
-                    console.log('roomID nè', roomID)
-                    if (roomID) {
-                        // Luôn cập nhật để lấy message cuối cùng (vì đã sort)
-                        lastCallByRoomID.set(roomID, item);
-                    }
-                } catch (error) {
-                    console.error('Error parsing message data:', error);
-                    // Nếu parse lỗi thì vẫn giữ lại message này
-                    otherMessages.push(item);
-                }
-            } else {
-                // Các loại message khác thì giữ nguyên
-                otherMessages.push(item);
-            }
-        });
-
-        // Kết hợp: messages khác + messages call cuối cùng theo roomID
-        const callMessages = Array.from(lastCallByRoomID.values());
-
-        return [...otherMessages, ...callMessages];
-    };
     useEffect(() => {
         console.log('e3');
         const div = divRef.current;
@@ -338,7 +365,7 @@ function MainContent({ username }: any) {
             div.scrollTop = div.scrollHeight - oldScrollHeightRef.current;
         }
     }, [listMessage]);
-    console.log('list mess nè', listMessage)
+    console.log('list mess nè', listMessage.length)
 
     const newMess =
         { type: 0, data: 'cuc cung' }
@@ -381,6 +408,7 @@ function MainContent({ username }: any) {
                             {listMessage.map((message, index) => {
                                 const objectMess: { type: number, data: any } = message.mes
                                 if (objectMess.type >= 10) {
+                                    console.log('trong type > 10 nè', message.name, message)
                                     return (
                                         <>
                                             <ContentItemCall message={message} key={index} />

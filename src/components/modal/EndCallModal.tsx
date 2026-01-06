@@ -1,12 +1,16 @@
 import { Box, Button, Modal, Typography } from '@mui/material'
 import HighlightOffIcon from '@mui/icons-material/HighlightOff';
 import React, { useState } from 'react'
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
+import VideoCameraFrontIcon from '@mui/icons-material/VideoCameraFront';
 import { CallStatus } from '../../model/CallProps';
 import { resetCall } from '../../redux/callReducer'
 import { LocalPhone } from '@mui/icons-material';
+import { RootState } from '../../redux/store';
+import { TypeMess } from '../../model/ChatMessage';
 export default function EndCallModal({ open }: { open: boolean }) {
     const [openModal, setModal] = useState<boolean>(open)
+    const callStore = useSelector((state: RootState) => state.call)
     const dispatch = useDispatch()
     return (
         <div>
@@ -29,14 +33,14 @@ export default function EndCallModal({ open }: { open: boolean }) {
                         textAlign: 'center',
                     }}
                 >
-                    <LocalPhone
+                    {callStore.callMode === TypeMess.VOICE_CALL ? (<LocalPhone
                         sx={{ fontSize: 100, color: 'red', mb: 2 }}
-                    />
+                    />) : (<VideoCameraFrontIcon sx={{ fontSize: 100, color: 'red', mb: 2 }}></VideoCameraFrontIcon>)}
                     <Typography variant="h6" component="h2" fontWeight={700}>
                         Kết thúc!
                     </Typography>
                     <Typography sx={{ mt: 3 }}>
-                        Cuộc gọi đã kết thúc.
+                        Cuộc gọi đã kết thúc
                     </Typography>
                     <Button
                         variant="contained"
@@ -51,7 +55,7 @@ export default function EndCallModal({ open }: { open: boolean }) {
                     </Button>
                 </Box>
             </Modal>
-        </div>
+        </div >
     )
 
 }

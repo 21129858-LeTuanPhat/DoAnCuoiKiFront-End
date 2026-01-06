@@ -21,16 +21,18 @@ function ContentItem({ message }: { message: ChatMessage }) {
                             alt="hình ảnh"
                             className="rounded-full w-8 h-8"
                         />
-                        {message.mes.type === 0 ? (
-                            <div className="max-w-xl break-words bg-white text-black p-2 rounded-xl">
-                                <p className="break-words">{message.mes.data}</p>
-                            </div>
-                        ) : message.mes.type === 1 ? (
-                            <FileImage data={message.mes.data} check={false} />
-                        ) : (
-                            // <FileItem data={message.mes.data} check={true} />
-                            <p>hello file nè</p>
-                        )}
+                        {message.mes.type === 0 ?
+                            (
+                                <div className="max-w-xl break-words bg-white text-black p-2 rounded-xl">
+                                    <p className="break-words">{message.mes.data}</p>
+                                </div>
+                            ) :
+                            message.mes.type === 1 ? (
+                                <FileImage data={message.mes.data} check={false} />
+                            ) : (
+                                // <FileItem data={message.mes.data} check={true} />
+                                <p>hello file nè</p>
+                            )}
                     </div>
                     <div className="text-xs text-gray-500 mt-1">
                         {new Date(message.createAt).toLocaleString('vi-VN', {
@@ -58,7 +60,6 @@ function ContentItem({ message }: { message: ChatMessage }) {
                         ) : (
                             // <FileItem data={message.mes.data} check={true} />
                             <p>file nè</p>
-
                         )}
                     </div>
                     <div className="text-xs text-gray-500 mt-1 text-right">

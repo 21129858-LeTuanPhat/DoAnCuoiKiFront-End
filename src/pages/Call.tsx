@@ -110,8 +110,7 @@ export default function Call({ setModal }: { setModal: React.Dispatch<React.SetS
                     },
                     showPreJoinView: false,
                     maxUsers: 2,
-                    ...VOICE_CONFIG,
-
+                    ...(callStore.callMode === TypeMess.VOICE_CALL ? VOICE_CONFIG : VIDEO_CONFIG),
                     onUserJoin: (users: any[]) => {
                         console.log('Users joined:', users);
                         const currentUserCount = users.length + 1;
