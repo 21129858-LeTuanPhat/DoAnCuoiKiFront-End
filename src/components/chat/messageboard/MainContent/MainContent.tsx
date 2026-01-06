@@ -16,8 +16,10 @@ function MainContent({ username }: any) {
 
     interface CallHistoryState {
         roomID: string;
-        caller: string; // người gọi đầu tiên
-        lastStatus: string; // trạng thái cuối cùng
+        callMode: number,
+        caller: string;
+        lastStatus: string;
+        duration?: number
     }
 
     const { listMessage, setListMessage, type, selectedUser } = useBoardContext();
@@ -41,6 +43,7 @@ function MainContent({ username }: any) {
                     if (status === 'calling') {
                         newHistory.set(roomID, {
                             roomID,
+                            callMode: message.mes.type,
                             caller: message.name as string,
                             lastStatus: status,
                         });
@@ -59,6 +62,7 @@ function MainContent({ username }: any) {
                         newHistory.set(roomID, {
                             ...existing,
                             lastStatus: status,
+                            ...(status === CallStatus.ENDED && { duration: dataCall.duration }),
                         });
                     }
                 }
@@ -188,6 +192,7 @@ function MainContent({ username }: any) {
                                 break;
                             case CallStatus.ENDED:
                                 console.log('trong switch nè', mesObj.data.status)
+                                console.log(JSON.parse(decodeURIComponent(msg.data.mes)))
                                 dispatch(updateStatus({ status: CallStatus.ENDED }))
                                 console.log('Nhận được end từ người gửi')
                                 break;
@@ -407,15 +412,17 @@ function MainContent({ username }: any) {
                         <ul className="p-2">
                             {listMessage.map((message, index) => {
                                 const objectMess: { type: number, data: any } = message.mes
-                                if (objectMess.type >= 10) {
-                                    console.log('trong type > 10 nè', message.name, message)
-                                    return (
-                                        <>
-                                            <ContentItemCall message={message} key={index} />
-                                        </>
-                                    );
+                                if (objectMess.type === TypeMess.VIDEO_CALL || objectMess.type === TypeMess.VOICE_CALL) {
+                                    const history: any = callHistory.get(objectMess.data.roomID)
+                                    if (objectMess.data.status === CallStatus.CALLING) {
+                                        console.log('chỉ có calling nè', history)
+                                        return <ContentItemCall message={message} history={history}></ContentItemCall>
+                                    }
                                 }
-                                return <ContentItem message={message} key={index} />;
+                                if (objectMess.type < 10) {
+                                    return <ContentItem message={message} key={index} />;
+                                }
+
                             })}
                         </ul>
                     </div>

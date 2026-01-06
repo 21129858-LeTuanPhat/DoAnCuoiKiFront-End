@@ -9,7 +9,7 @@ function ContentItem({ message }: { message: ChatMessage }) {
     const { selectedUser, type } = useBoardContext();
     const user = useSelector((state: RootState) => state.user);
     if (message.mes.type >= 1) {
-        console.log('bị lỗi nè', message.mes.data)
+        console.log('bị lỗi nè', message.mes)
     }
     return type === 'people' ? (
         selectedUser === message.name ? (
@@ -30,8 +30,8 @@ function ContentItem({ message }: { message: ChatMessage }) {
                             message.mes.type === 1 ? (
                                 <FileImage data={message.mes.data} check={false} />
                             ) : (
-                                // <FileItem data={message.mes.data} check={true} />
-                                <p>hello file nè</p>
+                                <FileItem data={message.mes.data} check={true} />
+                                // <p>hello file nè</p>
                             )}
                     </div>
                     <div className="text-xs text-gray-500 mt-1">

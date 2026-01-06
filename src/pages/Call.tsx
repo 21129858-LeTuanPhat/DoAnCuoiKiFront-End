@@ -21,11 +21,17 @@ export default function Call({ setModal }: { setModal: React.Dispatch<React.SetS
     const containerRef = useRef<HTMLDivElement>(null);
 
     const [userCount, setUserCount] = useState(0);
+    const refDuration = useRef<number>(0)
     const [callDuration, setCallDuration] = useState(0);
     const callStartTimeRef = useRef<number | null>(null);
     const [isWaiting, setIsWaiting] = useState(true);
+    console.log('call Duration nè', callDuration)
+    useEffect(() => {
 
+        refDuration.current = callDuration
+    }, [callDuration])
     const dispatch = useDispatch();
+    console.log('ref duration nè', refDuration)
 
     const startTimer = () => {
         if (!callStartTimeRef.current) {
@@ -33,6 +39,7 @@ export default function Call({ setModal }: { setModal: React.Dispatch<React.SetS
             timerRef.current = setInterval(() => {
                 const elapsed = Math.floor((Date.now() - callStartTimeRef.current!) / 1000);
                 setCallDuration(elapsed);
+                refDuration.current = elapsed;
             }, 1000);
         }
     };
@@ -52,6 +59,7 @@ export default function Call({ setModal }: { setModal: React.Dispatch<React.SetS
             status: CallStatus.ENDED,
             roomURL: `/call?roomID=${callStore.roomID}&call_mode=${callStore.callMode}`,
             roomID: callStore.roomID,
+            duration: refDuration.current
         };
         ws.sendMessage(
             JSON.stringify({

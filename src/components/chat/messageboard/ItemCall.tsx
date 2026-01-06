@@ -1,11 +1,52 @@
-import { Camera } from 'lucide-react'
-import React from 'react'
-import { ChatMessage } from '../../../model/ChatMessage'
+import { Camera, Phone } from 'lucide-react'
+import React, { useEffect, useState } from 'react'
+import { ChatMessage, TypeMess } from '../../../model/ChatMessage'
 import { useBoardContext } from '../../../hooks/useBoardContext';
-export default function ContentItemCall({ message }: { message: ChatMessage }) {
-
+import { CallStatus } from '../../../model/CallProps';
+interface CallHistoryState {
+    roomID: string;
+    callMode: number,
+    caller: string;
+    lastStatus: string;
+    duration?: number
+}
+interface LastHistory {
+    status: string,
+    duration?: string
+}
+export default function ContentItemCall({ message, history }: { message: ChatMessage, history: any }) {
     const { selectedUser, type } = useBoardContext();
     const username = localStorage.getItem('username')
+    console.log('status trong call nè', message.mes.data)
+    const formatTime = (seconds: number) => {
+        const hrs = Math.floor(seconds / 3600);
+        const mins = Math.floor((seconds % 3600) / 60);
+        const secs = seconds % 60;
+        return `${hrs.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+    };
+
+    const [lastHistory, setLastHistory] = useState<LastHistory>()
+    // console.log('lastHistory nè', history.lastStatus)
+    useEffect(() => {
+        if (!history) return
+        console.log('lastHistory nè', history.lastStatus)
+        if (history.lastStatus === CallStatus.CANCEL) {
+            setLastHistory({ status: 'Cuộc gọi nhỡ' })
+        }
+        if (history.lastStatus === CallStatus.REJECT) {
+            setLastHistory({ status: 'Cuộc gọi đã bị từ chối' })
+        }
+        if (history.lastStatus === CallStatus.ENDED) {
+            setLastHistory({ status: 'Cuộc gọi thoại', duration: formatTime(Number(history.duration)) })
+        }
+        if (history.lastStatus === CallStatus.TIMEOUT) {
+            setLastHistory({ status: 'Đã bỏ lỡ cuộc gọi' })
+        }
+
+    }, [history])
+    console.log('lastHistory', lastHistory)
+
+
 
     return type === 'people' ? (selectedUser === message.name ? (<div className="mt-4 flex items-end w-full ">
         <img
@@ -14,19 +55,19 @@ export default function ContentItemCall({ message }: { message: ChatMessage }) {
             className="rounded-full w-8 h-8 mr-2 align-bottom   "
         />
         <div className="bg-white rounded-3xl shadow-lg p-4 w-1/4  ">
-            {/* Header với icon điện thoại và X */}
             <div className="flex items-start gap-4 mb-2">
                 <div className="bg-gray-100 rounded-full p-3">
-                    {/* <Phone className="w-6 h-6 text-gray-700" /> */}
-                    {/* <PhoneOff className="w-6 h-6 text-red-700" /> */}
-                    {/* <CameraOff className="w-6 h-6 text-red-700" /> */}
-                    <Camera className="w-5 h-5 text-gray-700" />
+                    {history?.callMode === TypeMess.VIDEO_CALL ? (<Camera className="w-5 h-5 text-gray-700" />) : (<Phone className="w-5 h-5 text-gray-700" />)}
                 </div>
                 <div className="flex-1">
                     <h2 className="text-sm font-semibold text-gray-900 mb-1">
-                        Đã bỏ lỡ cuộc gọi thoại
+                        {
+                            lastHistory?.status
+                        }
                     </h2>
-                    {/* <p className="text-sm text-gray-500">13:51</p> */}
+                    <p className="text-sm text-gray-500">
+                        {lastHistory?.duration}
+                    </p>
                 </div>
             </div>
             {/* Nút Gọi lại */}
@@ -37,19 +78,19 @@ export default function ContentItemCall({ message }: { message: ChatMessage }) {
     </div>) : (<div className="mt-4 flex items-end w-full justify-end">
 
         <div className="bg-white rounded-3xl shadow-lg p-4 w-1/4  ">
-            {/* Header với icon điện thoại và X */}
             <div className="flex items-start gap-4 mb-2">
                 <div className="bg-gray-100 rounded-full p-3">
-                    {/* <Phone className="w-6 h-6 text-gray-700" /> */}
-                    {/* <PhoneOff className="w-6 h-6 text-red-700" /> */}
-                    {/* <CameraOff className="w-6 h-6 text-red-700" /> */}
-                    <Camera className="w-5 h-5 text-gray-700" />
+                    {history?.callMode === TypeMess.VIDEO_CALL ? (<Camera className="w-5 h-5 text-gray-700" />) : (<Phone className="w-5 h-5 text-gray-700" />)}
                 </div>
                 <div className="flex-1">
                     <h2 className="text-sm font-semibold text-gray-900 mb-1">
-                        Đã bỏ lỡ cuộc gọi thoại
+                        {
+                            lastHistory?.status
+                        }
                     </h2>
-                    {/* <p className="text-sm text-gray-500">13:51</p> */}
+                    <p className="text-sm text-gray-500">
+                        {lastHistory?.duration}
+                    </p>
                 </div>
             </div>
             {/* Nút Gọi lại */}
@@ -63,20 +104,20 @@ export default function ContentItemCall({ message }: { message: ChatMessage }) {
             alt="hình ảnh"
             className="rounded-full w-8 h-8 mr-2 align-bottom   "
         />
-        <div className="bg-white rounded-3xl shadow-lg p-4 w-1/4 ">
-            {/* Header với icon điện thoại và X */}
+        <div className="bg-white rounded-3xl shadow-lg p-4 w-1/4  ">
             <div className="flex items-start gap-4 mb-2">
                 <div className="bg-gray-100 rounded-full p-3">
-                    {/* <Phone className="w-6 h-6 text-gray-700" /> */}
-                    {/* <PhoneOff className="w-6 h-6 text-red-700" /> */}
-                    {/* <CameraOff className="w-6 h-6 text-red-700" /> */}
-                    <Camera className="w-5 h-5 text-gray-700" />
+                    {history?.callMode === TypeMess.VIDEO_CALL ? (<Camera className="w-5 h-5 text-gray-700" />) : (<Phone className="w-5 h-5 text-gray-700" />)}
                 </div>
                 <div className="flex-1">
                     <h2 className="text-sm font-semibold text-gray-900 mb-1">
-                        Đã bỏ lỡ cuộc gọi thoại
+                        {
+                            lastHistory?.status
+                        }
                     </h2>
-                    {/* <p className="text-sm text-gray-500">13:51</p> */}
+                    <p className="text-sm text-gray-500">
+                        {lastHistory?.duration}
+                    </p>
                 </div>
             </div>
             {/* Nút Gọi lại */}
@@ -91,19 +132,19 @@ export default function ContentItemCall({ message }: { message: ChatMessage }) {
             className="rounded-full w-8 h-8 mr-2 align-bottom   "
         />
         <div className="bg-white rounded-3xl shadow-lg p-4 w-1/4  ">
-            {/* Header với icon điện thoại và X */}
             <div className="flex items-start gap-4 mb-2">
                 <div className="bg-gray-100 rounded-full p-3">
-                    {/* <Phone className="w-6 h-6 text-gray-700" /> */}
-                    {/* <PhoneOff className="w-6 h-6 text-red-700" /> */}
-                    {/* <CameraOff className="w-6 h-6 text-red-700" /> */}
-                    <Camera className="w-5 h-5 text-gray-700" />
+                    {history?.callMode === TypeMess.VIDEO_CALL ? (<Camera className="w-5 h-5 text-gray-700" />) : (<Phone className="w-5 h-5 text-gray-700" />)}
                 </div>
                 <div className="flex-1">
                     <h2 className="text-sm font-semibold text-gray-900 mb-1">
-                        Đã bỏ lỡ cuộc gọi thoại
+                        {
+                            lastHistory?.status
+                        }
                     </h2>
-                    {/* <p className="text-sm text-gray-500">13:51</p> */}
+                    <p className="text-sm text-gray-500">
+                        {lastHistory?.duration}
+                    </p>
                 </div>
             </div>
             {/* Nút Gọi lại */}
