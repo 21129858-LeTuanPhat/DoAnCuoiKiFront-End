@@ -16,9 +16,8 @@ function ListStory({
     const { profileInfor } = useContext(ProfileContext)!;
 
     const user = useSelector((state: RootState) => state.user);
-    const [stories, loadMore, loading] = useStories({ username: user.username! });
+    const stories = useStories({ username: user.username! });
 
-    if (loading) return <></>;
     console.log('stories in list story:', stories);
 
     return (

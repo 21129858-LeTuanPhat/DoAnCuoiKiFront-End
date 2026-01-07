@@ -8,6 +8,7 @@ interface Story {
     expireAt: number;
     like: number;
     view: number;
+    isLike?: boolean;
 }
 
 export default Story;

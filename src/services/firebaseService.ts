@@ -1,5 +1,5 @@
 import { db } from './../config/firebaseConfig';
-import { ref, set, get, query, orderByChild, endBefore, limitToLast } from 'firebase/database';
+import { ref, set, get, query, orderByChild, endBefore, limitToLast, onChildAdded } from 'firebase/database';
 import ProfileForm from '../model/ProfileForm';
 import RequestConnect, { ResponseStatus } from '../model/RequestConnect';
 import { create } from 'domain';
@@ -257,31 +257,26 @@ async function createStory({
         }
     });
 }
+function LoadStoryFeed(username: string, callback: (storyId: string) => void) {
+    const q = query(ref(db, `story_feed/${username}`), orderByChild('createAt'));
 
-async function LoadStoryFeed(username: string, lastestDate?: number): Promise<Story[]> {
-    let q;
-    if (!lastestDate) {
-        q = query(ref(db, `story_feed/${username}`), orderByChild('createAt'), limitToLast(15));
-    } else {
-        q = query(ref(db, `story_feed/${username}`), orderByChild('createAt'), endBefore(lastestDate), limitToLast(15));
-    }
+    return onChildAdded(q, (snapshot) => {
+        const data = snapshot.val();
+        if (data?.storyId) {
+            callback(data.storyId);
+        }
+    });
+}
 
-    const snapshot = await get(q);
-    if (!snapshot.exists()) return [];
+async function isLikeStory(storyId: string, username: string): Promise<boolean> {
+    const storyRef = ref(db, `stories_like/${storyId}/${username}`);
+    const snapshot = await get(storyRef);
+    return snapshot.exists();
+}
 
-    const feedData = snapshot.val();
-
-    const storyIds: string[] = Object.values(feedData).map((item: any) => item.storyId);
-
-    console.log('STORY IDS:', storyIds);
-
-    const storyPromises = storyIds.map((id) => get(ref(db, `stories/${id}`)).then((snap) => snap.val()));
-
-    const stories = (await Promise.all(storyPromises)) as Story[];
-
-    console.log('STORIES:', stories);
-
-    return stories;
+async function likeStory(storyId: string, username: string) {
+    const storyRef = ref(db, `stories_like/${storyId}/${username}`);
+    await set(storyRef, true);
 }
 
 export {
@@ -295,4 +290,6 @@ export {
     getAllProfile,
     createStory,
     LoadStoryFeed,
+    likeStory,
+    isLikeStory,
 };
