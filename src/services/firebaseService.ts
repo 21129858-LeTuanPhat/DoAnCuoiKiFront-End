@@ -277,6 +277,15 @@ async function isLikeStory(storyId: string, username: string): Promise<boolean> 
 async function likeStory(storyId: string, username: string) {
     const storyRef = ref(db, `stories_like/${storyId}/${username}`);
     await set(storyRef, true);
+    const likeCountRef = ref(db, `stories/${storyId}/like`);
+    const likeSnapshot = await get(likeCountRef);
+    await set(ref(db, `stories/${storyId}/like`), likeSnapshot.val() + 1);
+}
+
+async function viewStory(storyId: string) {
+    const storyRef = ref(db, `stories/${storyId}/view`);
+    const viewSnapshot = await get(storyRef);
+    await set(storyRef, viewSnapshot.val() + 1);
 }
 
 export {
@@ -292,4 +301,5 @@ export {
     LoadStoryFeed,
     likeStory,
     isLikeStory,
+    viewStory,
 };

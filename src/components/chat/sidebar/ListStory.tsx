@@ -6,6 +6,7 @@ import useStories from '../../../hooks/useStories';
 import Story from '../../../model/Story';
 import { useContext } from 'react';
 import { ProfileContext } from '../Context/ProfileCotext';
+import { avatarDefault } from '../../../config/utils';
 function ListStory({
     onOpenCreateStory,
     onOpenStoryView,
@@ -25,10 +26,7 @@ function ListStory({
             <p className="text-gray-500 select-none mb-2">Story</p>
             <div className="flex gap-3 overflow-x-auto scrollbar-hide items-center  w-full max-w-full pb-2 ">
                 <StoryUpLoad
-                    avatarUrl={
-                        profileInfor?.imageUrl ??
-                        'https://tse3.mm.bing.net/th/id/OIP.cGz8NopJvAgdkioxkugKoQHaHa?pid=Api&P=0&h=220'
-                    }
+                    avatarUrl={profileInfor?.imageUrl ?? avatarDefault}
                     onOpenCreateStory={onOpenCreateStory}
                 />
                 {stories.map((story: Story, index: number) => (
@@ -48,11 +46,7 @@ function StoryItem({ name, imageUrl, onClick }: { name: string; imageUrl?: strin
     return (
         <div className="flex flex-col items-center cursor-pointer shrink-0 select-none" onClick={onClick}>
             <div className="w-16 h-16 rounded-full  border-2  p-0.5 border-yellow-400 ">
-                <img
-                    src={imageUrl ?? 'https://tse3.mm.bing.net/th/id/OIP.cGz8NopJvAgdkioxkugKoQHaHa?pid=Api&P=0&h=220'}
-                    alt={name}
-                    className="w-full h-full rounded-full object-cover"
-                />
+                <img src={imageUrl ?? avatarDefault} alt={name} className="w-full h-full rounded-full object-cover" />
             </div>
             <p className="text-sm font-semibold mt-1 whitespace-nowrap text-gray-400">{name}</p>
         </div>
@@ -60,7 +54,7 @@ function StoryItem({ name, imageUrl, onClick }: { name: string; imageUrl?: strin
 }
 function StoryUpLoad({
     name = 'Your Story',
-    avatarUrl = 'https://tse3.mm.bing.net/th/id/OIP.cGz8NopJvAgdkioxkugKoQHaHa?pid=Api&P=0&h=220',
+    avatarUrl = avatarDefault,
     onOpenCreateStory,
 }: {
     name?: string;

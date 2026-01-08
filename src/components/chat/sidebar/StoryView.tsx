@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import Story from '../../../model/Story';
-import { formatDate, parseTimeAgo } from '../../../config/utils';
+import { avatarDefault, formatDate, parseTimeAgo } from '../../../config/utils';
 import { CircleChevronLeftIcon, CircleChevronRight, CircleChevronRightIcon, CircleX, Eye, Heart } from 'lucide-react';
 import { parse } from 'path';
-import { likeStory } from '../../../services/firebaseService';
+import { likeStory, viewStory } from '../../../services/firebaseService';
 import { useSelector } from 'react-redux';
 import { RootState } from '../../../redux/store';
 
@@ -13,7 +13,6 @@ function StoryViewer({ stories, onClose, index }: { stories: Story[]; onClose: (
     const user = useSelector((state: RootState) => state.user);
 
     const currentStory = stories[currentIndex];
-    const [isChange, setIsChange] = useState(false);
     console.log('currentStory:', currentStory);
 
     useEffect(() => {
@@ -31,6 +30,10 @@ function StoryViewer({ stories, onClose, index }: { stories: Story[]; onClose: (
 
         return () => clearInterval(timer);
     }, [currentIndex]);
+    useEffect(() => {
+        currentStory.view = currentStory.view + 1;
+        viewStory(currentStory.id);
+    }, [currentStory.id]);
 
     const handleNext = () => {
         if (currentIndex < stories.length - 1) {
@@ -63,11 +66,7 @@ function StoryViewer({ stories, onClose, index }: { stories: Story[]; onClose: (
             size: 20,
         }));
 
-        setHearts((prev) => [...prev, ...newHearts]);
-
-        setTimeout(() => {
-            setHearts((prev) => prev.filter((h) => !newHearts.includes(h)));
-        }, 1000);
+        setHearts(newHearts);
     };
 
     return (
@@ -106,10 +105,7 @@ function StoryViewer({ stories, onClose, index }: { stories: Story[]; onClose: (
                             <div className="flex items-center gap-2 text-white">
                                 <div className="p-[2px] rounded-full bg-gradient-to-r from-yellow-400 to-purple-600">
                                     <img
-                                        src={
-                                            currentStory.ownerAvatarUrl ??
-                                            'https://tse3.mm.bing.net/th/id/OIP.cGz8NopJvAgdkioxkugKoQHaHa?pid=Api&P=0&h=220'
-                                        }
+                                        src={currentStory.ownerAvatarUrl ?? avatarDefault}
                                         alt="avatar"
                                         className="w-8 h-8 rounded-full border-2 border-black object-cover"
                                     />

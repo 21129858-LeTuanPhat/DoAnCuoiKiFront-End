@@ -13,9 +13,8 @@ function useStories({ username }: { username: string }): Story[] {
             const snap = await get(ref(db, `stories/${storyId}`));
             const story = snap.val();
             console.log('Loaded story:', story);
-            // const isLike = await isLikeStory(storyId, username);
-
-            story.isLike = false;
+            const isLike = await isLikeStory(storyId, username);
+            story.isLike = isLike;
 
             if (!story) return;
 

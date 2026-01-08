@@ -4,7 +4,7 @@ import ProfileForm from '../../../model/ProfileForm';
 import { getUserProfile, getInforGroup } from '../../../services/firebaseService';
 import { LoadingProfileSkeleton } from '../../modal/LoadingSkeleton';
 import InforGroup from '../../../model/InforGroup';
-import { formatDate } from '../../../config/utils';
+import { avatarDefault, formatDate } from '../../../config/utils';
 import { ResponseStatus } from '../../../model/RequestConnect';
 import { useBoardContext } from '../../../hooks/useBoardContext';
 export function ViewInforProfile({
@@ -67,10 +67,7 @@ export function ViewInforProfile({
                 <div className="flex items-center mt-6 p-10 bg-gradient-to-r from-blue-700 to-pink-400 rounded-xl gap-4">
                     <div className="relative">
                         <img
-                            src={
-                                profileInfor?.imageUrl ??
-                                'https://tse3.mm.bing.net/th/id/OIP.cGz8NopJvAgdkioxkugKoQHaHa?pid=Api&P=0&h=220'
-                            }
+                            src={profileInfor?.imageUrl ?? avatarDefault}
                             alt="avatar"
                             className="w-20 h-20 rounded-full object-cover border-4 border-white shadow-lg"
                         />
