@@ -7,6 +7,8 @@ export interface BoardContextType {
     setListMessage: React.Dispatch<React.SetStateAction<ChatMessage[]>>;
     type: string;
     setType: React.Dispatch<React.SetStateAction<string>>;
+    right: boolean;
+    setRight: React.Dispatch<React.SetStateAction<boolean>>;
     //Dùng thằng này thì nó mới địnhg nghĩa giống React về set khi dùng useState
     //     setSelectedUser('Nam');
     // setSelectedUser((prev) => 'Nam');
