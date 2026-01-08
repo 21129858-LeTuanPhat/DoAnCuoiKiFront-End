@@ -20,9 +20,6 @@ function Header({ username }: { username: string }) {
         setModal(true);
         setType(ICallMode.VIDEO);
     };
-
-    console.log('profileInfor header:', profileInfor);
-
     const hanldeVideo = () => {
         setModal(true);
         setType(ICallMode.VIDEO);

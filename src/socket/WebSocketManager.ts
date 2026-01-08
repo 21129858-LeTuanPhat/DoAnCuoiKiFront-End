@@ -95,7 +95,6 @@ class WebSocketManager {
         this.listeners.set(event, cb);
     }
     public sendMessage(message: string): void {
-        console.log('Sending message:', message);
         if (this.socket && this.socket.readyState === WebSocket.OPEN) {
             this.socket.send(message);
         } else {
