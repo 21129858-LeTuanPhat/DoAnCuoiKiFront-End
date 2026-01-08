@@ -1,6 +1,7 @@
 import { ChatMessage } from '../../../../model/ChatMessage';
 import FileItem from './FileItem';
 import FileImage from './FileImage';
+import { formatAnyTimeToVN } from '../../../../helps/formatServerTimeVN';
 interface ItemContent {
     message: ChatMessage;
     color: boolean;
@@ -38,15 +39,7 @@ function ContentItem({ message, color }: ItemContent) {
                 <div
                     className={color === true ? 'text-xs text-gray-500 mt-1' : 'text-xs text-gray-500 mt-1 text-right'}
                 >
-                    {new Date(message.createAt).toLocaleString('vi-VN', {
-                        timeZone: 'Asia/Ho_Chi_Minh',
-                        year: 'numeric',
-                        month: '2-digit',
-                        day: '2-digit',
-                        hour: '2-digit',
-                        minute: '2-digit',
-                        second: '2-digit',
-                    })}
+                    {formatAnyTimeToVN(message.createAt)}
                 </div>
             </div>
         </li>
