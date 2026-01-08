@@ -7,6 +7,7 @@ import { ResponseStatus } from '../../../model/RequestConnect';
 
 import RequestConnect from '../../../model/RequestConnect';
 import { ViewInforProfile } from './ViewInforProfile';
+import { avatarDefault } from '../../../config/utils';
 
 function Notification({ onClose, onCloseProfile }: { onClose: () => void; onCloseProfile: () => void }) {
     const [tab, setTab] = useState<'sent' | 'received'>('sent');
@@ -136,10 +137,7 @@ function Notification({ onClose, onCloseProfile }: { onClose: () => void; onClos
                                         onClick={() => handleViewProfile(connect.username, 'people', connect.status)}
                                     >
                                         <img
-                                            src={
-                                                connect.imageUrl ||
-                                                'https://tse3.mm.bing.net/th/id/OIP.cGz8NopJvAgdkioxkugKoQHaHa?pid=Api&P=0&h=220'
-                                            }
+                                            src={connect.imageUrl || avatarDefault}
                                             alt={connect.username}
                                             className="w-9 h-9 rounded-full object-cover"
                                         />
@@ -177,10 +175,7 @@ function Notification({ onClose, onCloseProfile }: { onClose: () => void; onClos
                                         onClick={() => handleViewProfile(connect.username, 'room', connect.status)}
                                     >
                                         <img
-                                            src={
-                                                connect.imageUrl ||
-                                                'https://tse3.mm.bing.net/th/id/OIP.cGz8NopJvAgdkioxkugKoQHaHa?pid=Api&P=0&h=220'
-                                            }
+                                            src={connect.imageUrl || avatarDefault}
                                             alt={connect.username}
                                             className="w-9 h-9 rounded-full object-cover"
                                         />

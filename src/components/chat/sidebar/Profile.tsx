@@ -5,10 +5,10 @@ import { InforProfile } from './InforProfile';
 import { useContext } from 'react';
 import { ProfileContext } from '../Context/ProfileCotext';
 import { Notification } from './Notification';
+import { avatarDefault } from '../../../config/utils';
 export function Profile() {
     const { profileInfor } = useContext(ProfileContext)!;
-    const img_url =
-        profileInfor?.imageUrl ?? 'https://tse3.mm.bing.net/th/id/OIP.cGz8NopJvAgdkioxkugKoQHaHa?pid=Api&P=0&h=220';
+    const img_url = profileInfor?.imageUrl ?? avatarDefault;
     const [open, setOpen] = useState(false);
 
     return (
@@ -45,8 +45,7 @@ export function Profile() {
 
 function ProfilePopup({ username, onClose }: { username: string; onClose: () => void }) {
     const { profileInfor } = useContext(ProfileContext)!;
-    const img_url =
-        profileInfor?.imageUrl ?? 'https://tse3.mm.bing.net/th/id/OIP.cGz8NopJvAgdkioxkugKoQHaHa?pid=Api&P=0&h=220';
+    const img_url = profileInfor?.imageUrl ?? avatarDefault;
     const [openProfile, setOpenProfile] = useState(false);
     const [openNotification, setOpenNotification] = useState(false);
     return (

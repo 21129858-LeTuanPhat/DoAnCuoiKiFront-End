@@ -1,11 +1,12 @@
 import { PanelLeft } from 'lucide-react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faPhone, faVideo } from '@fortawesome/free-solid-svg-icons';
-import { REACT_BASE_URL } from '../../../../config/utils';
-import { useState } from 'react';
+import { avatarDefault, REACT_BASE_URL } from '../../../../config/utils';
+import { useContext, useState } from 'react';
 import CallModal from '../../../modal/CallModal';
 import { useBoardContext } from '../../../../hooks/useBoardContext';
 import { ICallMode } from '../../../../model/CallProps';
+import { ProfileContext } from '../../Context/ProfileCotext';
 function Header({ username }: { username: string }) {
     // const paddingTop = 50;
     // const paddingLeft = 100;
@@ -14,6 +15,7 @@ function Header({ username }: { username: string }) {
     const [openModal, setModal] = useState(false);
     const [type, setType] = useState<string>('');
     const { selectedUser } = useBoardContext();
+    const profileInfor = useContext(ProfileContext)?.profileInfor;
     const hanldeVoice = () => {
         setModal(true);
         setType(ICallMode.VIDEO);
@@ -36,7 +38,7 @@ function Header({ username }: { username: string }) {
                         <PanelLeft className="ml-4 mr-8 h-[36px]" />
                     </div>
                     <img
-                        src="https://tse3.mm.bing.net/th/id/OIP.cGz8NopJvAgdkioxkugKoQHaHa?pid=Api&P=0&h=220"
+                        src={profileInfor?.imageUrl ?? avatarDefault}
                         alt="hình ảnh"
                         className="rounded-full object-cover w-10 mx-2 h-[36px]"
                     />
