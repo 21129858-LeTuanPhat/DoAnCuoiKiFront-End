@@ -98,7 +98,7 @@ function MainContent({ username }: any) {
                 if (msg.status === 'success') {
                     if (msg.event === 'GET_ROOM_CHAT_MES') {
                         oldScrollHeightRef.current = divRef.current?.scrollHeight || 0;
-                        const parsedList: ChatMessage[] = msg.data.map((item: any) => {
+                        const parsedList: ChatMessage[] = msg.data.chatData.map((item: any) => {
                             const mesObj = JSON.parse(decodeURIComponent(item.mes));
                             return {
                                 id: item.id,
