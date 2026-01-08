@@ -2,43 +2,38 @@ import { PanelLeft } from 'lucide-react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faPhone, faVideo } from '@fortawesome/free-solid-svg-icons';
 import { REACT_BASE_URL } from '../../../../config/utils';
-import { useEffect, useState } from 'react';
+import { SetStateAction, useEffect, useState } from 'react';
 import CallModal from '../../../modal/CallModal';
 import { useBoardContext } from '../../../../hooks/useBoardContext';
 import { TypeMess } from '../../../../model/ChatMessage';
 import { useSelector } from 'react-redux';
 import { RootState } from '../../../../redux/store';
 import { CallStatus } from '../../../../model/CallProps';
-function Header({ username }: { username: string }) {
+import { Dispatch } from '@reduxjs/toolkit';
+function Header({ username, setOpen, setTypeCalling }: { username: string, setOpen: React.Dispatch<React.SetStateAction<boolean>>, setTypeCalling: React.Dispatch<React.SetStateAction<number>> }) {
     // const paddingTop = 50;
     // const paddingLeft = 100;
     // const width = window.innerWidth - paddingLeft * 2;
     // const height = window.innerHeight - paddingTop * 2;
-    const [openModal, setModal] = useState(false);
-    const [type, setType] = useState<number>(100);
+
     const { selectedUser } = useBoardContext();
     const hanldeVoice = () => {
-        setModal(true);
-        setType(TypeMess.VOICE_CALL);
+        setOpen(true);
+        setTypeCalling(TypeMess.VOICE_CALL);
     };
     const hanldeVideo = () => {
-        setModal(true);
-        setType(TypeMess.VIDEO_CALL);
-        // window.open(
-        //     `${REACT_BASE_URL}/groupcall?call_id=`,
-        //     "_blank",
-        //     `width=${width},height=${height},left=${paddingLeft},top=${paddingTop}`
-        // );
+        setOpen(true);
+        setTypeCalling(TypeMess.VIDEO_CALL);
+
     };
     const selector = useSelector((state: RootState) => state.call)
     useEffect(() => {
         if (selector.callStatus === CallStatus.REJECT) {
-            setModal(false);
+            setOpen(false);
         }
     }, [selector.callStatus]);
     return (
         <>
-            {openModal && <CallModal open={openModal} setOpen={setModal} typeCall={type} />}
             <div className="flex items-center h-full justify-between px-4 py-3 bg-white overflow-auto">
                 <div className="flex items-center">
                     <div className="relative before:content-[''] before:h-[24px] before:border-l-2 before:absolute before:top-1/2 before:left-14 before:bg-red-500 before:-translate-y-1/2">

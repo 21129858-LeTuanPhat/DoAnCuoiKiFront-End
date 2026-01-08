@@ -12,6 +12,7 @@ import RejectModal from '../../../modal/RejectModal';
 import { RootState } from '../../../../redux/store';
 import { REACT_BASE_URL } from '../../../../config/utils';
 import { useLocation, useNavigate } from 'react-router-dom';
+import CallModal from '../../../modal/CallModal';
 function MainContent({ username }: any) {
 
     interface CallHistoryState {
@@ -72,15 +73,7 @@ function MainContent({ username }: any) {
         });
     }, [listMessage]);
 
-
-
-
     console.log('filter list nè', callHistory)
-
-
-
-
-
 
 
     const selection = useSelector((state: RootState) => state.call)
@@ -387,6 +380,7 @@ function MainContent({ username }: any) {
     const [openReject, setReject] = useState<boolean>(false)
     return (
         <>
+
             <section className="bg-[#f0f4fa] h-[calc(737.6px-72px-65px)]">
                 {initialLoading ? (
                     <div className="h-full flex items-center justify-center">
