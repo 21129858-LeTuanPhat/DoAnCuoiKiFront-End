@@ -1,8 +1,7 @@
 import { ChatMessage } from '../../../../model/ChatMessage';
 import FileItem from './FileItem';
 import FileImage from './FileImage';
-                      import { 
-                        , CameraOff, Phone, PhoneOff } from 'lucide-react';
+
 
 import { formatAnyTimeToVN } from '../../../../helps/formatServerTimeVN';
 interface ItemContent {
