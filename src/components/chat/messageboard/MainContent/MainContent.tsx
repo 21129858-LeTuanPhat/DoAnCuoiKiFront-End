@@ -13,6 +13,7 @@ import { RootState } from '../../../../redux/store';
 import { REACT_BASE_URL } from '../../../../config/utils';
 import { useLocation, useNavigate } from 'react-router-dom';
 import CallModal from '../../../modal/CallModal';
+import ContentItem from './ContentItem';
 function MainContent({ username }: any) {
 
     interface CallHistoryState {
@@ -23,8 +24,18 @@ function MainContent({ username }: any) {
         duration?: number
     }
 
-    const { listMessage, setListMessage, type, selectedUser } = useBoardContext();
+    const selection = useSelector((state: RootState) => state.call)
+    const [page, setPage] = useState<number>(1);
+    const divRef = useRef<HTMLDivElement>(null);
+    const { listMessage, setListMessage, type, right, setRight, setOwner, setListMember } = useBoardContext();
+    const [initialLoading, setInitialLoading] = useState(false);
+    const [fetchingMore, setFetchingMore] = useState(false);
+    const oldScrollHeightRef = useRef(0);
+    const [hasMore, setHasMore] = useState(true);
+    const oneTimeRef = useRef<boolean>(true);
+    const noTransfromRef = useRef<boolean>(false);
     const [callHistory, setCallHistory] = useState<Map<string, CallHistoryState>>(new Map());
+    const dispatch = useDispatch()
 
     useEffect(() => {
         const callMessages = listMessage.filter(msg => msg.mes.type >= 10);
@@ -76,16 +87,6 @@ function MainContent({ username }: any) {
     console.log('filter list nè', callHistory)
 
 
-    const selection = useSelector((state: RootState) => state.call)
-    const [page, setPage] = useState<number>(1);
-    const divRef = useRef<HTMLDivElement>(null);
-    const { listMessage, setListMessage, type, right, setRight, setOwner, setListMember } = useBoardContext();
-    const [initialLoading, setInitialLoading] = useState(false);
-    const [fetchingMore, setFetchingMore] = useState(false);
-    const oldScrollHeightRef = useRef(0);
-    const [hasMore, setHasMore] = useState(true);
-    const oneTimeRef = useRef<boolean>(true);
-    const noTransfromRef = useRef<boolean>(false);
     useEffect(() => {
         setListMessage([]);
         setPage(1);
@@ -418,7 +419,7 @@ function MainContent({ username }: any) {
                                     }
                                 }
                                 if (objectMess.type < 10) {
-                                    return <ContentItem message={message} key={index} />;
+                                    return <Content message={message} key={index} />;
                                 }
 
                             })}
