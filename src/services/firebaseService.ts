@@ -4,8 +4,6 @@ import ProfileForm from '../model/ProfileForm';
 import RequestConnect, { ResponseStatus } from '../model/RequestConnect';
 import { create } from 'domain';
 import InforGroup from '../model/InforGroup';
-import exp from 'constants';
-import Story from '../model/Story';
 
 async function handleChangeProfile({ profileData }: { profileData: ProfileForm }) {
     const key = `profiles/${profileData.username}`;
@@ -63,6 +61,7 @@ async function getInvitation(
     if (!snapshot.exists()) {
         return [];
     }
+
     const data = snapshot.val();
     const listConnect = Object.entries(data).map(([key, value]: [string, any]) => {
         return {

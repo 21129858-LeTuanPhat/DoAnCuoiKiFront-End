@@ -17,7 +17,6 @@ function Header({ username }: { username: string }) {
     const [type, setType] = useState<string>('');
     const { selectedUser, type: typeMessage } = useBoardContext();
     const [openPanel, setOpenPanel] = useState<boolean>(false);
-    const { selectedUser } = useBoardContext();
     const profileInfor = useContext(ProfileContext)?.profileInfor;
     const hanldeVoice = () => {
         setModal(true);
