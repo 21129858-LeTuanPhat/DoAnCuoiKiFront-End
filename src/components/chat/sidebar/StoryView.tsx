@@ -1,14 +1,19 @@
 import React, { useState, useEffect } from 'react';
 import Story from '../../../model/Story';
-import { formatDate, parseTimeAgo } from '../../../config/utils';
+import { avatarDefault, formatDate, parseTimeAgo } from '../../../config/utils';
 import { CircleChevronLeftIcon, CircleChevronRight, CircleChevronRightIcon, CircleX, Eye, Heart } from 'lucide-react';
 import { parse } from 'path';
+import { likeStory, viewStory } from '../../../services/firebaseService';
+import { useSelector } from 'react-redux';
+import { RootState } from '../../../redux/store';
 
 function StoryViewer({ stories, onClose, index }: { stories: Story[]; onClose: () => void; index: number }) {
     const [currentIndex, setCurrentIndex] = useState(index);
     const [progress, setProgress] = useState(0);
+    const user = useSelector((state: RootState) => state.user);
 
     const currentStory = stories[currentIndex];
+    console.log('currentStory:', currentStory);
 
     useEffect(() => {
         const intervalTime = 50;
@@ -25,6 +30,10 @@ function StoryViewer({ stories, onClose, index }: { stories: Story[]; onClose: (
 
         return () => clearInterval(timer);
     }, [currentIndex]);
+    useEffect(() => {
+        currentStory.view = currentStory.view + 1;
+        viewStory(currentStory.id);
+    }, [currentStory.id]);
 
     const handleNext = () => {
         if (currentIndex < stories.length - 1) {
@@ -43,10 +52,32 @@ function StoryViewer({ stories, onClose, index }: { stories: Story[]; onClose: (
         setProgress(0);
     };
 
+    const handleLikeStory = async (storyId: string) => {
+        await likeStory(storyId, user.username!);
+        stories[currentIndex].isLike = true;
+    };
+
+    const [hearts, setHearts] = useState<FlyingHeart[]>([]);
+
+    const spawnHearts = () => {
+        const newHearts = Array.from({ length: 20 }).map(() => ({
+            id: Date.now() + Math.random(),
+            left: Math.random() * 60 + 20,
+            size: 20,
+        }));
+
+        setHearts(newHearts);
+    };
+
     return (
         <div className=" fixed inset-0 z-10  bg-black flex items-center justify-center">
             <div className=" w-full h-full flex items-center justify-center">
                 <div className="relative w-[30vw] h-full rounded-xl overflow-hidden bg-gray-900 shadow-2xl">
+                    <div className="absolute inset-0 pointer-events-none z-40 overflow-hidden">
+                        {hearts.map((heart) => (
+                            <FlyingHeartItem key={heart.id} heart={heart} />
+                        ))}
+                    </div>
                     <img src={currentStory.imageUrl} alt="story" className="w-full h-full object-cover" />
 
                     <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-transparent to-black/80 pointer-events-none"></div>
@@ -74,10 +105,7 @@ function StoryViewer({ stories, onClose, index }: { stories: Story[]; onClose: (
                             <div className="flex items-center gap-2 text-white">
                                 <div className="p-[2px] rounded-full bg-gradient-to-r from-yellow-400 to-purple-600">
                                     <img
-                                        src={
-                                            currentStory.ownerAvatarUrl ??
-                                            'https://tse3.mm.bing.net/th/id/OIP.cGz8NopJvAgdkioxkugKoQHaHa?pid=Api&P=0&h=220'
-                                        }
+                                        src={currentStory.ownerAvatarUrl ?? avatarDefault}
                                         alt="avatar"
                                         className="w-8 h-8 rounded-full border-2 border-black object-cover"
                                     />
@@ -105,7 +133,7 @@ function StoryViewer({ stories, onClose, index }: { stories: Story[]; onClose: (
                                 </div>
                             </div>
 
-                            <CircleX color="gray" size={25} />
+                            <CircleX color="gray" size={25} onClick={onClose} className="cursor-pointer" />
                         </div>
                     </div>
 
@@ -130,8 +158,17 @@ function StoryViewer({ stories, onClose, index }: { stories: Story[]; onClose: (
                             className="flex-1 bg-transparent border border-white/40 rounded-full px-4 py-2.5 text-white text-sm placeholder-slate-50 focus:outline-none "
                         />
 
-                        <button className="text-2xl hover:scale-110 ">
-                            <Heart color="red" />
+                        <button
+                            className="text-2xl hover:scale-110"
+                            disabled={currentStory.isLike}
+                            onClick={() => {
+                                spawnHearts();
+                                handleLikeStory(currentStory.id);
+                            }}
+                        >
+                            <Heart
+                                className={`${currentStory.isLike ? 'fill-red-500 text-red-500' : 'text-red-500'}`}
+                            />
                         </button>
                     </div>
                 </div>
@@ -140,4 +177,32 @@ function StoryViewer({ stories, onClose, index }: { stories: Story[]; onClose: (
     );
 }
 
+function FlyingHeartItem({ heart }: { heart: FlyingHeart }) {
+    const [fly, setFly] = useState(false);
+
+    useEffect(() => {
+        requestAnimationFrame(() => setFly(true));
+    }, []);
+
+    return (
+        <Heart
+            className={`
+                absolute bottom-24
+                text-red-500 fill-red-500
+                transition-all duration-1000 ease-out
+                ${fly ? '-translate-y-40 opacity-0 scale-125 rotate-12' : 'translate-y-0 opacity-100 scale-100'}
+            `}
+            style={{
+                left: `${heart.left}%`,
+                width: heart.size,
+                height: heart.size,
+            }}
+        />
+    );
+}
+type FlyingHeart = {
+    id: number;
+    left: number;
+    size: number;
+};
 export default StoryViewer;

@@ -1,34 +1,30 @@
 import { useEffect, useState } from 'react';
-import { LoadStoryFeed } from '../services/firebaseService';
+import { isLikeStory, LoadStoryFeed } from '../services/firebaseService';
 import Story from '../model/Story';
+import { db } from '../config/firebaseConfig';
+import { ref, get } from 'firebase/database';
 
-function useStories({ username }: { username: string }): [Story[], () => Promise<void>, boolean] {
+function useStories({ username }: { username: string }): Story[] {
     const [stories, setStories] = useState<Story[]>([]);
-    const [lastTime, setLastTime] = useState<number | null>(null);
-    const [loading, setLoading] = useState(false);
+    const [isChange, setIsChange] = useState(false);
 
-    async function loadMore() {
-        if (loading) return;
-        setLoading(true);
-
-        const listData = await LoadStoryFeed(username, lastTime || undefined);
-        if (listData.length === 0) {
-            setLoading(false);
-            return;
-        }
-        const newStories = listData.slice().reverse();
-        console.log('LOAD MORE STORIES: ', newStories);
-
-        setStories((prev) => [...prev, ...newStories]);
-        setLastTime(newStories[newStories.length - 1].createAt);
-
-        setLoading(false);
-    }
     useEffect(() => {
-        loadMore();
+        const unsubscribe = LoadStoryFeed(username, async (storyId) => {
+            const snap = await get(ref(db, `stories/${storyId}`));
+            const story = snap.val();
+            console.log('Loaded story:', story);
+            const isLike = await isLikeStory(storyId, username);
+            story.isLike = isLike;
+
+            if (!story) return;
+
+            setStories((prev) => [story, ...prev]);
+        });
+
+        return () => unsubscribe();
     }, []);
 
-    return [stories, loadMore, loading];
+    return stories;
 }
 
 export default useStories;
