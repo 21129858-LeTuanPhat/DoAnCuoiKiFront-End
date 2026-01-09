@@ -14,17 +14,17 @@ import { REACT_BASE_URL } from '../../../../config/utils';
 import { useLocation, useNavigate } from 'react-router-dom';
 import CallModal from '../../../modal/CallModal';
 import ContentItem from './ContentItem';
+import { ChevronsDown } from 'lucide-react';
 function MainContent({ username }: any) {
-
     interface CallHistoryState {
         roomID: string;
-        callMode: number,
+        callMode: number;
         caller: string;
         lastStatus: string;
-        duration?: number
+        duration?: number;
     }
 
-    const selection = useSelector((state: RootState) => state.call)
+    const selection = useSelector((state: RootState) => state.call);
     const [page, setPage] = useState<number>(1);
     const divRef = useRef<HTMLDivElement>(null);
     const { listMessage, setListMessage, type, right, setRight, setOwner, setListMember } = useBoardContext();
@@ -35,10 +35,16 @@ function MainContent({ username }: any) {
     const oneTimeRef = useRef<boolean>(true);
     const noTransfromRef = useRef<boolean>(false);
     const [callHistory, setCallHistory] = useState<Map<string, CallHistoryState>>(new Map());
-    const dispatch = useDispatch()
-
+    const dispatch = useDispatch();
+    // const downArrowRef = useRef(false);
+    const [downArrow, setDownArrow] = useState<boolean>(false);
+    const handleOnDown = () => {
+        const div = divRef.current;
+        if (!div) return;
+        div.scrollTop = div.scrollHeight;
+    };
     useEffect(() => {
-        const callMessages = listMessage.filter(msg => msg.mes.type >= 10);
+        const callMessages = listMessage.filter((msg) => msg.mes.type >= 10);
 
         if (callMessages.length === 0) return;
 
@@ -46,9 +52,9 @@ function MainContent({ username }: any) {
             const newHistory = new Map(prev);
 
             callMessages.forEach((message) => {
-                const dataCall: any = message.mes.data
-                const roomID: any = dataCall.roomID
-                const status = dataCall.status
+                const dataCall: any = message.mes.data;
+                const roomID: any = dataCall.roomID;
+                const status = dataCall.status;
                 const existing = newHistory.get(roomID);
 
                 if (!existing) {
@@ -61,13 +67,10 @@ function MainContent({ username }: any) {
                         });
                     }
                 } else {
-                    const currentMsg = callMessages.find(m => {
+                    const currentMsg = callMessages.find((m) => {
                         const data: any = m.mes?.data;
                         if (!data) return false;
-                        return (
-                            data.roomID === roomID &&
-                            data.status === existing.lastStatus
-                        );
+                        return data.roomID === roomID && data.status === existing.lastStatus;
                     });
 
                     if (!currentMsg || message.id > currentMsg.id) {
@@ -83,9 +86,6 @@ function MainContent({ username }: any) {
             return newHistory;
         });
     }, [listMessage]);
-
-    console.log('filter list nè', callHistory)
-
 
     useEffect(() => {
         setListMessage([]);
@@ -104,9 +104,16 @@ function MainContent({ username }: any) {
     useEffect(() => {
         selectionRef.current = selection;
     }, [selection]);
-    console.log('selection trong mainContent', selection, 'roomid: ', selection.roomID, 'selection.callMode: ', selection.callMode)
+    console.log(
+        'selection trong mainContent',
+        selection,
+        'roomid: ',
+        selection.roomID,
+        'selection.callMode: ',
+        selection.callMode,
+    );
     const sendInCall = () => {
-        const callSelection = selectionRef.current
+        const callSelection = selectionRef.current;
         const ws = WebSocketManager.getInstance();
         const callMess = {
             status: CallStatus.IN_CALL,
@@ -121,12 +128,14 @@ function MainContent({ username }: any) {
                     data: {
                         type: selectionRef.current.type,
                         to: selectionRef.current.caller,
-                        mes: encodeURIComponent(JSON.stringify({ type: selectionRef.current.callMode, data: callMess })),
+                        mes: encodeURIComponent(
+                            JSON.stringify({ type: selectionRef.current.callMode, data: callMess }),
+                        ),
                     },
                 },
             }),
         );
-    }
+    };
     useEffect(() => {
         const ws = WebSocketManager.getInstance();
         if (page === 1) {
@@ -136,16 +145,13 @@ function MainContent({ username }: any) {
         }
         if (type === 'people') {
             ws.onMessage('GET_PEOPLE_CHAT_MES', (msg) => {
-                console.log('msg nè', msg)
                 if (msg.status === 'success' && msg.event === 'SEND_CHAT') {
                     const mesObj: any = JSON.parse(decodeURIComponent(msg.data.mes));
-                    console.log('msg nhận về nè', mesObj)
-
                     if (mesObj.type === TypeMess.VIDEO_CALL || mesObj.type === TypeMess.VOICE_CALL) {
                         // const newCallMessage: ChatMessage = {
                         //     id: msg.data.id,
                         //     name: msg.data.name,
-                        //     type: msg.data.type, 
+                        //     type: msg.data.type,
                         //     to: msg.data.to,
                         //     mes: {
                         //         type: mesObj.type,
@@ -157,44 +163,49 @@ function MainContent({ username }: any) {
                         // Xử lý các trạng thái
                         switch (mesObj.data.status) {
                             case CallStatus.CALLING:
-                                console.log('trong switch nè', mesObj.data.status)
-                                dispatch(incomingCall({
-                                    roomURL: mesObj.data.roomURL,
-                                    roomID: mesObj.data.roomID,
-                                    caller: msg.data.name,
-                                    callMode: mesObj.type === TypeMess.VIDEO_CALL ? TypeMess.VIDEO_CALL : TypeMess.VOICE_CALL,
-                                    type: msg.data.type === 0 ? 'people' : 'room'
-                                }))
+                                console.log('trong switch nè', mesObj.data.status);
+                                dispatch(
+                                    incomingCall({
+                                        roomURL: mesObj.data.roomURL,
+                                        roomID: mesObj.data.roomID,
+                                        caller: msg.data.name,
+                                        callMode:
+                                            mesObj.type === TypeMess.VIDEO_CALL
+                                                ? TypeMess.VIDEO_CALL
+                                                : TypeMess.VOICE_CALL,
+                                        type: msg.data.type === 0 ? 'people' : 'room',
+                                    }),
+                                );
                                 break;
                             case CallStatus.REJECT:
-                                console.log('trong switch  REJECT nè', mesObj.data.status)
-                                dispatch(updateStatus({ status: CallStatus.REJECT }))
+                                console.log('trong switch  REJECT nè', mesObj.data.status);
+                                dispatch(updateStatus({ status: CallStatus.REJECT }));
                                 break;
                             case CallStatus.CONNECTING:
-                                console.log('trong switch nè', mesObj.data.status)
-                                console.log('Nhận được CONNECTING, gửi IN_CALL')
+                                console.log('trong switch nè', mesObj.data.status);
+                                console.log('Nhận được CONNECTING, gửi IN_CALL');
                                 setTimeout(() => {
-                                    sendInCall()
-                                    dispatch(updateStatus({ status: CallStatus.IN_CALL }))
-                                }, 100)
+                                    sendInCall();
+                                    dispatch(updateStatus({ status: CallStatus.IN_CALL }));
+                                }, 100);
                                 break;
                             case CallStatus.IN_CALL:
-                                console.log('trong switch nè', mesObj.data.status)
-                                dispatch(updateStatus({ status: CallStatus.IN_CALL }))
-                                console.log('Nhận được IN_CALL từ người gửi')
+                                console.log('trong switch nè', mesObj.data.status);
+                                dispatch(updateStatus({ status: CallStatus.IN_CALL }));
+                                console.log('Nhận được IN_CALL từ người gửi');
                                 break;
                             case CallStatus.ENDED:
-                                console.log('trong switch nè', mesObj.data.status)
-                                console.log(JSON.parse(decodeURIComponent(msg.data.mes)))
-                                dispatch(updateStatus({ status: CallStatus.ENDED }))
-                                console.log('Nhận được end từ người gửi')
+                                console.log('trong switch nè', mesObj.data.status);
+                                console.log(JSON.parse(decodeURIComponent(msg.data.mes)));
+                                dispatch(updateStatus({ status: CallStatus.ENDED }));
+                                console.log('Nhận được end từ người gửi');
                                 break;
                             case CallStatus.CANCEL:
-                                dispatch(updateStatus({ status: CallStatus.CANCEL }))
+                                dispatch(updateStatus({ status: CallStatus.CANCEL }));
                                 break;
                             case CallStatus.TIMEOUT:
-                                console.log('trong switch  TIMEOUT nè', mesObj.data.status)
-                                dispatch(updateStatus({ status: CallStatus.TIMEOUT }))
+                                console.log('trong switch  TIMEOUT nè', mesObj.data.status);
+                                dispatch(updateStatus({ status: CallStatus.TIMEOUT }));
                                 break;
                         }
                         return;
@@ -306,7 +317,7 @@ function MainContent({ username }: any) {
                             },
                             createAt: new Date().toISOString(),
                         };
-
+                        noTransfromRef.current = false;
                         setListMessage((prev) => [...prev, newMessage]);
                     }
                 }
@@ -333,6 +344,7 @@ function MainContent({ username }: any) {
             }
         };
     }, [page]);
+
     useEffect(() => {
         const div = divRef.current;
         if (!div) return;
@@ -341,7 +353,7 @@ function MainContent({ username }: any) {
             div.scrollTop = div.scrollHeight;
             oneTimeRef.current = false;
         }
-        if (right) {
+        if (right || div.scrollHeight - div.scrollTop < 700) {
             div.scrollTop = div.scrollHeight;
             setRight(false);
         }
@@ -353,6 +365,12 @@ function MainContent({ username }: any) {
                     return newpage;
                 });
                 noTransfromRef.current = true;
+            }
+            if (div.scrollHeight - div.scrollTop > 2000) {
+                setDownArrow(true);
+            }
+            if (div.scrollHeight - div.scrollTop < 700) {
+                setDownArrow(false);
             }
         };
         div.addEventListener('scroll', handleScroll);
@@ -368,24 +386,18 @@ function MainContent({ username }: any) {
             div.scrollTop = div.scrollHeight - oldScrollHeightRef.current;
         }
     }, [listMessage]);
-    console.log('list mess nè', listMessage.length)
 
-    const newMess =
-        { type: 0, data: 'cuc cung' }
-    const newMess2 = { type: 0, data: 'hao han' }
-    console.log('taiabc den tai 123', encodeURIComponent(JSON.stringify(newMess)))
-    console.log('tai123 den taiabc', encodeURIComponent(JSON.stringify(newMess2)))
+    const newMess = { type: 0, data: 'cuc cung' };
+    const newMess2 = { type: 0, data: 'hao han' };
     const callMess = {
         callMode: 'voice',
         status: 'calling',
         roomURL: `localhost:3000/call?roomID=1231212&call_mode=12121212`,
         roomID: '123123',
     };
-    console.log('taiabc den tai 123', encodeURIComponent(JSON.stringify({ type: TypeMess.VIDEO_CALL, data: callMess })))
-    const [openReject, setReject] = useState<boolean>(false)
+    const [openReject, setReject] = useState<boolean>(false);
     return (
         <>
-
             <section className="bg-[#f0f4fa] h-[calc(737.6px-72px-65px)]">
                 {initialLoading ? (
                     <div className="h-full flex items-center justify-center">
@@ -408,25 +420,38 @@ function MainContent({ username }: any) {
                         {fetchingMore && (
                             <div className="text-center text-sm text-gray-500 py-2">Đang tải tin nhắn cũ...</div>
                         )}
+                        {downArrow && (
+                            <div
+                                onClick={handleOnDown}
+                                className="
+                        fixed right-8 bottom-24  
+                        z-5 p-2 bg-white rounded-full cursor-pointer"
+                            >
+                                <ChevronsDown color="gray" size="30" />
+                            </div>
+                        )}
                         <ul className="p-2">
                             {listMessage.map((message, index) => {
-                                const objectMess: { type: number, data: any } = message.mes
-                                if (objectMess.type === TypeMess.VIDEO_CALL || objectMess.type === TypeMess.VOICE_CALL) {
-                                    const history: any = callHistory.get(objectMess.data.roomID)
+                                const objectMess: { type: number; data: any } = message.mes;
+                                if (
+                                    objectMess.type === TypeMess.VIDEO_CALL ||
+                                    objectMess.type === TypeMess.VOICE_CALL
+                                ) {
+                                    const history: any = callHistory.get(objectMess.data.roomID);
                                     if (objectMess.data.status === CallStatus.CALLING) {
-                                        console.log('chỉ có calling nè', history)
-                                        return <ContentItemCall message={message} history={history}></ContentItemCall>
+                                        console.log('chỉ có calling nè', history);
+                                        return <ContentItemCall message={message} history={history}></ContentItemCall>;
                                     }
                                 }
                                 if (objectMess.type < 10) {
                                     return <Content message={message} key={index} />;
                                 }
-
                             })}
                         </ul>
                     </div>
                 )}
-            </section></>
+            </section>
+        </>
     );
 }
 
