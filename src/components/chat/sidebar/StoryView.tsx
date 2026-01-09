@@ -2,18 +2,26 @@ import React, { useState, useEffect } from 'react';
 import Story from '../../../model/Story';
 import { avatarDefault, formatDate, parseTimeAgo } from '../../../config/utils';
 import { CircleChevronLeftIcon, CircleChevronRight, CircleChevronRightIcon, CircleX, Eye, Heart } from 'lucide-react';
-import { parse } from 'path';
 import { likeStory, viewStory } from '../../../services/firebaseService';
 import { useSelector } from 'react-redux';
 import { RootState } from '../../../redux/store';
+import { useBoardContext } from '../../../hooks/useBoardContext';
 
 function StoryViewer({ stories, onClose, index }: { stories: Story[]; onClose: () => void; index: number }) {
     const [currentIndex, setCurrentIndex] = useState(index);
     const [progress, setProgress] = useState(0);
     const user = useSelector((state: RootState) => state.user);
+    const { setSelectedUser, setType } = useBoardContext();
 
+    const [like, setLike] = useState(false);
     const currentStory = stories[currentIndex];
     console.log('currentStory:', currentStory);
+
+    const handeFocusInputMessage = () => {
+        onClose();
+        setSelectedUser(currentStory.ownerUsername);
+        setType('people');
+    };
 
     useEffect(() => {
         const intervalTime = 50;
@@ -54,7 +62,9 @@ function StoryViewer({ stories, onClose, index }: { stories: Story[]; onClose: (
 
     const handleLikeStory = async (storyId: string) => {
         await likeStory(storyId, user.username!);
+        stories[currentIndex].like = (stories[currentIndex].like ?? 0) + 1;
         stories[currentIndex].isLike = true;
+        setLike(!like);
     };
 
     const [hearts, setHearts] = useState<FlyingHeart[]>([]);
@@ -152,11 +162,14 @@ function StoryViewer({ stories, onClose, index }: { stories: Story[]; onClose: (
                     </div>
 
                     <div className="absolute bottom-2 w-full p-4 z-30 flex items-center gap-3 pb-6 md:pb-4">
-                        <input
-                            type="text"
-                            placeholder="Gửi tin nhắn..."
-                            className="flex-1 bg-transparent border border-white/40 rounded-full px-4 py-2.5 text-white text-sm placeholder-slate-50 focus:outline-none "
-                        />
+                        {user.username !== currentStory.ownerUsername && (
+                            <input
+                                type="text"
+                                placeholder="Gửi tin nhắn..."
+                                className="flex-1 bg-transparent border border-white/40 rounded-full px-4 py-2.5 text-white text-sm placeholder-slate-50 focus:outline-none "
+                                onFocus={handeFocusInputMessage}
+                            />
+                        )}
 
                         <button
                             className="text-2xl hover:scale-110"

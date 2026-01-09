@@ -1,10 +1,13 @@
-import avatarDefault from '../assets/img/icon_file/avatar-default.jpg';
+// ✅ re-export ảnh đúng chuẩn
+export { default as avatarDefault } from '../assets/img/icon_file/avatar-default.jpg';
 
-function formatDate(date: number): string {
+// ✅ export function
+export function formatDate(date: number): string {
     const d = new Date(date);
     return `${d.getDate()}/${d.getMonth() + 1}/${d.getFullYear()}`;
 }
-function parseTimeAgo(timestamp: number): string {
+
+export function parseTimeAgo(timestamp: number): string {
     const now = Date.now();
     const diffMs = now - timestamp;
 
@@ -23,6 +26,5 @@ function parseTimeAgo(timestamp: number): string {
     return formatDate(timestamp);
 }
 
-export { formatDate, parseTimeAgo, avatarDefault };
 export const SOCKET_BASE_URL = 'wss://chat.longapp.site/chat/chat';
 export const REACT_BASE_URL = 'http://localhost:3000';

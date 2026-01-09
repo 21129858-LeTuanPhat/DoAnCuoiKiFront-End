@@ -4,9 +4,10 @@ import { User } from '../../../model/User';
 import { useBoardContext } from '../../../hooks/useBoardContext';
 import { useState, useEffect } from 'react';
 import FormCreateGroup from './FormCreateGroup';
-import InforGroup from '../../../model/InforGroup';
 import { getAllInforGroup } from '../../../services/firebaseService';
+
 import GroupConversationItem from './GroupConversationItem';
+import InforGroup from '../../../model/InforGroup';
 function ConversationGroup({ users }: { users: User[] }) {
     const { selectedUser, setSelectedUser, type, setType } = useBoardContext();
     const [open, setOpen] = useState(false);
