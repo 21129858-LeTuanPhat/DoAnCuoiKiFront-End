@@ -1,17 +1,18 @@
-import { Button, Modal, Typography, Box } from '@mui/material';
+import { Box, Button, Modal, Typography } from '@mui/material'
+import HighlightOffIcon from '@mui/icons-material/HighlightOff';
+import React, { useState } from 'react'
+import { useDispatch } from 'react-redux';
+import { CallStatus } from '../../model/CallProps';
+import { resetCall } from '../../redux/callReducer'
 
-import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline';
+export default function RejectModal({ open }: { open: boolean }) {
+    const [openModal, setModal] = useState(open)
+    const dispatch = useDispatch()
 
-import React, { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import WebSocketManager from '../../socket/WebSocketManager';
-export default function RegistryModal({ openModal }: { openModal: boolean }) {
-    const navigate = useNavigate()
-    const [open, setOpen] = useState(openModal);
     return (
-        <>
+        <div>
             <Modal
-                open={open}
+                open={openModal}
                 disableEscapeKeyDown
             >
                 <Box
@@ -29,25 +30,28 @@ export default function RegistryModal({ openModal }: { openModal: boolean }) {
                         textAlign: 'center',
                     }}
                 >
-                    <CheckCircleOutlineIcon
-                        sx={{ fontSize: 100, color: 'green', mb: 2 }}
+                    <HighlightOffIcon
+                        sx={{ fontSize: 100, color: 'red', mb: 2 }}
                     />
                     <Typography variant="h6" component="h2" fontWeight={700}>
-                        Thành công!
+                        Kết thúc!
                     </Typography>
-                    <Typography sx={{ mt: 1 }}>
-                        Tài khoản đã được tạo thành công. Vui lòng đi đến trang đăng nhập
+                    <Typography sx={{ mt: 3 }}>
+                        Người nhận đã từ chối cuộc gọi bạn
                     </Typography>
                     <Button
                         variant="contained"
                         color="primary"
                         sx={{ mt: 3, width: '100%' }}
-                        onClick={() => navigate('/login')}
+                        onClick={() => {
+                            setModal(false)
+                            dispatch(resetCall())
+                        }}
                     >
-                        Đi đến trang đăng nhập
+                        Thoát
                     </Button>
                 </Box>
             </Modal>
-        </>
-    );
+        </div>
+    )
 }

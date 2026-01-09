@@ -19,18 +19,20 @@ function Header({ username }: { username: string }) {
     const [openPanel, setOpenPanel] = useState<boolean>(false);
     const profileInfor = useContext(ProfileContext)?.profileInfor;
     const hanldeVoice = () => {
-        setModal(true);
-        setType(ICallMode.VIDEO);
+        setOpen(true);
+        setTypeCalling(TypeMess.VOICE_CALL);
     };
     const hanldeVideo = () => {
-        setModal(true);
-        setType(ICallMode.VIDEO);
-        // window.open(
-        //     `${REACT_BASE_URL}/groupcall?call_id=`,
-        //     "_blank",
-        //     `width=${width},height=${height},left=${paddingLeft},top=${paddingTop}`
-        // );
+        setOpen(true);
+        setTypeCalling(TypeMess.VIDEO_CALL);
+
     };
+    const selector = useSelector((state: RootState) => state.call)
+    useEffect(() => {
+        if (selector.callStatus === CallStatus.REJECT) {
+            setOpen(false);
+        }
+    }, [selector.callStatus]);
     return (
         <>
             {openModal && <CallModal open={openModal} setOpen={setModal} typeCall={type} />}

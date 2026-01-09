@@ -2,12 +2,13 @@ import { createSlice, PayloadAction } from "@reduxjs/toolkit"
 import { CallStatus } from "../model/CallProps"
 import { stat } from "fs"
 
-interface ReducerCall {
+export interface ReducerCall {
     callStatus: CallStatus,
-    // true cuộc gọi đến, false cuộc gọi đi 
+    // true cuộc gọi đến, false cuộc gọi đi
     isIncoming?: boolean,
+    type?: string,
     caller?: string | null,
-    callMode?: string,
+    callMode?: number,
     roomID?: string,
     roomURL?: string,
 }
@@ -20,7 +21,7 @@ const callReducer = createSlice({
     initialState: initialValue,
     reducers: {
         // cuộc gọi đến
-        incomingCall(state, action: PayloadAction<{ roomURL: string, roomID: string, caller: string | null, callMode: string }>) {
+        incomingCall(state, action: PayloadAction<{ roomURL: string, roomID: string, caller: string | null, callMode: number, type: string }>) {
             console.log('trong reducer imcom ne')
             state.callStatus = CallStatus.RINGING
             state.isIncoming = true
@@ -28,20 +29,28 @@ const callReducer = createSlice({
             state.roomID = action.payload.roomID
             state.caller = action.payload.caller
             state.callMode = action.payload.callMode
+            state.type = action.payload.type
         },
-        //cuộc gọi đi
-        outGoingCall(state, action: PayloadAction<{ roomURL: string, roomID: string, caller: string | null }>) {
+        outgoingCall(state, action: PayloadAction<{ roomURL: string, roomID: string, caller: string | null, callMode: number, type: string }>) {
             state.callStatus = CallStatus.CALLING
             state.isIncoming = false
+            state.roomURL = action.payload.roomURL
+            state.roomID = action.payload.roomID
+            state.caller = action.payload.caller
+            state.callMode = action.payload.callMode
+            state.type = action.payload.type
         },
-        //trong cuộc gọi
-        inCall(state) {
-            state.callStatus = CallStatus.IN_CALL
+
+        updateStatus(state, action: PayloadAction<{ status: CallStatus }>) {
+            state.callStatus = action.payload.status
         },
-        cancelCall(state) {
-            state.callStatus = CallStatus.IDLE
+        resetCall() {
+            return {
+                callStatus: CallStatus.IDLE
+            }
         }
+
     }
 })
 export default callReducer.reducer
-export const { incomingCall, outGoingCall, inCall, cancelCall } = callReducer.actions
+export const { incomingCall, updateStatus, outgoingCall, resetCall } = callReducer.actions

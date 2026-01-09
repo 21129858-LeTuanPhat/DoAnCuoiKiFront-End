@@ -3,7 +3,6 @@ import { useDispatch, useSelector } from 'react-redux';
 import store, { RootState } from '../redux/store';
 import { setReCode } from '../redux/userReducer';
 import { SOCKET_BASE_URL } from '../config/utils';
-import { useNavigate } from 'react-router-dom';
 import { ReCodeInterface } from '../model/User';
 class WebSocketManager {
     private static webSocketManager: WebSocketManager;
@@ -12,15 +11,7 @@ class WebSocketManager {
 
     private listeners: Map<string, (msg: WSMessage) => void> = new Map();
 
-    private constructor() {}
-
-    private getUser() {
-        const user = {
-            username: localStorage.getItem('username'),
-            reCode: localStorage.getItem('reCode'),
-        };
-        return user;
-    }
+    private constructor() { }
 
     public static getInstance(): WebSocketManager {
         if (!WebSocketManager.webSocketManager) {
@@ -48,25 +39,34 @@ class WebSocketManager {
                 console.log('lỗi:', err);
             };
             this.socket.onclose = () => {
-                this.socket = null;
-                console.log('WebSocket disconnected');
-
-                this.connect2(SOCKET_BASE_URL)
-                    .then(() => {
-                        this.reCode();
-                    })
-                    .catch((err) => {
-                        console.error('Reconnect failed rồi. hết cứu:', err);
-                    });
+                this.handleReconnect();
             };
         });
     }
+    private reconnecting = false;
+
+    private handleReconnect() {
+        if (this.reconnecting) return;
+        this.reconnecting = true;
+
+        setTimeout(() => {
+            this.connect2(SOCKET_BASE_URL)
+                .then(() => {
+                    this.reconnecting = false;
+                    this.reCode();
+                })
+                .catch(() => {
+                    this.reconnecting = false;
+                });
+        }, 3000);
+    }
 
     public reCode() {
-        this.unSubcribe('RE_LOGIN');
+        // this.unSubcribe('RE_LOGIN');
         console.log('dis connet rồi');
+        this.unSubcribe('RE_LOGIN');
         this.onMessage('RE_LOGIN', (mes: any) => {
-            console.log('re code trong ws', mes);
+            console.log('re code trong ws', mes)
             const objReCode: ReCodeInterface = mes.data;
             console.log('objReCode', objReCode);
             console.log('re code nhan', mes);
@@ -79,16 +79,18 @@ class WebSocketManager {
             }
         });
         this.sendMessage(
-            JSON.stringify({
-                action: 'onchat',
-                data: {
-                    event: 'RE_LOGIN',
-                    data: {
-                        user: localStorage.getItem('username'),
-                        code: localStorage.getItem('reCode'),
-                    },
-                },
-            }),
+            JSON.stringify(
+                {
+                    "action": "onchat",
+                    "data": {
+                        "event": "RE_LOGIN",
+                        "data": {
+                            "user": localStorage.getItem('username'),
+                            "code": localStorage.getItem('reCode')
+                        }
+                    }
+                }
+            ),
         );
     }
     public onMessage(event: string, cb: (msg: WSMessage) => void) {
@@ -97,14 +99,11 @@ class WebSocketManager {
     public sendMessage(message: string): void {
         if (this.socket && this.socket.readyState === WebSocket.OPEN) {
             this.socket.send(message);
-        } else {
-            console.log('WebSocket is not connected.');
-            this.connect2(SOCKET_BASE_URL)
-                .then(() => {
-                    this.reCode();
-                })
-                .catch((err) => console.error('Reconnect failed:', err));
         }
+        else {
+            console.log('dis connet rùi');
+        }
+
     }
     public disconnect(): void {
         if (!this.socket) return;
