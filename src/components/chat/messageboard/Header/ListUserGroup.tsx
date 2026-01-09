@@ -1,21 +1,12 @@
 import { X, Crown, User } from 'lucide-react';
-
+import { useBoardContext } from '../../../../hooks/useBoardContext';
 interface OpenListUser {
     openPanel: boolean;
     setOpenPanel: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
 function ListUserGroup({ openPanel, setOpenPanel }: OpenListUser) {
-    const leader = {
-        id: 1,
-        name: 'Nguyễn Văn A',
-    };
-
-    const members = [
-        { id: 2, name: 'Trần Thị B' },
-        { id: 3, name: 'Lê Văn C' },
-        { id: 4, name: 'Phạm Thị D' },
-    ];
+    const { owner, listMember } = useBoardContext();
 
     return (
         <div className="fixed inset-0 flex items-center justify-center bg-black/40 z-50">
@@ -37,7 +28,7 @@ function ListUserGroup({ openPanel, setOpenPanel }: OpenListUser) {
                     <ul>
                         <li className="flex items-center gap-2 p-2 rounded bg-yellow-50">
                             <Crown className="text-yellow-500" size={18} />
-                            <span className="font-medium">{leader.name}</span>
+                            <span className="font-medium">{owner}</span>
                         </li>
                     </ul>
                 </div>
@@ -46,7 +37,7 @@ function ListUserGroup({ openPanel, setOpenPanel }: OpenListUser) {
                 <div>
                     <p className="text-sm font-medium text-gray-500 mb-2">Thành viên</p>
                     <ul className="space-y-1 max-h-60 overflow-y-auto">
-                        {members.map((m) => (
+                        {listMember.map((m) => (
                             <li key={m.id} className="flex items-center gap-2 p-2 rounded hover:bg-gray-100">
                                 <User size={18} className="text-gray-500" />
                                 <span>{m.name}</span>

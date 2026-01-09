@@ -14,7 +14,7 @@ function Header({ username }: { username: string }) {
     // const height = window.innerHeight - paddingTop * 2;
     const [openModal, setModal] = useState(false);
     const [type, setType] = useState<string>('');
-    const { selectedUser } = useBoardContext();
+    const { selectedUser, type: typeMessage } = useBoardContext();
     const [openPanel, setOpenPanel] = useState<boolean>(false);
     const hanldeVoice = () => {
         setModal(true);
@@ -35,9 +35,14 @@ function Header({ username }: { username: string }) {
             {openPanel && <ListUserGroup openPanel={openPanel} setOpenPanel={setOpenPanel} />}
             <div className="flex items-center h-full justify-between px-4 py-3 bg-white overflow-auto">
                 <div className="flex items-center">
-                    <div className="relative before:content-[''] before:h-[24px] before:border-l-2 before:absolute before:top-1/2 before:left-14 before:bg-red-500 before:-translate-y-1/2">
-                        <PanelLeft onClick={() => setOpenPanel(true)} className="ml-4 mr-8 h-[36px] cursor-pointer" />
-                    </div>
+                    {typeMessage === 'room' && (
+                        <div className="relative before:content-[''] before:h-[24px] before:border-l-2 before:absolute before:top-1/2 before:left-14 before:bg-red-500 before:-translate-y-1/2">
+                            <PanelLeft
+                                onClick={() => setOpenPanel(true)}
+                                className="ml-4 mr-8 h-[36px] cursor-pointer"
+                            />
+                        </div>
+                    )}
                     <img
                         src="https://tse3.mm.bing.net/th/id/OIP.cGz8NopJvAgdkioxkugKoQHaHa?pid=Api&P=0&h=220"
                         alt="hình ảnh"

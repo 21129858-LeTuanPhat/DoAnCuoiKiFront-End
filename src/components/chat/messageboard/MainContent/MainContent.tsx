@@ -6,12 +6,11 @@ import { ChatMessage, TypeMess } from '../../../../model/ChatMessage';
 import ContentItemCall from '../ItemCall';
 import RingingModal from '../../../modal/RingingModal';
 import { CallInterface, CallStatus } from '../../../../model/CallProps';
-import { log } from 'console';
 
 function MainContent({ username }: any) {
     const [page, setPage] = useState<number>(1);
     const divRef = useRef<HTMLDivElement>(null);
-    const { listMessage, setListMessage, type, right, setRight } = useBoardContext();
+    const { listMessage, setListMessage, type, right, setRight, setOwner, setListMember } = useBoardContext();
     const [initialLoading, setInitialLoading] = useState(false);
     const [fetchingMore, setFetchingMore] = useState(false);
     const oldScrollHeightRef = useRef(0);
@@ -63,7 +62,6 @@ function MainContent({ username }: any) {
                         setFetchingMore(false);
                     } else if (msg.event === 'SEND_CHAT') {
                         oldScrollHeightRef.current = divRef.current?.scrollHeight || 0;
-                        console.log(oldScrollHeightRef);
                         const mesObj = JSON.parse(decodeURIComponent(msg.data.mes));
                         const newMessage: ChatMessage = {
                             id: msg.data.id,
@@ -98,6 +96,8 @@ function MainContent({ username }: any) {
                 if (msg.status === 'success') {
                     if (msg.event === 'GET_ROOM_CHAT_MES') {
                         oldScrollHeightRef.current = divRef.current?.scrollHeight || 0;
+                        setOwner(msg.data.own);
+                        setListMember(msg.data.userList);
                         const parsedList: ChatMessage[] = msg.data.chatData.map((item: any) => {
                             const mesObj = JSON.parse(decodeURIComponent(item.mes));
                             return {
@@ -168,12 +168,10 @@ function MainContent({ username }: any) {
         if (!div) return;
         if (listMessage.length === 0) return;
         if (page === 1 && oneTimeRef.current === true) {
-            console.log('page 1 và oneTime');
             div.scrollTop = div.scrollHeight;
             oneTimeRef.current = false;
         }
         if (right) {
-            console.log('right');
             div.scrollTop = div.scrollHeight;
             setRight(false);
         }
@@ -194,7 +192,6 @@ function MainContent({ username }: any) {
     }, [listMessage]);
     useLayoutEffect(() => {
         if (page > 1 && noTransfromRef.current === true) {
-            console.log('page >1 và notranform');
             const div = divRef.current;
             if (!div) return;
 
