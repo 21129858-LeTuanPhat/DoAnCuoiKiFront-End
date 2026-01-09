@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, useLayoutEffect } from 'react';
 import WebSocketManager from '../../../../socket/WebSocketManager';
-import ContentItem from '../MainContent/ContentItem';
+import Content from './Content';
 import { useBoardContext } from '../../../../hooks/useBoardContext';
 import { ChatMessage, TypeMess } from '../../../../model/ChatMessage';
 import ContentItemCall from '../ItemCall';
@@ -79,15 +79,14 @@ function MainContent({ username }: any) {
     const selection = useSelector((state: RootState) => state.call)
     const [page, setPage] = useState<number>(1);
     const divRef = useRef<HTMLDivElement>(null);
-
+    const { listMessage, setListMessage, type, right, setRight, setOwner, setListMember } = useBoardContext();
     const [initialLoading, setInitialLoading] = useState(false);
     const [fetchingMore, setFetchingMore] = useState(false);
     const oldScrollHeightRef = useRef(0);
-    const dispatch = useDispatch()
-
-
+    const [hasMore, setHasMore] = useState(true);
+    const oneTimeRef = useRef<boolean>(true);
+    const noTransfromRef = useRef<boolean>(false);
     useEffect(() => {
-        console.log('useeff1');
         setListMessage([]);
         setPage(1);
     }, [username]);
@@ -202,12 +201,10 @@ function MainContent({ username }: any) {
                 }
                 if (msg.status === 'success') {
                     if (msg.event === 'GET_PEOPLE_CHAT_MES') {
-                        console.log('GET_PEOPLE_CHAT_MES nè')
                         oldScrollHeightRef.current = divRef.current?.scrollHeight || 0;
                         const parsedList: ChatMessage[] = msg.data.map((item: any) => {
                             try {
                                 const mesObj = JSON.parse(decodeURIComponent(item.mes));
-                                console.log('mess obj', mesObj)
                                 return {
                                     id: item.id,
                                     name: item.name,
@@ -220,18 +217,18 @@ function MainContent({ username }: any) {
                                     createAt: item.createAt,
                                 };
                             } catch {
-                                console.log('lỗi catch', item)
+                                console.log('lỗi catch', item);
                             }
-
                         });
-                        console.log("parsedList", parsedList)
+                        if (parsedList.length < 50) {
+                            setHasMore(false);
+                        }
                         setListMessage((prev) => {
                             const newList = parsedList.reverse().concat(prev);
                             return newList;
                         });
                         setInitialLoading(false);
                         setFetchingMore(false);
-
                     } else if (msg.event === 'SEND_CHAT') {
                         oldScrollHeightRef.current = divRef.current?.scrollHeight || 0;
                         const mesObj = JSON.parse(decodeURIComponent(msg.data.mes));
@@ -246,7 +243,7 @@ function MainContent({ username }: any) {
                             },
                             createAt: new Date().toISOString(),
                         };
-
+                        noTransfromRef.current = false;
                         setListMessage((prev) => [...prev, newMessage]);
                     }
                 }
@@ -268,7 +265,9 @@ function MainContent({ username }: any) {
                 if (msg.status === 'success') {
                     if (msg.event === 'GET_ROOM_CHAT_MES') {
                         oldScrollHeightRef.current = divRef.current?.scrollHeight || 0;
-                        const parsedList: ChatMessage[] = msg.data.map((item: any) => {
+                        setOwner(msg.data.own);
+                        setListMember(msg.data.userList);
+                        const parsedList: ChatMessage[] = msg.data.chatData.map((item: any) => {
                             const mesObj = JSON.parse(decodeURIComponent(item.mes));
                             return {
                                 id: item.id,
@@ -282,6 +281,9 @@ function MainContent({ username }: any) {
                                 createAt: item.createAt,
                             };
                         });
+                        if (parsedList.length < 50) {
+                            setHasMore(false);
+                        }
 
                         setListMessage((prev) => {
                             const newList = parsedList.reverse().concat(prev);
@@ -289,7 +291,6 @@ function MainContent({ username }: any) {
                         });
                         setInitialLoading(false);
                         setFetchingMore(false);
-
                     } else if (msg.event === 'SEND_CHAT') {
                         oldScrollHeightRef.current = divRef.current?.scrollHeight || 0;
                         const mesObj = JSON.parse(decodeURIComponent(msg.data.mes));
@@ -304,6 +305,7 @@ function MainContent({ username }: any) {
                             },
                             createAt: new Date().toISOString(),
                         };
+
                         setListMessage((prev) => [...prev, newMessage]);
                     }
                 }
@@ -330,33 +332,35 @@ function MainContent({ username }: any) {
             }
         };
     }, [page]);
-    console.log('list mess nè', listMessage)
-
     useEffect(() => {
-        console.log('e3');
         const div = divRef.current;
         if (!div) return;
         if (listMessage.length === 0) return;
-
-        if (page === 1) {
+        if (page === 1 && oneTimeRef.current === true) {
             div.scrollTop = div.scrollHeight;
+            oneTimeRef.current = false;
         }
+        if (right) {
+            div.scrollTop = div.scrollHeight;
+            setRight(false);
+        }
+
         const handleScroll = () => {
-            if (div.scrollTop === 0 && listMessage.length >= 50) {
+            if (div.scrollTop === 0 && hasMore && !fetchingMore) {
                 setPage((prev) => {
                     const newpage = prev + 1;
                     return newpage;
                 });
+                noTransfromRef.current = true;
             }
         };
         div.addEventListener('scroll', handleScroll);
         return () => {
-            console.log('e3-3');
             div.removeEventListener('scroll', handleScroll);
         };
     }, [listMessage]);
     useLayoutEffect(() => {
-        if (page > 1) {
+        if (page > 1 && noTransfromRef.current === true) {
             const div = divRef.current;
             if (!div) return;
 

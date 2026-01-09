@@ -64,7 +64,7 @@ function PopUp({ checkFile, setCheckNull, checkNull, loading, onClose, files, se
                                       //   'application/zip', // .zip
                                       //   'application/x-rar-compressed', // .rar
                                   ]
-                                : ['image/*']
+                                : ['image/png']
                         }
                         server={null}
                         name="files"

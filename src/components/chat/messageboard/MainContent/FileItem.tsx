@@ -9,7 +9,6 @@ interface DataFile {
     check: boolean;
 }
 function FileItem({ data = '', check = false }: DataFile) {
-    console.log(typeof data);
     const filename = data.split('/').pop() ?? '';
     const parts = filename.split('-');
     const afterDash = parts.slice(1).join('-');
