@@ -6,6 +6,7 @@ import { useContext, useState } from 'react';
 import CallModal from '../../../modal/CallModal';
 import { useBoardContext } from '../../../../hooks/useBoardContext';
 import { ICallMode } from '../../../../model/CallProps';
+import ListUserGroup from './ListUserGroup';
 import { ProfileContext } from '../../Context/ProfileCotext';
 function Header({ username }: { username: string }) {
     // const paddingTop = 50;
@@ -14,6 +15,8 @@ function Header({ username }: { username: string }) {
     // const height = window.innerHeight - paddingTop * 2;
     const [openModal, setModal] = useState(false);
     const [type, setType] = useState<string>('');
+    const { selectedUser, type: typeMessage } = useBoardContext();
+    const [openPanel, setOpenPanel] = useState<boolean>(false);
     const { selectedUser } = useBoardContext();
     const profileInfor = useContext(ProfileContext)?.profileInfor;
     const hanldeVoice = () => {
@@ -32,11 +35,17 @@ function Header({ username }: { username: string }) {
     return (
         <>
             {openModal && <CallModal open={openModal} setOpen={setModal} typeCall={type} />}
+            {openPanel && <ListUserGroup openPanel={openPanel} setOpenPanel={setOpenPanel} />}
             <div className="flex items-center h-full justify-between px-4 py-3 bg-white overflow-auto">
                 <div className="flex items-center">
-                    <div className="relative before:content-[''] before:h-[24px] before:border-l-2 before:absolute before:top-1/2 before:left-14 before:bg-red-500 before:-translate-y-1/2">
-                        <PanelLeft className="ml-4 mr-8 h-[36px]" />
-                    </div>
+                    {typeMessage === 'room' && (
+                        <div className="relative before:content-[''] before:h-[24px] before:border-l-2 before:absolute before:top-1/2 before:left-14 before:bg-red-500 before:-translate-y-1/2">
+                            <PanelLeft
+                                onClick={() => setOpenPanel(true)}
+                                className="ml-4 mr-8 h-[36px] cursor-pointer"
+                            />
+                        </div>
+                    )}
                     <img
                         src={profileInfor?.imageUrl ?? avatarDefault}
                         alt="hình ảnh"
