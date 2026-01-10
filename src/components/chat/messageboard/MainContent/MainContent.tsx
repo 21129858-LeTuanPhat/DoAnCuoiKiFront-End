@@ -36,12 +36,13 @@ function MainContent({ username }: any) {
     const noTransfromRef = useRef<boolean>(false);
     const [callHistory, setCallHistory] = useState<Map<string, CallHistoryState>>(new Map());
     const dispatch = useDispatch();
-    // const downArrowRef = useRef(false);
     const [downArrow, setDownArrow] = useState<boolean>(false);
+    const [notify, setNotify] = useState<boolean>(false);
     const handleOnDown = () => {
         const div = divRef.current;
         if (!div) return;
         div.scrollTop = div.scrollHeight;
+        setNotify(false);
     };
     useEffect(() => {
         const callMessages = listMessage.filter((msg) => msg.mes.type >= 10);
@@ -255,6 +256,7 @@ function MainContent({ username }: any) {
                             },
                             createAt: new Date().toISOString(),
                         };
+                        setNotify(true);
                         noTransfromRef.current = false;
                         setListMessage((prev) => [...prev, newMessage]);
                     }
@@ -317,6 +319,7 @@ function MainContent({ username }: any) {
                             },
                             createAt: new Date().toISOString(),
                         };
+                        setNotify(true);
                         noTransfromRef.current = false;
                         setListMessage((prev) => [...prev, newMessage]);
                     }
@@ -355,6 +358,7 @@ function MainContent({ username }: any) {
         }
         if (right || div.scrollHeight - div.scrollTop < 700) {
             div.scrollTop = div.scrollHeight;
+            setNotify(false);
             setRight(false);
         }
 
@@ -371,6 +375,7 @@ function MainContent({ username }: any) {
             }
             if (div.scrollHeight - div.scrollTop < 700) {
                 setDownArrow(false);
+                setNotify(false);
             }
         };
         div.addEventListener('scroll', handleScroll);
@@ -423,9 +428,11 @@ function MainContent({ username }: any) {
                         {downArrow && (
                             <div
                                 onClick={handleOnDown}
-                                className="
-                        fixed right-8 bottom-24  
-                        z-5 p-2 bg-white rounded-full cursor-pointer"
+                                className={
+                                    notify === true
+                                        ? "fixed right-8 bottom-24  z-5 p-2 bg-white rounded-full cursor-pointer  before:absolute before:content-['1+'] before:text-pink-400 before:text-sm before:-bottom-2 before:left-1 before:bg-purple-300 before:px-1 before:rounded-full "
+                                        : 'fixed right-8 bottom-24  z-5 p-2 bg-white rounded-full cursor-pointer'
+                                }
                             >
                                 <ChevronsDown color="gray" size="30" />
                             </div>

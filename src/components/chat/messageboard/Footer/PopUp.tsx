@@ -61,8 +61,6 @@ function PopUp({ checkFile, setCheckNull, checkNull, loading, onClose, files, se
                                       'application/vnd.ms-excel', // .xls
                                       'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', // .xlsx
                                       'application/pdf', // .pdf
-                                      //   'application/zip', // .zip
-                                      //   'application/x-rar-compressed', // .rar
                                   ]
                                 : ['image/png']
                         }
@@ -77,7 +75,7 @@ function PopUp({ checkFile, setCheckNull, checkNull, loading, onClose, files, se
                         disabled={loading}
                         className="py-2 px-4 bg-green-400 rounded-xl text-white hover:opacity-85 disabled:bg-slate-500 disabled:opacity-100"
                     >
-                        Gửi ảnh
+                        {checkFile === true ? 'Gửi File' : 'Gửi ảnh'}
                     </button>
                 </div>
             </div>
