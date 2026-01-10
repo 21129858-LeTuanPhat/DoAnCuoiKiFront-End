@@ -57,27 +57,29 @@ function PopUp({ checkFile, setCheckNull, checkNull, loading, onClose, files, se
                                 ? [
                                       'application/msword', // .doc
                                       'application/vnd.openxmlformats-officedocument.wordprocessingml.document', // .docx
-                                      'text/plain', // .txt
                                       'application/vnd.ms-excel', // .xls
                                       'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', // .xlsx
                                       'application/pdf', // .pdf
-                                      //   'application/zip', // .zip
-                                      //   'application/x-rar-compressed', // .rar
                                   ]
                                 : ['image/png']
                         }
                         server={null}
                         name="files"
+                        labelIdle={
+                            checkFile === true
+                                ? 'Kéo & thả file hoặc <span class="filepond--label-action">Chọn file</span>'
+                                : 'Kéo & thả ảnh hoặc <span class="filepond--label-action">Chọn ảnh</span>'
+                        }
                     />
                 </div>
 
                 <div className="flex justify-center mt-4">
                     <button
                         onClick={onClick}
-                        disabled={loading}
+                        disabled={loading || files.length === 0}
                         className="py-2 px-4 bg-green-400 rounded-xl text-white hover:opacity-85 disabled:bg-slate-500 disabled:opacity-100"
                     >
-                        Gửi ảnh
+                        {checkFile === true ? 'Gửi File' : 'Gửi ảnh'}
                     </button>
                 </div>
             </div>

@@ -19,16 +19,15 @@ import CancelModal from '../components/modal/CancelModal';
 import TimeOutModal from '../components/modal/TimeOutModal';
 import RejectModal from '../components/modal/RejectModal';
 import CallModal from '../components/modal/CallModal';
-import { createContext } from "react";
+import { createContext } from 'react';
 
 export interface ICallContext {
-    setModalCalling: React.Dispatch<React.SetStateAction<boolean>>
-    setTypeCalling: React.Dispatch<React.SetStateAction<number>>
+    setModalCalling: React.Dispatch<React.SetStateAction<boolean>>;
+    setTypeCalling: React.Dispatch<React.SetStateAction<number>>;
 }
-export const CallContext = createContext<ICallContext | null>(null)
+export const CallContext = createContext<ICallContext | null>(null);
 
 function Home() {
-
     const { listMessage, setListMessage, selectedUser } = useBoardContext();
     const callStore = useSelector((state: RootState) => state.call);
     const [modalCalling, setModalCalling] = useState(false);
@@ -43,7 +42,7 @@ function Home() {
         }
     }, [user.username, navigate]);
     const dispatch = useDispatch();
-    const selection = useSelector((state: RootState) => state.call)
+    const selection = useSelector((state: RootState) => state.call);
 
     return (
         <>
@@ -51,8 +50,8 @@ function Home() {
             {selection.callStatus === CallStatus.IN_CALL && <CallModalPage></CallModalPage>}
             {selection.callStatus === CallStatus.ENDED && <EndCallModal open={true}></EndCallModal>}
             {selection.callStatus === CallStatus.CANCEL && <CancelModal open={true}></CancelModal>}
-            {selection.callStatus === CallStatus.REJECT && (<RejectModal open={true}></RejectModal>)}
-            {(selection.callStatus === CallStatus.TIMEOUT) && <TimeOutModal open={true}></TimeOutModal>}
+            {selection.callStatus === CallStatus.REJECT && <RejectModal open={true}></RejectModal>}
+            {selection.callStatus === CallStatus.TIMEOUT && <TimeOutModal open={true}></TimeOutModal>}
 
             {modalCalling && <CallModal open={modalCalling} setOpen={setModalCalling} typeCall={typeCalling} />}
             <div className="flex h-screen ">
@@ -65,7 +64,11 @@ function Home() {
                     ) : (
                         <div>
                             <CallContext.Provider value={{ setModalCalling, setTypeCalling }}>
-                                <Header username={selectedUser} setOpen={setModalCalling} setTypeCalling={setTypeCalling} />
+                                <Header
+                                    username={selectedUser}
+                                    setOpen={setModalCalling}
+                                    setTypeCalling={setTypeCalling}
+                                />
 
                                 <MainContent key={selectedUser} username={selectedUser} />
                                 <Footer username={selectedUser} />

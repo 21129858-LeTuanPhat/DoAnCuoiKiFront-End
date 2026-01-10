@@ -29,6 +29,7 @@ function FormCreateGroup({ onClose }: { onClose: () => void }) {
             setMemberError('Người dùng đã được thêm');
             return;
         }
+
         const webSocket = WebSocketManager.getInstance();
 
         webSocket.onMessage('CHECK_USER_EXIST', (msg: WSMessage) => {
