@@ -57,7 +57,6 @@ function PopUp({ checkFile, setCheckNull, checkNull, loading, onClose, files, se
                                 ? [
                                       'application/msword', // .doc
                                       'application/vnd.openxmlformats-officedocument.wordprocessingml.document', // .docx
-                                      'text/plain', // .txt
                                       'application/vnd.ms-excel', // .xls
                                       'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', // .xlsx
                                       'application/pdf', // .pdf
@@ -66,6 +65,11 @@ function PopUp({ checkFile, setCheckNull, checkNull, loading, onClose, files, se
                         }
                         server={null}
                         name="files"
+                        labelIdle={
+                            checkFile === true
+                                ? 'Kéo & thả file hoặc <span class="filepond--label-action">Chọn file</span>'
+                                : 'Kéo & thả ảnh hoặc <span class="filepond--label-action">Chọn ảnh</span>'
+                        }
                     />
                 </div>
 

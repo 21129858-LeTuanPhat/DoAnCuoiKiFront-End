@@ -88,7 +88,7 @@ function MainContent({ username }: any) {
         });
     }, [listMessage]);
 
-    useEffect(() => {
+    useLayoutEffect(() => {
         setListMessage([]);
         setPage(1);
     }, [username]);
@@ -137,7 +137,7 @@ function MainContent({ username }: any) {
             }),
         );
     };
-    useEffect(() => {
+    useLayoutEffect(() => {
         const ws = WebSocketManager.getInstance();
         if (page === 1) {
             setInitialLoading(true);
@@ -348,11 +348,12 @@ function MainContent({ username }: any) {
         };
     }, [page]);
 
-    useEffect(() => {
+    useLayoutEffect(() => {
         const div = divRef.current;
         if (!div) return;
         if (listMessage.length === 0) return;
-        if (page === 1 && oneTimeRef.current === true) {
+
+        if (page === 1 && oneTimeRef.current === true && div.scrollHeight > div.clientHeight) {
             div.scrollTop = div.scrollHeight;
             oneTimeRef.current = false;
         }
