@@ -76,7 +76,7 @@ function PopUp({ checkFile, setCheckNull, checkNull, loading, onClose, files, se
                 <div className="flex justify-center mt-4">
                     <button
                         onClick={onClick}
-                        disabled={loading}
+                        disabled={loading || files.length === 0}
                         className="py-2 px-4 bg-green-400 rounded-xl text-white hover:opacity-85 disabled:bg-slate-500 disabled:opacity-100"
                     >
                         {checkFile === true ? 'Gửi File' : 'Gửi ảnh'}

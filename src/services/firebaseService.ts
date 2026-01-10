@@ -118,6 +118,29 @@ async function createGroup({
         });
     }
 }
+async function sendInvitation({
+    groupName,
+    imageUrl,
+    members,
+}: {
+    groupName: string;
+    imageUrl?: string;
+    members: string[];
+}) {
+    for (const member of members) {
+        await set(ref(db, `sent_requests/room/${groupName}/${member}`), {
+            status: 'pending',
+            createdAt: Date.now(),
+            imageUrl: imageUrl || '',
+        });
+
+        await set(ref(db, `invitations/room/${member}/${groupName}`), {
+            status: 'pending',
+            createdAt: Date.now(),
+            imageUrl: imageUrl || '',
+        });
+    }
+}
 
 async function changeStatusRoomResponse({
     type,
@@ -301,4 +324,5 @@ export {
     likeStory,
     isLikeStory,
     viewStory,
+    sendInvitation,
 };

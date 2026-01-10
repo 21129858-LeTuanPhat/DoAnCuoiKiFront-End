@@ -1,26 +1,80 @@
 import { Search, UserPlus, X, Check } from 'lucide-react';
 import { useState } from 'react';
+import WebSocketManager from '../../../../socket/WebSocketManager';
+import { useBoardContext } from '../../../../hooks/useBoardContext';
+import { sendInvitation, getInforGroup } from '../../../../services/firebaseService';
 interface ModalAddUserProps {
     openAddUser: boolean;
     setOpenAddUser: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
 function ModalAddUser({ openAddUser, setOpenAddUser }: ModalAddUserProps) {
-    const [input, setInput] = useState<string>('');
+    const [inputMember, setInputMember] = useState<string>('');
     const [members, setMembers] = useState<string[]>([]);
-
+    const [Error, setError] = useState<string | null>('');
+    const { owner, listMember, selectedUser } = useBoardContext();
     const handleAdd = () => {
-        if (!input.trim()) return;
+        if (!inputMember.trim()) {
+            setError('Vui lòng nhập tên thành viên');
+            return;
+        }
+        if (inputMember.trim() === owner) {
+            setError('Đã có trong nhóm');
+            setInputMember('');
+            return;
+        }
+        for (let members of listMember) {
+            if (members.name === inputMember.trim()) {
+                setError('Đã có trong nhóm');
+                setInputMember('');
+                return;
+            }
+        }
 
-        // tránh thêm trùng
-        if (members.includes(input.trim())) return;
+        if (members.includes(inputMember.trim())) {
+            setError('Thành viên đã được thêm');
+            setInputMember('');
+            return;
+        }
 
-        setMembers([...members, input.trim()]);
-        setInput('');
+        const webSocket = WebSocketManager.getInstance();
+
+        webSocket.onMessage('CHECK_USER_EXIST', (msg) => {
+            if (msg.status === 'success' && msg.data.status === true) {
+                setMembers((prev) => [...prev, inputMember.trim()]);
+                setInputMember('');
+                setError('');
+            } else {
+                setError('Người dùng không tồn tại');
+                setInputMember('');
+            }
+            webSocket.unSubcribe('CHECK_USER_EXIST');
+        });
+
+        webSocket.sendMessage(
+            JSON.stringify({
+                action: 'onchat',
+                data: {
+                    event: 'CHECK_USER_EXIST',
+                    data: {
+                        user: inputMember.trim(),
+                    },
+                },
+            }),
+        );
     };
 
     const handleRemove = (name: string) => {
         setMembers(members.filter((m) => m !== name));
+    };
+    const handleSendInvite = async () => {
+        const groupInfo = await getInforGroup(selectedUser);
+        await sendInvitation({
+            groupName: selectedUser,
+            imageUrl: groupInfo?.imageUrl,
+            members: members,
+        });
+        setOpenAddUser(false);
     };
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
@@ -38,8 +92,8 @@ function ModalAddUser({ openAddUser, setOpenAddUser }: ModalAddUserProps) {
                     <div className="relative flex-1">
                         <Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
                         <input
-                            value={input}
-                            onChange={(e) => setInput(e.target.value)}
+                            value={inputMember}
+                            onChange={(e) => setInputMember(e.target.value)}
                             onKeyDown={(e) => e.key === 'Enter' && handleAdd()}
                             type="text"
                             placeholder="Nhập tên thành viên"
@@ -67,6 +121,8 @@ function ModalAddUser({ openAddUser, setOpenAddUser }: ModalAddUserProps) {
                         Thêm
                     </button>
                 </div>
+
+                <div className="text-center text-2xl text-red-600 mt-2">{Error}</div>
 
                 {/* Danh sách đã thêm */}
                 <div className="mt-4 space-y-2 max-h-40 overflow-y-auto">
@@ -103,6 +159,7 @@ function ModalAddUser({ openAddUser, setOpenAddUser }: ModalAddUserProps) {
                     </button>
 
                     <button
+                        onClick={handleSendInvite}
                         disabled={members.length === 0}
                         className={`
                             flex items-center gap-1
