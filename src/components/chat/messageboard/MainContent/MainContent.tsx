@@ -14,7 +14,7 @@ import { REACT_BASE_URL } from '../../../../config/utils';
 import { useLocation, useNavigate } from 'react-router-dom';
 import CallModal from '../../../modal/CallModal';
 import ContentItem from './ContentItem';
-function MainContent({ username }: any) {
+function MainContent({ username, setRe, re }: { username: any, setRe: React.Dispatch<React.SetStateAction<number>>, re: any }) {
 
     interface CallHistoryState {
         roomID: string;
@@ -186,6 +186,7 @@ function MainContent({ username }: any) {
                             case CallStatus.ENDED:
                                 console.log('trong switch nè', mesObj.data.status)
                                 console.log(JSON.parse(decodeURIComponent(msg.data.mes)))
+
                                 dispatch(updateStatus({ status: CallStatus.ENDED }))
                                 console.log('Nhận được end từ người gửi')
                                 break;
@@ -197,7 +198,7 @@ function MainContent({ username }: any) {
                                 dispatch(updateStatus({ status: CallStatus.TIMEOUT }))
                                 break;
                         }
-                        return;
+                        // return;
                     }
                 }
                 if (msg.status === 'success') {
@@ -359,7 +360,7 @@ function MainContent({ username }: any) {
         return () => {
             div.removeEventListener('scroll', handleScroll);
         };
-    }, [listMessage]);
+    }, [listMessage, re]);
     useLayoutEffect(() => {
         if (page > 1 && noTransfromRef.current === true) {
             const div = divRef.current;
@@ -383,6 +384,16 @@ function MainContent({ username }: any) {
     };
     console.log('taiabc den tai 123', encodeURIComponent(JSON.stringify({ type: TypeMess.VIDEO_CALL, data: callMess })))
     const [openReject, setReject] = useState<boolean>(false)
+    // useEffect(() => {
+    //     if (selection.callStatus === CallStatus.IDLE) {
+    //         setRe(100)
+    //     }
+    // }, [selection])
+    // useEffect(() => {
+    //     if (selection.callStatus === CallStatus.ENDED) {
+    //         setRe(prev => prev + 1);
+    //     }
+    // }, [selection])
     return (
         <>
 

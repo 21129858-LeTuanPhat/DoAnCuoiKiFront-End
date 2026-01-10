@@ -14,6 +14,7 @@ export async function loginWS(
             if (msg.event !== 'LOGIN') return;
             if (resolved) return;
             resolved = true;
+            console.log('user đăng nhập', msg)
 
             if (msg.status === 'success') {
                 // localStorage.setItem('_RECODE', msg.data.RE_LOGIN_CODE);
@@ -30,10 +31,13 @@ export async function loginWS(
                         status: 'error',
                         message: 'Tài khoản này đang đăng nhập',
                     });
+                }
+                if (msg.mes === 'Your account has been blocked due to spam activity. Block duration: 24 hours.') {
+
                 } else {
                     resolve({
                         status: 'error',
-                        message: 'Sai tên đăng nhập hoặc mật khẩu',
+                        message: 'Bạn đã bị chặn vì đăng nhập quá nhiều',
                     });
                 }
             }

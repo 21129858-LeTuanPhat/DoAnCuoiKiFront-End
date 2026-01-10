@@ -11,6 +11,8 @@ import { RootState } from '../../../../redux/store';
 import { CallStatus } from '../../../../model/CallProps';
 import { Dispatch } from '@reduxjs/toolkit';
 import ListUserGroup from './ListUserGroup';
+import { memo } from 'react';
+import React from 'react';
 function Header({
     username,
     setOpen,
@@ -80,4 +82,4 @@ function Header({
     );
 }
 
-export default Header;
+export default React.memo(Header);

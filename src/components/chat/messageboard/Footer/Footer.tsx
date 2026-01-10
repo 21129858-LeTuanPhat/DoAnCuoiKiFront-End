@@ -2,6 +2,7 @@
 import { ImagePlus, Smile, Send, FolderUp } from 'lucide-react';
 //Tippy
 import HeadlessTippy from '@tippyjs/react/headless';
+import React from 'react';
 //Emoji-picker
 import EmojiPicker, { EmojiClickData } from 'emoji-picker-react';
 
@@ -166,4 +167,4 @@ function Footer({ username }: { username: string }) {
     );
 }
 
-export default Footer;
+export default React.memo(Footer);
