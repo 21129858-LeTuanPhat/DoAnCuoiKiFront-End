@@ -40,6 +40,7 @@ class WebSocketManager {
                 console.log('lỗi:', err);
             };
             this.socket.onclose = () => {
+                console.log('đóng kết nối');
                 this.handleReconnect();
             };
         });
@@ -67,7 +68,7 @@ class WebSocketManager {
         console.log('dis connet rồi');
         this.unSubcribe('RE_LOGIN');
         this.onMessage('RE_LOGIN', (mes: any) => {
-            console.log('re code trong ws', mes)
+            console.log('re code trong ws', mes);
             const objReCode: ReCodeInterface = mes.data;
             console.log('objReCode', objReCode);
             console.log('re code nhan', mes);
@@ -80,18 +81,16 @@ class WebSocketManager {
             }
         });
         this.sendMessage(
-            JSON.stringify(
-                {
-                    "action": "onchat",
-                    "data": {
-                        "event": "RE_LOGIN",
-                        "data": {
-                            "user": localStorage.getItem('username'),
-                            "code": localStorage.getItem('reCode')
-                        }
-                    }
-                }
-            ),
+            JSON.stringify({
+                action: 'onchat',
+                data: {
+                    event: 'RE_LOGIN',
+                    data: {
+                        user: localStorage.getItem('username'),
+                        code: localStorage.getItem('reCode'),
+                    },
+                },
+            }),
         );
     }
     public onMessage(event: string, cb: (msg: WSMessage) => void) {

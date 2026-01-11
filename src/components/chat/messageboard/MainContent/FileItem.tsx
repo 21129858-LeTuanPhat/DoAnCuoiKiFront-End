@@ -15,8 +15,6 @@ function FileItem({ data = '', check = false }: DataFile) {
     let FileItem: JSX.Element | null = null;
     if (data.endsWith('.doc') || data.endsWith('.docx')) {
         FileItem = <img src={wordIcon} alt="Word file" className="w-12 h-12" />;
-    } else if (data.endsWith('.txt')) {
-        FileItem = <img src={txtIcon} alt="Word file" className="w-12 h-12" />;
     } else if (data.endsWith('.xls') || data.endsWith('.xlsx')) {
         FileItem = <img src={excelIcon} alt="Word file" className="w-12 h-12 " />;
     } else if (data.endsWith('.pdf')) {

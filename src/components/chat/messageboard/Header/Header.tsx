@@ -1,4 +1,4 @@
-import { PanelLeft } from 'lucide-react';
+import { PanelLeft, UserPlus } from 'lucide-react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faPhone, faVideo } from '@fortawesome/free-solid-svg-icons';
 import { REACT_BASE_URL } from '../../../../config/utils';
@@ -11,8 +11,12 @@ import { RootState } from '../../../../redux/store';
 import { CallStatus } from '../../../../model/CallProps';
 import { Dispatch } from '@reduxjs/toolkit';
 import ListUserGroup from './ListUserGroup';
+
 import { memo } from 'react';
 import React from 'react';
+
+import ModalAddUser from './ModalAddUser';
+
 function Header({
     username,
     setOpen,
@@ -29,6 +33,7 @@ function Header({
 
     const { selectedUser, type: typeMessage } = useBoardContext();
     const [openPanel, setOpenPanel] = useState<boolean>(false);
+    const [openAddUser, setOpenAddUser] = useState<boolean>(false);
     const hanldeVoice = () => {
         setOpen(true);
         setTypeCalling(TypeMess.VOICE_CALL);
@@ -45,11 +50,15 @@ function Header({
     }, [selector.callStatus]);
     return (
         <>
+            {openAddUser && <ModalAddUser openAddUser={openAddUser} setOpenAddUser={setOpenAddUser} />}
             {openPanel && <ListUserGroup openPanel={openPanel} setOpenPanel={setOpenPanel} />}
             <div className="flex items-center h-full justify-between px-4 py-3 bg-white overflow-auto">
                 <div className="flex items-center">
                     {typeMessage === 'room' && (
-                        <div className="relative before:content-[''] before:h-[24px] before:border-l-2 before:absolute before:top-1/2 before:left-14 before:bg-red-500 before:-translate-y-1/2">
+                        <div
+                            className="relative before:content-[''] before:h-[24px] before:border-l-2 before:absolute before:top-1/2 before:left-14 before:bg-red-500 before:-translate-y-1/2
+                        hover:bg-gray-300 rounded-full transition"
+                        >
                             <PanelLeft
                                 onClick={() => setOpenPanel(true)}
                                 className="ml-4 mr-8 h-[36px] cursor-pointer"
@@ -64,6 +73,14 @@ function Header({
                     <h3 className="mx-2 text-[23px] font-semibold">{username}</h3>
                 </div>
                 <div className="flex items-center gap-4">
+                    {typeMessage === 'room' && (
+                        <button
+                            onClick={() => setOpenAddUser(true)}
+                            className="w-10 h-10 flex items-center justify-center rounded-full hover:bg-gray-200 transition"
+                        >
+                            <UserPlus className="text-lg text-blue-600 text-[20px]" />
+                        </button>
+                    )}
                     <button
                         className="w-10 h-10 flex items-center justify-center rounded-full hover:bg-gray-200 transition"
                         onClick={hanldeVoice}

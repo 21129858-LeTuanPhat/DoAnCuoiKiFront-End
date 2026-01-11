@@ -2,7 +2,6 @@ import { ChatMessage } from '../../../../model/ChatMessage';
 import FileItem from './FileItem';
 import FileImage from './FileImage';
 
-
 import { formatAnyTimeToVN } from '../../../../helps/formatServerTimeVN';
 interface ItemContent {
     message: ChatMessage;
@@ -34,8 +33,10 @@ function ContentItem({ message, color }: ItemContent) {
                         </div>
                     ) : message.mes.type === 1 ? (
                         <FileImage data={message.mes.data} check={color === true ? false : true} />
-                    ) : (
+                    ) : message.mes.type === 2 ? (
                         <FileItem data={message.mes.data} check={color === true ? false : true} />
+                    ) : (
+                        ''
                     )}
                 </div>
                 <div

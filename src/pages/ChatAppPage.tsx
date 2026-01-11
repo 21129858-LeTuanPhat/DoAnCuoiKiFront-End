@@ -19,13 +19,13 @@ import CancelModal from '../components/modal/CancelModal';
 import TimeOutModal from '../components/modal/TimeOutModal';
 import RejectModal from '../components/modal/RejectModal';
 import CallModal from '../components/modal/CallModal';
-import { createContext } from "react";
+import { createContext } from 'react';
 
 export interface ICallContext {
-    setModalCalling: React.Dispatch<React.SetStateAction<boolean>>
-    setTypeCalling: React.Dispatch<React.SetStateAction<number>>
+    setModalCalling: React.Dispatch<React.SetStateAction<boolean>>;
+    setTypeCalling: React.Dispatch<React.SetStateAction<number>>;
 }
-export const CallContext = createContext<ICallContext | null>(null)
+export const CallContext = createContext<ICallContext | null>(null);
 
 function Home() {
     const [re, setRe] = useState<number>(0)
@@ -45,7 +45,7 @@ function Home() {
     //     }
     // }, [user.username, navigate]);
     const dispatch = useDispatch();
-    const selection = useSelector((state: RootState) => state.call)
+    const selection = useSelector((state: RootState) => state.call);
 
     return (
         <>
@@ -67,7 +67,11 @@ function Home() {
                     ) : (
                         <div>
                             <CallContext.Provider value={{ setModalCalling, setTypeCalling }}>
-                                <Header username={selectedUser} setOpen={setModalCalling} setTypeCalling={setTypeCalling} />
+                                <Header
+                                    username={selectedUser}
+                                    setOpen={setModalCalling}
+                                    setTypeCalling={setTypeCalling}
+                                />
 
                                 <MainContent key={re} re={re} username={selectedUser} setRe={setRe} />
                                 <Footer username={selectedUser} />
