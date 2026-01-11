@@ -8,7 +8,7 @@ import { resetCall } from '../../redux/callReducer'
 import { LocalPhone } from '@mui/icons-material';
 import { RootState } from '../../redux/store';
 import { TypeMess } from '../../model/ChatMessage';
-export default function EndCallModal({ open }: { open: boolean }) {
+export default function EndCallModal({ open, onReload }: { open: boolean, onReload?: () => void }) {
     const [openModal, setModal] = useState<boolean>(open)
     const callStore = useSelector((state: RootState) => state.call)
     const dispatch = useDispatch()
@@ -49,6 +49,7 @@ export default function EndCallModal({ open }: { open: boolean }) {
                         onClick={() => {
                             setModal(false)
                             dispatch(resetCall())
+                            if (onReload) onReload()
                         }}
                     >
                         Thoát

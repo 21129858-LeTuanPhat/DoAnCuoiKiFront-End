@@ -1,12 +1,21 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import FormLogin from '../components/auth/FormLogin';
 import { UserLogin } from '../model/User';
 import { ClipLoader } from 'react-spinners';
 import { CircularProgress } from '@mui/material';
 import RingingModal from '../components/modal/RingingModal';
+import { useSelector } from 'react-redux';
+import { RootState } from '../redux/store';
+import { useNavigate } from 'react-router-dom';
 export default function SignInPage() {
     const [user, setUser] = useState<UserLogin>({ username: '', password: '' });
-    console.log('hello login');
+    const reducerUser = useSelector((state: RootState) => state.user)
+    const navigate = useNavigate()
+    useEffect(() => {
+        if (reducerUser.username) {
+            navigate('/', { replace: true })
+        }
+    }, [reducerUser.username, navigate])
     return (
         <>
             <div className="login-layout w-full" style={{ backgroundColor: '#e8f3ff', height: '100vh' }}>

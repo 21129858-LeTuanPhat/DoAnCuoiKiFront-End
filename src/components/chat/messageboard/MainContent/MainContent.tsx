@@ -14,8 +14,8 @@ import { REACT_BASE_URL } from '../../../../config/utils';
 import { useLocation, useNavigate } from 'react-router-dom';
 import CallModal from '../../../modal/CallModal';
 import ContentItem from './ContentItem';
-import { ChevronsDown } from 'lucide-react';
-function MainContent({ username }: any) {
+function MainContent({ username, setRe, re }: { username: any, setRe: React.Dispatch<React.SetStateAction<number>>, re: any }) {
+
     interface CallHistoryState {
         roomID: string;
         callMode: number;
@@ -196,10 +196,11 @@ function MainContent({ username }: any) {
                                 console.log('Nhận được IN_CALL từ người gửi');
                                 break;
                             case CallStatus.ENDED:
-                                console.log('trong switch nè', mesObj.data.status);
-                                console.log(JSON.parse(decodeURIComponent(msg.data.mes)));
-                                dispatch(updateStatus({ status: CallStatus.ENDED }));
-                                console.log('Nhận được end từ người gửi');
+                                console.log('trong switch nè', mesObj.data.status)
+                                console.log(JSON.parse(decodeURIComponent(msg.data.mes)))
+
+                                dispatch(updateStatus({ status: CallStatus.ENDED }))
+                                console.log('Nhận được end từ người gửi')
                                 break;
                             case CallStatus.CANCEL:
                                 dispatch(updateStatus({ status: CallStatus.CANCEL }));
@@ -209,7 +210,7 @@ function MainContent({ username }: any) {
                                 dispatch(updateStatus({ status: CallStatus.TIMEOUT }));
                                 break;
                         }
-                        return;
+                        // return;
                     }
                 }
                 if (msg.status === 'success') {
@@ -383,7 +384,7 @@ function MainContent({ username }: any) {
         return () => {
             div.removeEventListener('scroll', handleScroll);
         };
-    }, [listMessage]);
+    }, [listMessage, re]);
     useLayoutEffect(() => {
         if (page > 1 && noTransfromRef.current === true) {
             const div = divRef.current;

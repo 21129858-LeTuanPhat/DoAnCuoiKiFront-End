@@ -6,8 +6,8 @@ import SideBar from '../components/chat/sidebar/SideBar';
 import { useBoardContext } from '../hooks/useBoardContext';
 import { useDispatch, useSelector } from 'react-redux';
 import { RootState } from '../redux/store';
-import { useNavigate } from 'react-router-dom';
-import { useEffect, useState } from 'react';
+import { Navigate, useNavigate } from 'react-router-dom';
+import { useEffect, useLayoutEffect, useState } from 'react';
 import { incomingCall } from '../redux/callReducer';
 import WebSocketManager from '../socket/WebSocketManager';
 import { ChatMessage, ISendMessage, TypeMess } from '../model/ChatMessage';
@@ -28,6 +28,8 @@ export interface ICallContext {
 export const CallContext = createContext<ICallContext | null>(null);
 
 function Home() {
+    const [re, setRe] = useState<number>(0)
+
     const { listMessage, setListMessage, selectedUser } = useBoardContext();
     const callStore = useSelector((state: RootState) => state.call);
     const [modalCalling, setModalCalling] = useState(false);
@@ -36,22 +38,23 @@ function Home() {
     const user = useSelector((state: RootState) => state.user);
     const navigate = useNavigate();
     console.log('selected user home' + selectedUser);
-    useEffect(() => {
-        if (!user.username) {
-            navigate('/login', { replace: true });
-        }
-    }, [user.username, navigate]);
+    // useLayoutEffect(() => {
+    //     if (!user.username) {
+    //         // navigate('/login', { replace: true });
+    //         return <Navigate to="/login" replace />;
+    //     }
+    // }, [user.username, navigate]);
     const dispatch = useDispatch();
     const selection = useSelector((state: RootState) => state.call);
 
     return (
         <>
-            {callStore.callStatus === CallStatus.RINGING && <RingingModal open={true} />}
+            {callStore.callStatus === CallStatus.RINGING && <RingingModal open={true} onReload={() => setRe(prev => prev + 1)} />}
             {selection.callStatus === CallStatus.IN_CALL && <CallModalPage></CallModalPage>}
-            {selection.callStatus === CallStatus.ENDED && <EndCallModal open={true}></EndCallModal>}
-            {selection.callStatus === CallStatus.CANCEL && <CancelModal open={true}></CancelModal>}
-            {selection.callStatus === CallStatus.REJECT && <RejectModal open={true}></RejectModal>}
-            {selection.callStatus === CallStatus.TIMEOUT && <TimeOutModal open={true}></TimeOutModal>}
+            {selection.callStatus === CallStatus.ENDED && <EndCallModal open={true} onReload={() => setRe(prev => prev + 1)}></EndCallModal>}
+            {selection.callStatus === CallStatus.CANCEL && <CancelModal open={true} onReload={() => setRe(prev => prev + 1)}></CancelModal>}
+            {selection.callStatus === CallStatus.REJECT && (<RejectModal open={true} onReload={() => setRe(prev => prev + 1)}></RejectModal>)}
+            {(selection.callStatus === CallStatus.TIMEOUT) && <TimeOutModal open={true} onReload={() => setRe(prev => prev + 1)}></TimeOutModal>}
 
             {modalCalling && <CallModal open={modalCalling} setOpen={setModalCalling} typeCall={typeCalling} />}
             <div className="flex h-screen ">
@@ -70,7 +73,7 @@ function Home() {
                                     setTypeCalling={setTypeCalling}
                                 />
 
-                                <MainContent key={selectedUser} username={selectedUser} />
+                                <MainContent key={re} re={re} username={selectedUser} setRe={setRe} />
                                 <Footer username={selectedUser} />
                             </CallContext.Provider>
                         </div>

@@ -85,7 +85,7 @@ export default function CallModal({
                 sendTimeout()
                 dispatch(updateStatus({ status: CallStatus.TIMEOUT }))
                 setOpen(false)
-            }, 500000)
+            }, 45000)
             return () => clearTimeout(timer)
         }
     }, [open])
@@ -106,14 +106,14 @@ export default function CallModal({
     };
     const audioRef = useRef<HTMLAudioElement | null>(null);
     useEffect(() => {
-        // audioRef.current = new Audio(nokiaSound);
-        // audioRef.current.volume = 0.7;
-        // audioRef.current.loop = true;
-        // audioRef.current.play();
-        // return () => {
-        //     audioRef.current?.pause();
-        //     audioRef.current = null;
-        // };
+        audioRef.current = new Audio(nokiaSound);
+        audioRef.current.volume = 0.7;
+        audioRef.current.loop = true;
+        audioRef.current.play();
+        return () => {
+            audioRef.current?.pause();
+            audioRef.current = null;
+        };
     }, []);
 
 
@@ -136,13 +136,6 @@ export default function CallModal({
     };
 
 
-    // console.log('send call', JSON.stringify({ type: 10, data: callMess }))
-    // useEffect(() => {
-
-    //     audio.volume = 0.5;
-    //     // audio.loop = true;
-    //     audio.play().catch((e) => { console.log('catch sound', e.message) });
-    // }, [])
     useEffect(() => {
         if (open) {
             sendMessage()

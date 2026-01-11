@@ -18,6 +18,7 @@ export default function Call({ setModal }: { setModal: React.Dispatch<React.SetS
     const timerRef = useRef<NodeJS.Timeout | null>(null);
     const userLeftFirstRef = useRef(false);
     const hasJoinedRef = useRef(false);
+    const hasLeftRoomRef = useRef(false);
     const containerRef = useRef<HTMLDivElement>(null);
 
     const [userCount, setUserCount] = useState(0);
@@ -102,8 +103,20 @@ export default function Call({ setModal }: { setModal: React.Dispatch<React.SetS
                     localStorage.getItem('username') || 'haha',
                 );
 
+                // TRICK: Check global instance and destroy if exists before creating new one
+                if ((window as any).zegoCurrentInstance) {
+                    console.log('Found zombie Zego instance, destroying...');
+                    try {
+                        (window as any).zegoCurrentInstance.destroy();
+                    } catch (err) {
+                        console.error('Error destroying zombie instance:', err);
+                    }
+                    (window as any).zegoCurrentInstance = null;
+                }
+
                 const zp = ZegoUIKitPrebuilt.create(kitToken);
                 zpRef.current = zp;
+                (window as any).zegoCurrentInstance = zp; // Save to global
 
                 await zp.joinRoom({
                     container: containerRef.current,
@@ -141,12 +154,14 @@ export default function Call({ setModal }: { setModal: React.Dispatch<React.SetS
                             setIsWaiting(true);
                             stopTimer();
 
+                            // Lazy Cleanup Strategy: Just HangUp and Close
                             setTimeout(() => {
-                                if (zpRef.current) {
+                                hasLeftRoomRef.current = true;
+                                if (zpRef.current && typeof zpRef.current.hangUp === 'function') {
                                     zpRef.current.hangUp();
                                 }
                                 setModal(false);
-                            }, 1000);
+                            }, 500);
                         }
                     },
 
@@ -158,11 +173,18 @@ export default function Call({ setModal }: { setModal: React.Dispatch<React.SetS
 
                     onLeaveRoom: () => {
                         console.log('Left room');
+                        hasLeftRoomRef.current = true;
                         console.log('userLeftFirstRef:', userLeftFirstRef.current);
 
                         stopTimer();
-                        setModal(false);
-
+                        // setModal(false);
+                        // Lazy Cleanup Strategy: Just HangUp and Close
+                        setTimeout(() => {
+                            if (zpRef.current && typeof zpRef.current.hangUp === 'function') {
+                                zpRef.current.hangUp();
+                            }
+                            setModal(false);
+                        }, 300);
                         if (!userLeftFirstRef.current) {
                             sendEnd();
                             console.log('thằng rời nè');
@@ -188,13 +210,21 @@ export default function Call({ setModal }: { setModal: React.Dispatch<React.SetS
 
             if (zpRef.current) {
                 try {
-                    // Destroy instance ZEGOCLOUD
-                    zpRef.current.destroy();
-                    zpRef.current = null;
+                    // Gọi hangUp trước để đóng connection đúng cách
+                    if (!hasLeftRoomRef.current && typeof zpRef.current.hangUp === 'function') {
+                        zpRef.current.hangUp();
+                    }
                 } catch (error) {
-                    console.error('Error destroying zego instance:', error);
+                    console.error('Error hanging up:', error);
+                }
+
+                // NO DESTROY HERE - Leave it for next init
+                zpRef.current = null;
+                if (containerRef.current) {
+                    containerRef.current.innerHTML = '';
                 }
             }
+
             hasJoinedRef.current = false;
         };
     }, []);

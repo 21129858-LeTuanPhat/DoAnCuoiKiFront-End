@@ -3,7 +3,7 @@ import { Avatar, Box, Button, Modal, Typography } from '@mui/material'
 import CloseIcon from '@mui/icons-material/Close';
 import React, { useEffect, useRef, useState } from 'react'
 import { deepOrange } from '@mui/material/colors';
-import nokiaSound from '../../assets/sound/nokia_ringirng.mp3'
+import nokiaSound from '../../assets/sound/mew_meo.mp3'
 import { useDispatch, useSelector } from 'react-redux';
 import { RootState } from '../../redux/store';
 import { CallStatus } from '../../model/CallProps';
@@ -13,7 +13,7 @@ import { TypeMess } from '../../model/ChatMessage';
 import { useBoardContext } from '../../hooks/useBoardContext';
 import { updateStatus, resetCall } from '../../redux/callReducer'
 
-export default function RingingModal({ open }: { open: boolean }) {
+export default function RingingModal({ open, onReload }: { open: boolean, onReload?: () => void }) {
     const [openModal, setModal] = useState<boolean>(open)
     const { type } = useBoardContext();
     const dispatch = useDispatch()
@@ -23,13 +23,13 @@ export default function RingingModal({ open }: { open: boolean }) {
     const selection = useSelector((state: RootState) => state.call)
 
     useEffect(() => {
-        // audioRef.current = new Audio(nokiaSound)
-        // audioRef.current.volume = 0.7
-        // audioRef.current.play()
-        // audioRef.current.loop = true
-        // return () => {
-        //     audioRef.current?.pause()
-        // }
+        audioRef.current = new Audio(nokiaSound)
+        audioRef.current.volume = 0.7
+        audioRef.current.play()
+        audioRef.current.loop = true
+        return () => {
+            audioRef.current?.pause()
+        }
     }, [])
     const callMess = {
         status: CallStatus.CONNECTING,
@@ -99,6 +99,7 @@ export default function RingingModal({ open }: { open: boolean }) {
             })
         })
         dispatch(resetCall())
+        if (onReload) onReload()
         setModal(false)
     }
 
