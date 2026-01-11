@@ -384,16 +384,7 @@ function MainContent({ username, setRe, re }: { username: any, setRe: React.Disp
     };
     console.log('taiabc den tai 123', encodeURIComponent(JSON.stringify({ type: TypeMess.VIDEO_CALL, data: callMess })))
     const [openReject, setReject] = useState<boolean>(false)
-    // useEffect(() => {
-    //     if (selection.callStatus === CallStatus.IDLE) {
-    //         setRe(100)
-    //     }
-    // }, [selection])
-    // useEffect(() => {
-    //     if (selection.callStatus === CallStatus.ENDED) {
-    //         setRe(prev => prev + 1);
-    //     }
-    // }, [selection])
+
     return (
         <>
 

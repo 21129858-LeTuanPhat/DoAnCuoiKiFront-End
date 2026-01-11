@@ -5,7 +5,7 @@ import { useDispatch } from 'react-redux';
 import { CallStatus } from '../../model/CallProps';
 import { resetCall } from '../../redux/callReducer'
 
-export default function RejectModal({ open }: { open: boolean }) {
+export default function RejectModal({ open, onReload }: { open: boolean, onReload?: () => void }) {
     const [openModal, setModal] = useState(open)
     const dispatch = useDispatch()
 
@@ -46,6 +46,7 @@ export default function RejectModal({ open }: { open: boolean }) {
                         onClick={() => {
                             setModal(false)
                             dispatch(resetCall())
+                            if (onReload) onReload()
                         }}
                     >
                         Thoát

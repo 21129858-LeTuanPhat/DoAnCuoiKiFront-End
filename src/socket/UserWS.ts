@@ -33,11 +33,14 @@ export async function loginWS(
                     });
                 }
                 if (msg.mes === 'Your account has been blocked due to spam activity. Block duration: 24 hours.') {
-
-                } else {
                     resolve({
                         status: 'error',
                         message: 'Bạn đã bị chặn vì đăng nhập quá nhiều',
+                    });
+                } else {
+                    resolve({
+                        status: 'error',
+                        message: 'Sai tài khoản hoặc mật khẩu',
                     });
                 }
             }

@@ -49,12 +49,12 @@ function Home() {
 
     return (
         <>
-            {callStore.callStatus === CallStatus.RINGING && <RingingModal open={true} />}
+            {callStore.callStatus === CallStatus.RINGING && <RingingModal open={true} onReload={() => setRe(prev => prev + 1)} />}
             {selection.callStatus === CallStatus.IN_CALL && <CallModalPage></CallModalPage>}
-            {selection.callStatus === CallStatus.ENDED && <EndCallModal open={true}></EndCallModal>}
-            {selection.callStatus === CallStatus.CANCEL && <CancelModal open={true}></CancelModal>}
-            {selection.callStatus === CallStatus.REJECT && (<RejectModal open={true}></RejectModal>)}
-            {(selection.callStatus === CallStatus.TIMEOUT) && <TimeOutModal open={true}></TimeOutModal>}
+            {selection.callStatus === CallStatus.ENDED && <EndCallModal open={true} onReload={() => setRe(prev => prev + 1)}></EndCallModal>}
+            {selection.callStatus === CallStatus.CANCEL && <CancelModal open={true} onReload={() => setRe(prev => prev + 1)}></CancelModal>}
+            {selection.callStatus === CallStatus.REJECT && (<RejectModal open={true} onReload={() => setRe(prev => prev + 1)}></RejectModal>)}
+            {(selection.callStatus === CallStatus.TIMEOUT) && <TimeOutModal open={true} onReload={() => setRe(prev => prev + 1)}></TimeOutModal>}
 
             {modalCalling && <CallModal open={modalCalling} setOpen={setModalCalling} typeCall={typeCalling} />}
             <div className="flex h-screen ">
