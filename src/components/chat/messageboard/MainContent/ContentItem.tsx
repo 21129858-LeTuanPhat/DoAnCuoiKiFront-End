@@ -35,15 +35,26 @@ function ContentItem({ message, color }: ItemContent) {
                         <FileImage data={message.mes.data} check={color === true ? false : true} />
                     ) : message.mes.type === 2 ? (
                         <FileItem data={message.mes.data} check={color === true ? false : true} />
+                    ) : message.mes.type === -1 ? (
+                        <div className="w-full ">
+                            <div className="m-auto flex items-center justify-center max-w-md break-words bg-gray-200 text-black p-2 rounded-3xl italic">
+                                <p> {message.mes.data} </p>
+                            </div>
+                        </div>
                     ) : (
                         ''
                     )}
                 </div>
-                <div
-                    className={color === true ? 'text-xs text-gray-500 mt-1' : 'text-xs text-gray-500 mt-1 text-right'}
-                >
-                    {formatAnyTimeToVN(message.createAt)}
-                </div>
+
+                {message.mes.type !== -1 && (
+                    <div
+                        className={
+                            color === true ? 'text-xs text-gray-500 mt-1' : 'text-xs text-gray-500 mt-1 text-right'
+                        }
+                    >
+                        {formatAnyTimeToVN(message.createAt)}
+                    </div>
+                )}
             </div>
         </li>
     );

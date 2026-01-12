@@ -33,6 +33,7 @@ function Header({
 
     const { selectedUser, type: typeMessage } = useBoardContext();
     const [openPanel, setOpenPanel] = useState<boolean>(false);
+    const profileInfor = useContext(ProfileContext)?.profileInfor;
     const [openAddUser, setOpenAddUser] = useState<boolean>(false);
     const hanldeVoice = () => {
         setOpen(true);

@@ -20,6 +20,8 @@ import TimeOutModal from '../components/modal/TimeOutModal';
 import RejectModal from '../components/modal/RejectModal';
 import CallModal from '../components/modal/CallModal';
 import { createContext } from 'react';
+import { ListConversationProvider } from '../components/chat/Context/ListConversation';
+
 
 export interface ICallContext {
     setModalCalling: React.Dispatch<React.SetStateAction<boolean>>;
@@ -59,7 +61,9 @@ function Home() {
             {modalCalling && <CallModal open={modalCalling} setOpen={setModalCalling} typeCall={typeCalling} />}
             <div className="flex h-screen ">
                 <aside className="hidden md:block w-[25%] relative">
-                    <SideBar />
+                    <ListConversationProvider>
+                        <SideBar />
+                    </ListConversationProvider>
                 </aside>
                 <main className="w-[75%]  md:block flex flex-col bg-[#f0f4fa] shadow-[0_4px_6px_-1px_rgba(0,0,0,0.2)]">
                     {selectedUser === '' ? (

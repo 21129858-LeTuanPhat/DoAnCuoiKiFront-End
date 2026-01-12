@@ -1,6 +1,6 @@
 import { Search } from 'lucide-react';
 import { User } from '../../../model/User';
-import { useState } from 'react';
+import { useContext, useState } from 'react';
 import WebSocketManager from '../../../socket/WebSocketManager';
 import { WSMessage } from '../../../model/WSMessage';
 import {
@@ -9,9 +9,11 @@ import {
     parseChatConnectState,
     changeStatusConnectChat,
 } from '../../../hooks/useConnectChat';
-import { useBoardContext } from '../../../hooks/useBoardContext';
 import { useSelector } from 'react-redux';
 import { RootState } from '../../../redux/store';
+import { ListConversationContext } from '../Context/ListConversation';
+import { getUserProfile } from '../../../services/firebaseService';
+import { useBoardContext } from '../../../hooks/useBoardContext';
 
 function SearchUserModal({ onClose }: { onClose: () => void }) {
     const [keyword, setKeyword] = useState('');
@@ -20,6 +22,7 @@ function SearchUserModal({ onClose }: { onClose: () => void }) {
     const user = useSelector((state: RootState) => state.user);
     const connectChatState = useChatConnect(user.username, targetUser || null);
     const { setSelectedUser, setType } = useBoardContext();
+    const { setUsers } = useContext(ListConversationContext)!;
 
     const handleSearch = () => {
         console.log('Searching for:', keyword);
@@ -45,6 +48,20 @@ function SearchUserModal({ onClose }: { onClose: () => void }) {
                 },
             }),
         );
+    };
+
+    const handleChangeStatusConnectChat = async (targetUser: string) => {
+        if (connectChatState == 'incoming') {
+            changeStatusConnectChat(webSocket, 'connected', user.username, targetUser);
+            setUsers((prev) => [...prev, { id: targetUser, name: targetUser, type: 0 }]);
+        } else if (connectChatState == 'none') {
+            sendChatInvitation(webSocket, user.username, targetUser);
+            setUsers((prev) => [...prev, { id: targetUser, name: targetUser, type: 0 }]);
+        } else if (connectChatState == 'connected') {
+            setSelectedUser(targetUser);
+            setType('people');
+            onClose();
+        }
     };
 
     return (
@@ -79,17 +96,7 @@ function SearchUserModal({ onClose }: { onClose: () => void }) {
                         <span>{targetUser}</span>
                         <button
                             disabled={connectChatState === 'pending'}
-                            onClick={() => {
-                                if (connectChatState == 'incoming') {
-                                    changeStatusConnectChat('connected', user.username, targetUser);
-                                } else if (connectChatState == 'none') {
-                                    sendChatInvitation(user.username, targetUser);
-                                } else if (connectChatState == 'connected') {
-                                    setSelectedUser(targetUser);
-                                    setType('people');
-                                    onClose();
-                                }
-                            }}
+                            onClick={() => handleChangeStatusConnectChat(targetUser)}
                             className="px-3 py-1 text-sm bg-blue-500 text-white rounded-lg hover:bg-blue-600"
                         >
                             {parseChatConnectState(connectChatState)}
