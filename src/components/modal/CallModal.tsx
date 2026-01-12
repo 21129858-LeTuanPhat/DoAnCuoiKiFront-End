@@ -1,12 +1,14 @@
 import { Box, CircularProgress, Modal, Typography } from '@mui/material';
 import { Phone } from 'lucide-react';
-import React, { Dispatch, SetStateAction, useEffect, useRef } from 'react';
-import { CallStatus, randomRoomID } from '../../model/CallProps';
-import { REACT_BASE_URL } from '../../config/utils';
+import React, { Dispatch, SetStateAction, useEffect, useRef, useState } from 'react';
+import { CallInterface, CallStatus, randomRoomID } from '../../model/CallProps';
 import WebSocketManager from '../../socket/WebSocketManager';
 import { useBoardContext } from '../../hooks/useBoardContext';
 import nokiaSound from '../../assets/sound/instagram_call.mp3';
-import { TypeMess } from '../../model/ChatMessage';
+import { ChatMessage, TypeMess } from '../../model/ChatMessage';
+import { incomingCall, outgoingCall, ReducerCall, updateStatus } from '../../redux/callReducer'
+import { useDispatch, useSelector } from 'react-redux';
+import { RootState } from '../../redux/store';
 export default function CallModal({
     open,
     setOpen,
@@ -14,16 +16,92 @@ export default function CallModal({
 }: {
     open: boolean;
     setOpen: Dispatch<SetStateAction<boolean>>;
-    typeCall: string;
+    typeCall: number;
 }) {
+
+    const { type } = useBoardContext();
+    const callStore = useSelector((state: RootState) => state.call)
+    const dispatch = useDispatch()
+    const refSendMess = useRef<ReducerCall>({
+        callStatus: CallStatus.IDLE,
+        isIncoming: false,
+        caller: null,
+        type: undefined,
+        callMode: undefined,
+        roomID: undefined,
+        roomURL: undefined,
+    })
+    useEffect(() => {
+        refSendMess.current = callStore
+    }, [callStore])
+    const sendEnd = () => {
+        console.log('gửi kết thúc cuộc gọi nè')
+        const ws = WebSocketManager.getInstance();
+        const callMess = {
+            status: CallStatus.CANCEL,
+            roomURL: `/call?roomID=${refSendMess.current.roomID}&call_mode=${refSendMess.current.callMode}`,
+            roomID: refSendMess.current.roomID,
+        };
+        ws.sendMessage(
+            JSON.stringify({
+                action: 'onchat',
+                data: {
+                    event: 'SEND_CHAT',
+                    data: {
+                        type: type,
+                        to: selectedUser,
+                        mes: encodeURIComponent(JSON.stringify({ type: refSendMess.current.callMode, data: callMess })),
+                    },
+                },
+            }),
+        );
+    }
+    const sendTimeout = () => {
+        console.log('gửi timeout nè')
+        const ws = WebSocketManager.getInstance();
+        const timeout = {
+            status: CallStatus.TIMEOUT,
+            roomURL: `/call?roomID=${refSendMess.current.roomID}&call_mode=${refSendMess.current.callMode}`,
+            roomID: refSendMess.current.roomID,
+        };
+
+        ws.sendMessage(
+            JSON.stringify({
+                action: 'onchat',
+                data: {
+                    event: 'SEND_CHAT',
+                    data: {
+                        type: type,
+                        to: selectedUser,
+                        mes: encodeURIComponent(JSON.stringify({ type: refSendMess.current.callMode, data: timeout })),
+                    },
+                },
+            }),
+        );
+    }
+    useEffect(() => {
+        if (open) {
+            const timer = setTimeout(() => {
+                sendTimeout()
+                dispatch(updateStatus({ status: CallStatus.TIMEOUT }))
+                setOpen(false)
+            }, 45000)
+            return () => clearTimeout(timer)
+        }
+    }, [open])
+    // const openModal = useState<boolean>(open)
+    useEffect(() => {
+        if (callStore.callStatus === CallStatus.IN_CALL) {
+            setOpen(false)
+        }
+    }, [callStore.callStatus])
     const roomID = randomRoomID();
-    const { type, selectedUser } = useBoardContext();
+    const { selectedUser } = useBoardContext();
     const username = localStorage.getItem('username');
     console.log('room id:', roomID, ' name', username, 'selected user', selectedUser, ' type: ', type);
     const callMess = {
-        callMode: typeCall,
         status: CallStatus.CALLING,
-        roomURL: `${REACT_BASE_URL}/call?roomID=${roomID}&call_mode=${typeCall}`,
+        roomURL: `/call?roomID=${roomID}&call_mode=${typeCall}`,
         roomID: roomID,
     };
     const audioRef = useRef<HTMLAudioElement | null>(null);
@@ -33,19 +111,15 @@ export default function CallModal({
         audioRef.current.loop = true;
         audioRef.current.play();
         return () => {
-            // cleanup khi component unmount
             audioRef.current?.pause();
             audioRef.current = null;
         };
     }, []);
 
+
     const sendMessage = () => {
         const ws = WebSocketManager.getInstance();
-        ws.onMessage('SEND_CHAT', (msg) => {
-            if (msg.status === 'success' && msg.event === 'SEND_CHAT') {
-                ws.unSubcribe('SEND_CHAT');
-            }
-        });
+        dispatch(outgoingCall({ roomID: roomID, caller: selectedUser, callMode: typeCall, roomURL: callMess.roomURL, type: type }))
         ws.sendMessage(
             JSON.stringify({
                 action: 'onchat',
@@ -54,31 +128,31 @@ export default function CallModal({
                     data: {
                         type: type,
                         to: selectedUser,
-                        mes: encodeURIComponent(JSON.stringify({ type: TypeMess.SIGNAL_REQUEST, data: callMess })),
+                        mes: encodeURIComponent(JSON.stringify({ type: typeCall, data: callMess })),
                     },
                 },
             }),
         );
     };
-    console.log('send call', encodeURIComponent(JSON.stringify({ type: 10, data: callMess })))
-    // useEffect(() => {
 
-    //     audio.volume = 0.5;
-    //     // audio.loop = true;
-    //     audio.play().catch((e) => { console.log('catch sound', e.message) });
-    // }, [])
-    if (open) {
-        sendMessage();
-    }
+
+    useEffect(() => {
+        if (open) {
+            sendMessage()
+        }
+    }, [open])
 
     // useEffect(() => {
 
     // }, [open])
     const handleClose = () => {
+        sendEnd()
+        dispatch(updateStatus({ status: CallStatus.CANCEL }));
         setOpen(false);
     };
 
     //className='min-h-screen bg-black flex flex-col items-center justify-between p-8'
+
     return (
         <>
             <Modal open={open} disableEscapeKeyDown>
@@ -101,17 +175,15 @@ export default function CallModal({
                         padding: '40px',
                     }}
                 >
-                    {/* Nội dung chính */}
                     <div className="flex-1 flex items-center justify-center">
                         <div className="text-center">
                             <div className="w-32 h-32 mx-auto mb-6 rounded-full bg-gradient-to-br from-gray-400 to-gray-500 flex items-center justify-center">
-                                {/* Có thể thêm avatar hoặc icon ở đây */}
+
                             </div>
                             <h1 className="text-gray-900 text-2xl font-semibold mb-2">{type}</h1>
                             <p className="text-gray-500 text-sm">Đang gọi...</p>
                         </div>
                     </div>
-                    {/* Nút hành động */}
                     <div className="flex items-center justify-center gap-6">
                         <button
                             onClick={handleClose}

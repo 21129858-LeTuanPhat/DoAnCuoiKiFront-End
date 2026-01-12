@@ -2,19 +2,22 @@
 import { ImagePlus, Smile, Send, FolderUp } from 'lucide-react';
 //Tippy
 import HeadlessTippy from '@tippyjs/react/headless';
+import React from 'react';
 //Emoji-picker
 import EmojiPicker, { EmojiClickData } from 'emoji-picker-react';
 
-import { useRef, useState } from 'react';
+import { use, useEffect, useRef, useState } from 'react';
 import { useBoardContext } from '../../../../hooks/useBoardContext';
 import { useSelector } from 'react-redux';
 import { RootState } from '../../../../redux/store';
 import { useChatSender } from '../../../../hooks/useChatSender';
 import PopUp from '../Footer/PopUp';
 import { supabaseClient } from '../../../../config/supaBaseConfig';
+import { set } from 'firebase/database';
 
 function Footer({ username }: { username: string }) {
     const MAX_SIZE = 20 * 1024;
+    const MAX_LENGHT = 350;
     const [files, setFiles] = useState<any[]>([]);
     const [message, setMessage] = useState('');
     const { listMessage, setListMessage, type, setRight } = useBoardContext();
@@ -25,6 +28,11 @@ function Footer({ username }: { username: string }) {
     const [checkNull, setCheckNull] = useState<boolean>(true);
     const [checkFile, setCheckFile] = useState<boolean>(false);
     const [typeFile, setTypeFile] = useState<number>(0);
+    const [checkLimit, setCheckLimit] = useState<boolean>(false);
+
+    useEffect(() => {
+        setMessage('');
+    }, [username]);
 
     const handlePopUpFile = () => {
         setPopUp(true);
@@ -44,7 +52,7 @@ function Footer({ username }: { username: string }) {
 
         const fileToUpload = files[0].file;
         if (fileToUpload.size > MAX_SIZE) {
-            alert('Ảnh vượt quá 20KB');
+            // alert('Ảnh vượt quá 20KB');
             return;
         }
 
@@ -57,7 +65,7 @@ function Footer({ username }: { username: string }) {
 
             if (error) {
                 console.error('Upload error:', error);
-                alert('Upload thất bại, thử lại sau.');
+                // alert('Upload thất bại, thử lại sau.');
                 return;
             }
 
@@ -79,10 +87,28 @@ function Footer({ username }: { username: string }) {
         setFiles([]);
     };
     const handleEmojiClick = (emojiData: EmojiClickData) => {
-        setMessage((prev) => prev + emojiData.emoji);
+        const nextValue = message + emojiData.emoji;
+        const encodedLength = encodeURIComponent(nextValue).length;
+
+        if (encodedLength > MAX_LENGHT) {
+            setCheckLimit(true);
+            return;
+        }
+
+        setCheckLimit(false);
+        setMessage(nextValue);
     };
     const handleMessage = (e: any) => {
-        setMessage(e.target.value);
+        const nextValue = e.target.value;
+        const encodedLength = encodeURIComponent(nextValue).length;
+
+        if (encodedLength > MAX_LENGHT) {
+            setCheckLimit(true);
+            return;
+        }
+
+        setCheckLimit(false);
+        setMessage(nextValue);
     };
     const { sendMessage } = useChatSender({
         type,
@@ -94,13 +120,21 @@ function Footer({ username }: { username: string }) {
     });
 
     const handleSendMessage = () => {
+        if (message.trim().length === 0 || encodeURIComponent(message).length > MAX_LENGHT) {
+            return;
+        }
         sendMessage(message);
         setRight(true);
+        setCheckLimit(false);
     };
     const handleSendMessageKeyUp = (e: any) => {
         if (e.keyCode === 13) {
+            if (message.trim().length === 0 || encodeURIComponent(message).length > MAX_LENGHT) {
+                return;
+            }
             sendMessage(message);
             setRight(true);
+            setCheckLimit(false);
         }
     };
 
@@ -124,19 +158,25 @@ function Footer({ username }: { username: string }) {
                     )}
                 </div>
                 <div
-                    className="flex-[5] flex items-center my-1
-                     rounded-2xl
-                     border-2 border-gray-300
-                     transition-colors duration-200 ease-linear
-                     focus-within:border-purple-400"
+                    className={
+                        checkLimit === true
+                            ? 'flex-[5] flex items-center my-1 rounded-2xl border-2 border-red-600 '
+                            : 'flex-[5] flex items-center my-1 rounded-2xl border-2 border-gray-300 transition-colors duration-200 ease-linear focus-within:border-purple-400'
+                    }
                 >
-                    <input
+                    <textarea
                         ref={inputRef}
                         value={message}
-                        type="text"
                         placeholder="Soạn tin nhắn ..."
-                        className="flex-[8] p-2 border-none outline-none 
-                        bg-transparent "
+                        rows={1}
+                        className="flex-[8]
+                                p-2
+                                border-none outline-none
+                                bg-transparent
+                                resize-none
+                                whitespace-pre-wrap
+                                break-words
+                                 "
                         onChange={handleMessage}
                         onKeyUp={handleSendMessageKeyUp}
                     />
@@ -166,4 +206,4 @@ function Footer({ username }: { username: string }) {
     );
 }
 
-export default Footer;
+export default React.memo(Footer);

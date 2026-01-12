@@ -1,45 +1,111 @@
 import { Phone, VideoCall } from '@mui/icons-material'
 import { Avatar, Box, Button, Modal, Typography } from '@mui/material'
 import CloseIcon from '@mui/icons-material/Close';
-import React, { useEffect, useRef } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import { deepOrange } from '@mui/material/colors';
-import nokiaSound from '../../assets/sound/nokia_ringirng.mp3'
+import nokiaSound from '../../assets/sound/mew_meo.mp3'
 import { useDispatch, useSelector } from 'react-redux';
 import { RootState } from '../../redux/store';
-import { CallStatus, ICallMode } from '../../model/CallProps';
-import { REACT_BASE_URL } from '../../config/utils';
-import { inCall } from '../../redux/callReducer'
+import { CallStatus } from '../../model/CallProps';
 import { sendSignal } from '../../socket/CallWS';
+import WebSocketManager from '../../socket/WebSocketManager';
+import { TypeMess } from '../../model/ChatMessage';
+import { useBoardContext } from '../../hooks/useBoardContext';
+import { updateStatus, resetCall } from '../../redux/callReducer'
 
-export default function RingingModal({ open }: { open: boolean }) {
+export default function RingingModal({ open, onReload }: { open: boolean, onReload?: () => void }) {
+    const [openModal, setModal] = useState<boolean>(open)
+    const { type } = useBoardContext();
     const dispatch = useDispatch()
     const audioRef = useRef<HTMLAudioElement | null>(null)
     const callStore = useSelector((state: RootState) => state.call)
-    const paddingTop = 50;
-    const paddingLeft = 100;
-    const width = window.innerWidth - paddingLeft * 2;
-    const height = window.innerHeight - paddingTop * 2;
+    console.log('type trong ringing nè', type)
+    const selection = useSelector((state: RootState) => state.call)
+
     useEffect(() => {
-        // audioRef.current = new Audio(nokiaSound)
-        // audioRef.current.volume = 0.7
-        // audioRef.current.play()
-        // audioRef.current.loop = true
-        // return () => {
-        //     audioRef.current?.pause()
-        // }
+        audioRef.current = new Audio(nokiaSound)
+        audioRef.current.volume = 0.7
+        audioRef.current.play()
+        audioRef.current.loop = true
+        return () => {
+            audioRef.current?.pause()
+        }
     }, [])
+    const callMess = {
+        status: CallStatus.CONNECTING,
+        roomURL: `/call?roomID=${selection.roomID}&call_mode=${selection.callMode}`,
+        roomID: selection.roomID,
+    };
+
+    useEffect(() => {
+        if (callStore.callStatus === CallStatus.TIMEOUT) {
+            setModal(false)
+        }
+    }, [callStore.callStatus])
+    const messReject = {
+        status: CallStatus.REJECT,
+        roomURL: `/call?roomID=${selection.roomID}&call_mode=${selection.callMode}`,
+        roomID: selection.roomID,
+    };
+
     const handleAccept = () => {
-        dispatch(inCall())
-        window.open(
-            `${callStore.roomURL}`,
-            "_blank",
-            `width=${width},height=${height},left=${paddingLeft},top=${paddingTop}`
-        );
-        sendSignal(callStore.caller as string, { type: callStore.callMode as string, roomID: callStore.roomID as string, status: CallStatus.ACCEPTED })
+        // dispatch(inCall())
+        dispatch(updateStatus({ status: CallStatus.CONNECTING }))
+        sendMessAccept()
+        // sendSignal(callStore.caller as string, { type: callStore.callMode as string, roomID: callStore.roomID as string, status: CallStatus.ACCEPTED })
     }
+    const sendMessAccept = () => {
+        const ws = WebSocketManager.getInstance();
+        ws.sendMessage(
+            JSON.stringify({
+                action: 'onchat',
+                data: {
+                    event: 'SEND_CHAT',
+                    data: {
+                        type: callStore.type,
+                        to: callStore.caller,
+                        mes: encodeURIComponent(JSON.stringify({ type: selection.callMode, data: callMess }))
+                    },
+                },
+            }),
+        );
+    }
+    const handleClose = () => {
+        const ws = WebSocketManager.getInstance();
+        ws.sendMessage(
+            JSON.stringify({
+                action: 'onchat',
+                data: {
+                    event: 'SEND_CHAT',
+                    data: {
+                        type: callStore.type,
+                        to: selection.caller,
+                        mes: encodeURIComponent(JSON.stringify({ type: selection.callMode, data: messReject })),
+                    },
+                },
+            }),
+        );
+        console.log('reject nè', {
+            type: selection.callMode, data: JSON.stringify({
+                action: 'onchat',
+                data: {
+                    event: 'SEND_CHAT',
+                    data: {
+                        type: callStore.type,
+                        to: selection.caller,
+                        mes: (JSON.stringify({ type: selection.callMode, data: messReject })),
+                    },
+                },
+            })
+        })
+        dispatch(resetCall())
+        if (onReload) onReload()
+        setModal(false)
+    }
+
     return (
         <div>
-            <Modal open={open}>
+            <Modal open={openModal}>
                 <Box
                     sx={{
                         position: 'absolute' as 'absolute',
@@ -74,10 +140,10 @@ export default function RingingModal({ open }: { open: boolean }) {
                                 color="success"
                                 sx={{ mt: 3, borderRadius: '50%', minWidth: 0, width: 50, height: 50 }}
                             >
-                                {callStore.callMode === ICallMode.VOICE ? (<Phone sx={{ fontSize: 25 }} ></Phone>
+                                {callStore.callMode === TypeMess.VOICE_CALL ? (<Phone sx={{ fontSize: 25 }} ></Phone>
                                 ) : (<VideoCall sx={{ fontSize: 25 }} ></VideoCall>)}
                             </Button>
-                            <Button variant="contained" color='error'
+                            <Button variant="contained" color='error' onClick={handleClose}
                                 sx={{ mt: 3, borderRadius: '50%', minWidth: 0, width: 50, height: 50 }}>
                                 <CloseIcon sx={{ fontSize: 25 }}></CloseIcon>
                             </Button>

@@ -17,21 +17,20 @@ export enum CallStatus {
     CALLING = 'calling',
     RINGING = 'ringing',
     ACCEPTED = 'accepted',
-    IN_CALL = 'inCall',
+    CONNECTING = 'connecting',
+    IN_CALL = 'incall',
     ENDED = 'ended',
+    CANCEL = 'cancel',
+    REJECT = 'reject',
+    TIMEOUT = 'timeout'
 }
 
 export interface CallInterface {
-    callMode: string,
     roomID: string,
     roomURL: string,
     status: string
 }
-export enum ICallMode {
-    VOICE = 'voice',
-    VIDEO = 'video'
 
-}
 
 
 export const VOICE_CONFIG = {
@@ -43,7 +42,7 @@ export const VOICE_CONFIG = {
     showScreenSharingButton: false,
     showTextChat: false,
     showUserList: true,
-    showRoomTimer: true,
+    showRoomTimer: false,
 }
 
 export const VIDEO_CONFIG = {
@@ -55,6 +54,6 @@ export const VIDEO_CONFIG = {
     showScreenSharingButton: true,
     showTextChat: true,
     showUserList: true,
-    showRoomTimer: true,
+    showRoomTimer: false,
 }
 

@@ -4,8 +4,6 @@ import ProfileForm from '../model/ProfileForm';
 import RequestConnect, { ResponseStatus } from '../model/RequestConnect';
 import { create } from 'domain';
 import InforGroup from '../model/InforGroup';
-import exp from 'constants';
-import Story from '../model/Story';
 
 async function handleChangeProfile({ profileData }: { profileData: ProfileForm }) {
     const key = `profiles/${profileData.username}`;
@@ -63,6 +61,7 @@ async function getInvitation(
     if (!snapshot.exists()) {
         return [];
     }
+
     const data = snapshot.val();
     const listConnect = Object.entries(data).map(([key, value]: [string, any]) => {
         return {
@@ -113,6 +112,29 @@ async function createGroup({
         });
 
         await set(ref(db, `invitations/room/${member}/${name}`), {
+            status: 'pending',
+            createdAt: Date.now(),
+            imageUrl: imageUrl || '',
+        });
+    }
+}
+async function sendInvitation({
+    groupName,
+    imageUrl,
+    members,
+}: {
+    groupName: string;
+    imageUrl?: string;
+    members: string[];
+}) {
+    for (const member of members) {
+        await set(ref(db, `sent_requests/room/${groupName}/${member}`), {
+            status: 'pending',
+            createdAt: Date.now(),
+            imageUrl: imageUrl || '',
+        });
+
+        await set(ref(db, `invitations/room/${member}/${groupName}`), {
             status: 'pending',
             createdAt: Date.now(),
             imageUrl: imageUrl || '',
@@ -302,4 +324,5 @@ export {
     likeStory,
     isLikeStory,
     viewStory,
+    sendInvitation,
 };

@@ -3,7 +3,6 @@ import { useDispatch, useSelector } from 'react-redux';
 import store, { RootState } from '../redux/store';
 import { setReCode } from '../redux/userReducer';
 import { SOCKET_BASE_URL } from '../config/utils';
-import { useNavigate } from 'react-router-dom';
 import { ReCodeInterface } from '../model/User';
 class WebSocketManager {
     private static webSocketManager: WebSocketManager;
@@ -11,16 +10,8 @@ class WebSocketManager {
     private socket: WebSocket | null = null;
 
     private listeners: Map<string, (msg: WSMessage) => void> = new Map();
-
-    private constructor() {}
-
-    private getUser() {
-        const user = {
-            username: localStorage.getItem('username'),
-            reCode: localStorage.getItem('reCode'),
-        };
-        return user;
-    }
+    private intentionalClose = false;
+    private constructor() { }
 
     public static getInstance(): WebSocketManager {
         if (!WebSocketManager.webSocketManager) {
@@ -37,6 +28,7 @@ class WebSocketManager {
             this.socket = new WebSocket(url);
             this.socket.onopen = () => {
                 console.log('WebSocket connected');
+                this.intentionalClose = false;
                 resolve();
             };
 
@@ -48,29 +40,39 @@ class WebSocketManager {
                 console.log('lỗi:', err);
             };
             this.socket.onclose = () => {
-                this.socket = null;
-                console.log('WebSocket disconnected');
-
-                this.connect2(SOCKET_BASE_URL)
-                    .then(() => {
-                        this.reCode();
-                    })
-                    .catch((err) => {
-                        console.error('Reconnect failed rồi. hết cứu:', err);
-                    });
+                console.log('đóng kết nối');
+                this.handleReconnect();
             };
         });
     }
+    private reconnecting = false;
+
+    private handleReconnect() {
+        console.log('handle reconnect')
+        if (this.reconnecting) return;
+        this.reconnecting = true;
+
+        this.connect2(SOCKET_BASE_URL)
+            .then(() => {
+                this.reconnecting = false;
+                this.reCode();
+            })
+            .catch(() => {
+                this.reconnecting = false;
+            });
+
+    }
 
     public reCode() {
-        this.unSubcribe('RE_LOGIN');
+        // this.unSubcribe('RE_LOGIN');
         console.log('dis connet rồi');
+        this.unSubcribe('RE_LOGIN');
         this.onMessage('RE_LOGIN', (mes: any) => {
             console.log('re code trong ws', mes);
             const objReCode: ReCodeInterface = mes.data;
             console.log('objReCode', objReCode);
             console.log('re code nhan', mes);
-            if (mes.status === 'success' && typeof objReCode.RE_LOGIN_CODE === 'string') {
+            if (mes.event === 'RE_LOGIN' && mes.status === 'success') {
                 console.log('lưu vào local storage vs code: ', objReCode.RE_LOGIN_CODE);
                 store.dispatch(setReCode({ reCode: objReCode.RE_LOGIN_CODE }));
             }
@@ -94,20 +96,36 @@ class WebSocketManager {
     public onMessage(event: string, cb: (msg: WSMessage) => void) {
         this.listeners.set(event, cb);
     }
-    public sendMessage(message: string): void {
+    public async sendMessage(message: string): Promise<void> {
+        console.log(message)
         if (this.socket && this.socket.readyState === WebSocket.OPEN) {
             this.socket.send(message);
-        } else {
-            console.log('WebSocket is not connected.');
-            this.connect2(SOCKET_BASE_URL)
-                .then(() => {
+        }
+        else {
+            try {
+                await this.connect2(SOCKET_BASE_URL);
+                if (this.socket && this.socket.readyState === WebSocket.OPEN) {
+                    console.log('Gửi message sau khi reconnect thành công');
                     this.reCode();
-                })
-                .catch((err) => console.error('Reconnect failed:', err));
+                    setTimeout(() => {
+                        if (this.socket && this.socket.readyState === WebSocket.OPEN) {
+                            this.socket.send(message);
+                            console.log('Gửi message sau khi auth thành công');
+                        }
+                    }, 1000)
+
+
+                    // this.handleReconnect();
+                }
+            } catch (err) {
+                console.error('Reconnect thất bại, không gửi được message', err);
+            }
         }
     }
     public disconnect(): void {
+        console.log('đã bị đóng connect')
         if (!this.socket) return;
+        this.intentionalClose = true;
         this.socket.close();
         this.socket = null;
     }

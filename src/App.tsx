@@ -1,10 +1,16 @@
-import { Outlet, RouterProvider } from 'react-router-dom';
-import { useSelector } from 'react-redux';
+import { Outlet, RouterProvider, useNavigate } from 'react-router-dom';
+import { useDispatch, useSelector } from 'react-redux';
 import { RootState } from './redux/store';
 import { routers } from './routes/router';
+import { useLayoutEffect } from 'react';
+import { stat } from 'fs';
+import WebSocketManager from './socket/WebSocketManager';
+import { error } from 'console';
+import { setReCode } from './redux/userReducer';
 
 function App() {
-    const user = useSelector((state: RootState) => state.user);
+
+
     return (
         <div>
             <RouterProvider router={routers} />

@@ -1,6 +1,7 @@
 import { ChatMessage } from '../../../../model/ChatMessage';
 import FileItem from './FileItem';
 import FileImage from './FileImage';
+
 import { formatAnyTimeToVN } from '../../../../helps/formatServerTimeVN';
 interface ItemContent {
     message: ChatMessage;

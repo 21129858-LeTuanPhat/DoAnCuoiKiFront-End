@@ -5,26 +5,21 @@ import SignUpPage from '../pages/SignUpPage';
 import SignInPage from '../pages/SignInPage';
 import Call from '../pages/Call';
 import RootLayout from '../RootLayout';
-
-export const routers = createBrowserRouter(
-    [{
-        element: <RootLayout />,
-        children: [{
-            path: '/',
-            element: <Home />,
-        },
-        {
-            path: '/login',
-            element: <SignInPage />,
-        },
-        {
-            path: '/register',
-            element: <SignUpPage />,
-        },
-        {
-            path: '/call',
-            element: <Call />,
-        },]
-    }
-    ],
-);
+import CallModalPage from '../components/modal/CallModalPage';
+import AuthGate from '../AuthGate'
+export const routers = createBrowserRouter([
+    {
+        element: <AuthGate />,
+        children: [
+            {
+                element: <RootLayout />,
+                children: [
+                    { path: '/', element: <Home /> },
+                    { path: '/call-modal', element: <CallModalPage /> },
+                ]
+            }
+        ]
+    },
+    { path: '/login', element: <SignInPage /> },
+    { path: '/register', element: <SignUpPage /> }
+])

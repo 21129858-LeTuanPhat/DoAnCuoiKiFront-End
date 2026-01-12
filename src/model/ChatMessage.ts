@@ -18,6 +18,6 @@ export interface ISendMessage {
 }
 
 export enum TypeMess {
-    SIGNAL_REQUEST = 10,
-    SIGNAL_RESPONSE = 11,
+    VIDEO_CALL = 30,
+    VOICE_CALL = 40
 }
