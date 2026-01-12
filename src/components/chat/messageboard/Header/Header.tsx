@@ -2,7 +2,7 @@ import { PanelLeft, UserPlus } from 'lucide-react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faPhone, faVideo } from '@fortawesome/free-solid-svg-icons';
 import { REACT_BASE_URL } from '../../../../config/utils';
-import { SetStateAction, useEffect, useState } from 'react';
+import { SetStateAction, useContext, useEffect, useState } from 'react';
 import CallModal from '../../../modal/CallModal';
 import { useBoardContext } from '../../../../hooks/useBoardContext';
 import { TypeMess } from '../../../../model/ChatMessage';
@@ -16,6 +16,7 @@ import { memo } from 'react';
 import React from 'react';
 
 import ModalAddUser from './ModalAddUser';
+import { ProfileContext } from '../../Context/ProfileCotext';
 
 function Header({
     username,
