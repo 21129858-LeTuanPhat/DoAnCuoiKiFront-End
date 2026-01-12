@@ -22,7 +22,6 @@ import CallModal from '../components/modal/CallModal';
 import { createContext } from 'react';
 import { ListConversationProvider } from '../components/chat/Context/ListConversation';
 
-
 export interface ICallContext {
     setModalCalling: React.Dispatch<React.SetStateAction<boolean>>;
     setTypeCalling: React.Dispatch<React.SetStateAction<number>>;
@@ -30,7 +29,7 @@ export interface ICallContext {
 export const CallContext = createContext<ICallContext | null>(null);
 
 function Home() {
-    const [re, setRe] = useState<number>(0)
+    const [re, setRe] = useState<number>(0);
 
     const { listMessage, setListMessage, selectedUser } = useBoardContext();
     const callStore = useSelector((state: RootState) => state.call);
@@ -51,12 +50,22 @@ function Home() {
 
     return (
         <>
-            {callStore.callStatus === CallStatus.RINGING && <RingingModal open={true} onReload={() => setRe(prev => prev + 1)} />}
+            {callStore.callStatus === CallStatus.RINGING && (
+                <RingingModal open={true} onReload={() => setRe((prev) => prev + 1)} />
+            )}
             {selection.callStatus === CallStatus.IN_CALL && <CallModalPage></CallModalPage>}
-            {selection.callStatus === CallStatus.ENDED && <EndCallModal open={true} onReload={() => setRe(prev => prev + 1)}></EndCallModal>}
-            {selection.callStatus === CallStatus.CANCEL && <CancelModal open={true} onReload={() => setRe(prev => prev + 1)}></CancelModal>}
-            {selection.callStatus === CallStatus.REJECT && (<RejectModal open={true} onReload={() => setRe(prev => prev + 1)}></RejectModal>)}
-            {(selection.callStatus === CallStatus.TIMEOUT) && <TimeOutModal open={true} onReload={() => setRe(prev => prev + 1)}></TimeOutModal>}
+            {selection.callStatus === CallStatus.ENDED && (
+                <EndCallModal open={true} onReload={() => setRe((prev) => prev + 1)}></EndCallModal>
+            )}
+            {selection.callStatus === CallStatus.CANCEL && (
+                <CancelModal open={true} onReload={() => setRe((prev) => prev + 1)}></CancelModal>
+            )}
+            {selection.callStatus === CallStatus.REJECT && (
+                <RejectModal open={true} onReload={() => setRe((prev) => prev + 1)}></RejectModal>
+            )}
+            {selection.callStatus === CallStatus.TIMEOUT && (
+                <TimeOutModal open={true} onReload={() => setRe((prev) => prev + 1)}></TimeOutModal>
+            )}
 
             {modalCalling && <CallModal open={modalCalling} setOpen={setModalCalling} typeCall={typeCalling} />}
             <div className="flex h-screen ">
@@ -77,7 +86,7 @@ function Home() {
                                     setTypeCalling={setTypeCalling}
                                 />
 
-                                <MainContent key={re} re={re} username={selectedUser} setRe={setRe} />
+                                <MainContent key={selectedUser} re={re} username={selectedUser} setRe={setRe} />
                                 <Footer username={selectedUser} />
                             </CallContext.Provider>
                         </div>
