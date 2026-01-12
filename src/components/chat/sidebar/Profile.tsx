@@ -19,23 +19,25 @@ export function Profile() {
                     <p className="text-[#3e4040] font-medium text-md hover:">{profileInfor?.username}</p>
                 </div>
 
-                {open ? (
-                    <CircleChevronUp
-                        color={'#fffcfc'}
-                        className="cursor-pointer"
-                        onClick={() => {
-                            setOpen(!open);
-                        }}
-                    />
-                ) : (
-                    <CircleChevronDown
-                        color={'#fffcfc'}
-                        className="cursor-pointer"
-                        onClick={() => {
-                            setOpen(!open);
-                        }}
-                    />
-                )}
+                <div className="flex  justify-center items-center h-full">
+                    {open ? (
+                        <CircleChevronUp
+                            color={'#fffcfc'}
+                            className="cursor-pointer "
+                            onClick={() => {
+                                setOpen(!open);
+                            }}
+                        />
+                    ) : (
+                        <CircleChevronDown
+                            color={'#fffcfc'}
+                            className="cursor-pointer "
+                            onClick={() => {
+                                setOpen(!open);
+                            }}
+                        />
+                    )}
+                </div>
 
                 {open && <ProfilePopup username={profileInfor?.username ?? ''} onClose={() => setOpen(false)} />}
             </div>
