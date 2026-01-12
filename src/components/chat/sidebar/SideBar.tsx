@@ -1,7 +1,7 @@
 import ConversationGroup from './ConversationGroup';
 import ConversationPeople from './ConversationPeople';
 import Moji from './Moji';
-import { useEffect, useRef, useState } from 'react';
+import { useContext, useEffect, useRef, useState } from 'react';
 import WebSocketManager from '../../../socket/WebSocketManager';
 import { User } from '../../../model/User';
 import SearchBar from './SearchBar';
@@ -15,45 +15,15 @@ import FormCreateStory from './FormCreateStory';
 import ListStory from './ListStory';
 import StoryViewer from './StoryView';
 import Story from '../../../model/Story';
+import { ListConversationContext } from '../Context/ListConversation';
 
 function SideBar() {
-    const [users, setUsers] = useState<User[]>([]);
     const loginname = useSelector((state: RootState) => state.user);
-    const [loading, setLoading] = useState(true);
     const [openStory, setopenStory] = useState(false);
     const [openStoryView, setOpenStoryView] = useState(false);
     const storiesRef = useRef<Story[]>([]);
     const indexRef = useRef(0);
-    useEffect(() => {
-        const ws = WebSocketManager.getInstance();
-        let isMounted = true;
-
-        ws.onMessage('GET_USER_LIST', (msg) => {
-            if (msg.status === 'success' && msg.event === 'GET_USER_LIST') {
-                console.log(' Received user list:', msg.data);
-
-                if (isMounted) {
-                    const userData = msg.data as User[];
-                    setUsers(userData);
-                    setLoading(false);
-                }
-            }
-        });
-
-        ws.sendMessage(
-            JSON.stringify({
-                action: 'onchat',
-                data: { event: 'GET_USER_LIST' },
-            }),
-        );
-
-        return () => {
-            isMounted = false;
-            ws.unSubcribe('GET_USER_LIST');
-        };
-    }, []);
-
-    if (loading) return <LoadingProfileSkeleton />;
+    const { users, setUsers, loading, setLoading } = useContext(ListConversationContext)!;
 
     return (
         <div className="flex flex-col h-full w-full *:items-start  p-3 shadow-sm ">

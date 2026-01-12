@@ -13,8 +13,8 @@ import WebSocketManager from '../socket/WebSocketManager';
 import { ChatMessage, ISendMessage, TypeMess } from '../model/ChatMessage';
 import { CallInterface, CallStatus } from '../model/CallProps';
 import RingingModal from '../components/modal/RingingModal';
+import { ListConversationProvider } from '../components/chat/Context/ListConversation';
 function Home() {
-
     const { listMessage, setListMessage, selectedUser } = useBoardContext();
 
     const callStore = useSelector((state: RootState) => state.call);
@@ -90,7 +90,9 @@ function Home() {
             {callStore.callStatus === CallStatus.RINGING && <RingingModal open={true} />}
             <div className="flex h-screen ">
                 <aside className="hidden md:block w-[25%] relative">
-                    <SideBar />
+                    <ListConversationProvider>
+                        <SideBar />
+                    </ListConversationProvider>
                 </aside>
                 <main className="w-[75%]  md:block flex flex-col bg-[#f0f4fa] shadow-[0_4px_6px_-1px_rgba(0,0,0,0.2)]">
                     {selectedUser === '' ? (
