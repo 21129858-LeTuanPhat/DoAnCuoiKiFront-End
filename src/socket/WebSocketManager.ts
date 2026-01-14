@@ -11,7 +11,7 @@ class WebSocketManager {
 
     private listeners: Map<string, (msg: WSMessage) => void> = new Map();
     private intentionalClose = false;
-    private constructor() { }
+    private constructor() {}
 
     public static getInstance(): WebSocketManager {
         if (!WebSocketManager.webSocketManager) {
@@ -48,7 +48,7 @@ class WebSocketManager {
     private reconnecting = false;
 
     private handleReconnect() {
-        console.log('handle reconnect')
+        console.log('handle reconnect');
         if (this.reconnecting) return;
         this.reconnecting = true;
 
@@ -60,7 +60,6 @@ class WebSocketManager {
             .catch(() => {
                 this.reconnecting = false;
             });
-
     }
 
     public reCode() {
@@ -97,11 +96,10 @@ class WebSocketManager {
         this.listeners.set(event, cb);
     }
     public async sendMessage(message: string): Promise<void> {
-        console.log(message)
+        console.log(message);
         if (this.socket && this.socket.readyState === WebSocket.OPEN) {
             this.socket.send(message);
-        }
-        else {
+        } else {
             try {
                 await this.connect2(SOCKET_BASE_URL);
                 if (this.socket && this.socket.readyState === WebSocket.OPEN) {
@@ -112,8 +110,7 @@ class WebSocketManager {
                             this.socket.send(message);
                             console.log('Gửi message sau khi auth thành công');
                         }
-                    }, 1000)
-
+                    }, 1000);
 
                     // this.handleReconnect();
                 }
@@ -123,7 +120,7 @@ class WebSocketManager {
         }
     }
     public disconnect(): void {
-        console.log('đã bị đóng connect')
+        console.log('đã bị đóng connect');
         if (!this.socket) return;
         this.intentionalClose = true;
         this.socket.close();

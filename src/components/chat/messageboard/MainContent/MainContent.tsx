@@ -15,6 +15,7 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import CallModal from '../../../modal/CallModal';
 import ContentItem from './ContentItem';
 import { ChevronsDown } from 'lucide-react';
+import { set } from 'firebase/database';
 function MainContent({
     username,
     setRe,
@@ -35,7 +36,17 @@ function MainContent({
     const selection = useSelector((state: RootState) => state.call);
     const [page, setPage] = useState<number>(1);
     const divRef = useRef<HTMLDivElement>(null);
-    const { listMessage, setListMessage, type, right, setRight, setOwner, setListMember } = useBoardContext();
+    const {
+        listMessage,
+        setListMessage,
+        type,
+        right,
+        setRight,
+        setOwner,
+        setListMember,
+        setRecommended,
+        setOpenRecommendation,
+    } = useBoardContext();
     const [initialLoading, setInitialLoading] = useState(false);
     const [fetchingMore, setFetchingMore] = useState(false);
     const oldScrollHeightRef = useRef(0);
@@ -99,6 +110,9 @@ function MainContent({
     useLayoutEffect(() => {
         setListMessage([]);
         setPage(1);
+        setRecommended({ input: '', reply: [] });
+        setOpenRecommendation(false);
+        divRef.current = null;
     }, [username]);
     const selectionRef = useRef<ReducerCall>({
         callStatus: CallStatus.IDLE,
@@ -145,7 +159,7 @@ function MainContent({
             }),
         );
     };
-    useLayoutEffect(() => {
+    useEffect(() => {
         const ws = WebSocketManager.getInstance();
         if (page === 1) {
             setInitialLoading(true);
@@ -265,6 +279,21 @@ function MainContent({
                             },
                             createAt: new Date().toISOString(),
                         };
+                        fetch('http://127.0.0.1:8000/suggest', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                            },
+                            body: JSON.stringify({ message: mesObj.data }),
+                        })
+                            .then((response) => response.json())
+                            .then((data) => {
+                                setRecommended({ input: data.input, reply: data.suggestions });
+                                setOpenRecommendation(true);
+                            })
+                            .catch((error) => {
+                                setOpenRecommendation(false);
+                            });
                         setNotify(true);
                         noTransfromRef.current = false;
                         setListMessage((prev) => [...prev, newMessage]);
@@ -328,6 +357,21 @@ function MainContent({
                             },
                             createAt: new Date().toISOString(),
                         };
+                        fetch('http://127.0.0.1:8000/suggest', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                            },
+                            body: JSON.stringify({ message: mesObj.data }),
+                        })
+                            .then((response) => response.json())
+                            .then((data) => {
+                                setRecommended({ input: data.input, reply: data.suggestions });
+                                setOpenRecommendation(true);
+                            })
+                            .catch((error) => {
+                                setOpenRecommendation(false);
+                            });
                         setNotify(true);
                         noTransfromRef.current = false;
                         setListMessage((prev) => [...prev, newMessage]);
@@ -357,11 +401,13 @@ function MainContent({
         };
     }, [page]);
 
-    useLayoutEffect(() => {
+    useEffect(() => {
+        console.log('useEffect 3');
         const div = divRef.current;
         if (!div) return;
         if (listMessage.length === 0) return;
-
+        console.log('chiều cao scrollHeight:', div.scrollHeight);
+        console.log('chiều cao clientHeight:', div.clientHeight);
         if (page === 1 && oneTimeRef.current === true && div.scrollHeight > div.clientHeight) {
             div.scrollTop = div.scrollHeight;
             oneTimeRef.current = false;
@@ -380,7 +426,7 @@ function MainContent({
                 });
                 noTransfromRef.current = true;
             }
-            if (div.scrollHeight - div.scrollTop > 2000) {
+            if (div.scrollHeight - div.scrollTop > 1000) {
                 setDownArrow(true);
             }
             if (div.scrollHeight - div.scrollTop < 700) {
@@ -392,7 +438,7 @@ function MainContent({
         return () => {
             div.removeEventListener('scroll', handleScroll);
         };
-    }, [listMessage, re]);
+    }, [listMessage]);
     useLayoutEffect(() => {
         if (page > 1 && noTransfromRef.current === true) {
             const div = divRef.current;
