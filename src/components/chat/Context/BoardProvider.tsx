@@ -3,6 +3,7 @@ import { BoardContextType } from '../../../model/BoardContextType';
 import { BoardProviderProps } from '../../../model/BoardProviderProps';
 import { ChatMessage } from '../../../model/ChatMessage';
 import { Member } from '../../../model/Member';
+import { AIRecommendation } from '../../../model/AIRecommendation';
 const BoardContext = createContext<BoardContextType | null>(null);
 
 function BoardProvider({ children }: BoardProviderProps) {
@@ -12,6 +13,8 @@ function BoardProvider({ children }: BoardProviderProps) {
     const [right, setRight] = useState<boolean>(false);
     const [owner, setOwner] = useState<string>('');
     const [listMember, setListMember] = useState<Member[]>([]);
+    const [recommended, setRecommended] = useState<AIRecommendation>({ input: '', reply: [] });
+    const [openRecommendation, setOpenRecommendation] = useState<boolean>(false);
     return (
         <BoardContext.Provider
             value={{
@@ -27,6 +30,10 @@ function BoardProvider({ children }: BoardProviderProps) {
                 setOwner,
                 listMember,
                 setListMember,
+                recommended,
+                setRecommended,
+                openRecommendation,
+                setOpenRecommendation,
             }}
         >
             {children}
