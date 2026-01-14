@@ -16,6 +16,7 @@ import CallModal from '../../../modal/CallModal';
 import ContentItem from './ContentItem';
 import { ChevronsDown } from 'lucide-react';
 import { set } from 'firebase/database';
+import { showMessageNotification } from '../../../../helps/notification';
 function MainContent({
     username,
     setRe,
@@ -294,6 +295,11 @@ function MainContent({
                             .catch((error) => {
                                 setOpenRecommendation(false);
                             });
+                        if (mesObj.type === 0) {
+                            showMessageNotification('Webchat', msg.data.name + ':' + mesObj.data, 'chat-message', {});
+                        } else {
+                            showMessageNotification('Webchat', msg.data.name + ':' + ' gửi file ', 'chat-message', {});
+                        }
                         setNotify(true);
                         noTransfromRef.current = false;
                         setListMessage((prev) => [...prev, newMessage]);
@@ -372,6 +378,11 @@ function MainContent({
                             .catch((error) => {
                                 setOpenRecommendation(false);
                             });
+                        if (mesObj.type === 0) {
+                            showMessageNotification('Webchat', msg.data.name + ':' + mesObj.data, 'chat-message', {});
+                        } else {
+                            showMessageNotification('Webchat', msg.data.name + ':' + ' gửi file ', 'chat-message', {});
+                        }
                         setNotify(true);
                         noTransfromRef.current = false;
                         setListMessage((prev) => [...prev, newMessage]);

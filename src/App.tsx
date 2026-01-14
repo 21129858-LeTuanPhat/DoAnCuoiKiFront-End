@@ -9,8 +9,6 @@ import { error } from 'console';
 import { setReCode } from './redux/userReducer';
 
 function App() {
-
-
     return (
         <div>
             <RouterProvider router={routers} />
