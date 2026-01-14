@@ -1,7 +1,7 @@
 import { Phone, VideoCall } from '@mui/icons-material'
 import { Avatar, Box, Button, Modal, Typography } from '@mui/material'
 import CloseIcon from '@mui/icons-material/Close';
-import React, { useEffect, useRef, useState } from 'react'
+import React, { useContext, useEffect, useRef, useState } from 'react'
 import { deepOrange } from '@mui/material/colors';
 import nokiaSound from '../../assets/sound/mew_meo.mp3'
 import { useDispatch, useSelector } from 'react-redux';
@@ -12,6 +12,7 @@ import WebSocketManager from '../../socket/WebSocketManager';
 import { TypeMess } from '../../model/ChatMessage';
 import { useBoardContext } from '../../hooks/useBoardContext';
 import { updateStatus, resetCall } from '../../redux/callReducer'
+import { CallContext } from '../../pages/ChatAppPage';
 
 export default function RingingModal({ open, onReload }: { open: boolean, onReload?: () => void }) {
     const [openModal, setModal] = useState<boolean>(open)
@@ -21,6 +22,8 @@ export default function RingingModal({ open, onReload }: { open: boolean, onRelo
     const callStore = useSelector((state: RootState) => state.call)
     console.log('type trong ringing nè', type)
     const selection = useSelector((state: RootState) => state.call)
+    const context = useContext(CallContext)
+    console.log('context trong ring ring', context?.refStatusIncall)
 
     useEffect(() => {
         audioRef.current = new Audio(nokiaSound)
@@ -49,9 +52,19 @@ export default function RingingModal({ open, onReload }: { open: boolean, onRelo
     };
 
     const handleAccept = () => {
+        if (!context) return;
+        console.log('nhấn accept')
         // dispatch(inCall())
-        dispatch(updateStatus({ status: CallStatus.CONNECTING }))
-        sendMessAccept()
+        // else {
+        if (!context.refStatusIncall.current) {
+            dispatch(updateStatus({ status: CallStatus.CONNECTING }))
+            sendMessAccept()
+            return
+        }
+        console.log('nhấn accept nhưng refStatusIncall = true ')
+
+        // }
+
         // sendSignal(callStore.caller as string, { type: callStore.callMode as string, roomID: callStore.roomID as string, status: CallStatus.ACCEPTED })
     }
     const sendMessAccept = () => {
@@ -69,6 +82,17 @@ export default function RingingModal({ open, onReload }: { open: boolean, onRelo
                 },
             }),
         );
+        console.log('send mess trong ring ring modal', JSON.stringify({
+            action: 'onchat',
+            data: {
+                event: 'SEND_CHAT',
+                data: {
+                    type: callStore.type,
+                    to: callStore.caller,
+                    mes: (JSON.stringify({ type: selection.callMode, data: callMess }))
+                },
+            },
+        }),)
     }
     const handleClose = () => {
         const ws = WebSocketManager.getInstance();

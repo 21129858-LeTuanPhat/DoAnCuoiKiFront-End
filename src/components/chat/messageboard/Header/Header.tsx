@@ -32,6 +32,8 @@ function Header({
     // const height = window.innerHeight - paddingTop * 2;
 
     const { selectedUser, type: typeMessage } = useBoardContext();
+    const { type } = useBoardContext();
+    console.log('selected user nè header', type)
     const [openPanel, setOpenPanel] = useState<boolean>(false);
     const [openAddUser, setOpenAddUser] = useState<boolean>(false);
     const hanldeVoice = () => {

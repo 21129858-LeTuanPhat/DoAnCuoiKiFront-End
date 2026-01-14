@@ -22,11 +22,13 @@ export default function Call({ setModal }: { setModal: React.Dispatch<React.SetS
     const containerRef = useRef<HTMLDivElement>(null);
 
     const [userCount, setUserCount] = useState(0);
+    const userCountRef = useRef(0); // Ref to track user count for closure access
     const refDuration = useRef<number>(0)
     const [callDuration, setCallDuration] = useState(0);
     const callStartTimeRef = useRef<number | null>(null);
     const [isWaiting, setIsWaiting] = useState(true);
     console.log('call Duration nè', callDuration)
+    console.log('số user hiện tại:', userCount)
     useEffect(() => {
 
         refDuration.current = callDuration
@@ -102,8 +104,6 @@ export default function Call({ setModal }: { setModal: React.Dispatch<React.SetS
                     randomRoomID(5),
                     localStorage.getItem('username') || 'haha',
                 );
-
-                // TRICK: Check global instance and destroy if exists before creating new one
                 if ((window as any).zegoCurrentInstance) {
                     console.log('Found zombie Zego instance, destroying...');
                     try {
@@ -130,11 +130,14 @@ export default function Call({ setModal }: { setModal: React.Dispatch<React.SetS
                         mode: ZegoUIKitPrebuilt.OneONoneCall,
                     },
                     showPreJoinView: false,
-                    maxUsers: 2,
+                    ...(callStore.type === 'people' && { maxUsers: 2 }),
+                    // maxUsers: 2,
                     ...(callStore.callMode === TypeMess.VOICE_CALL ? VOICE_CONFIG : VIDEO_CONFIG),
                     onUserJoin: (users: any[]) => {
                         console.log('Users joined:', users);
-                        const currentUserCount = users.length + 1;
+                        // Update ref properly
+                        userCountRef.current += users.length;
+                        const currentUserCount = userCountRef.current;
                         setUserCount(currentUserCount);
 
                         if (currentUserCount >= 2) {
@@ -145,7 +148,9 @@ export default function Call({ setModal }: { setModal: React.Dispatch<React.SetS
 
                     onUserLeave: (users: any[]) => {
                         console.log('Users left:', users);
-                        const currentUserCount = users.length;
+                        // Update ref properly
+                        userCountRef.current = Math.max(0, userCountRef.current - users.length);
+                        const currentUserCount = userCountRef.current;
                         console.log('current user count:', currentUserCount);
                         setUserCount(currentUserCount);
 
@@ -164,21 +169,23 @@ export default function Call({ setModal }: { setModal: React.Dispatch<React.SetS
                             }, 500);
                         }
                     },
-
                     onJoinRoom: () => {
                         console.log('Joined room successfully');
+                        // Reset count to 1 (self) when joining
                         setUserCount(1);
+                        userCountRef.current = 1;
                         userLeftFirstRef.current = false;
                     },
 
                     onLeaveRoom: () => {
                         console.log('Left room');
+                        const isGroupCall = callStore.type
                         hasLeftRoomRef.current = true;
                         console.log('userLeftFirstRef:', userLeftFirstRef.current);
-
                         stopTimer();
                         // setModal(false);
                         // Lazy Cleanup Strategy: Just HangUp and Close
+
                         setTimeout(() => {
                             if (zpRef.current && typeof zpRef.current.hangUp === 'function') {
                                 zpRef.current.hangUp();
@@ -196,6 +203,69 @@ export default function Call({ setModal }: { setModal: React.Dispatch<React.SetS
                         userLeftFirstRef.current = false;
                         dispatch(updateStatus({ status: CallStatus.ENDED }));
                     },
+                    // onLeaveRoom: () => {
+                    //     console.log('Left room');
+                    //     const isGroupCall = callStore.type;
+                    //     hasLeftRoomRef.current = true;
+                    //     console.log('userLeftFirstRef:', userLeftFirstRef.current);
+                    //     stopTimer();
+
+                    //     // Kiểm tra số lượng người dùng hiện tại
+                    //     const currentUserCount = userCount - 1;
+                    //     console.log('Số người còn lại sau khi rời:', currentUserCount);
+
+                    //     // Nếu là cuộc gọi nhóm
+                    //     if (isGroupCall === 'room') {
+                    //         // Logic: 
+                    //         // Nếu còn > 2 người (tức là sau khi mình đi còn >= 2 người): Không gửi ENDED.
+                    //         // Nếu còn <= 2 người (tức là chỉ có mình với 1 người, hoặc mình mình): Gửi ENDED để kết thúc cho người kia.
+                    //         // Lưu ý: userCountRef.current tại đây có thể chưa trừ mình ra? 
+                    //         // onLeaveRoom kích hoạt khi MÌNH LEAVE.
+                    //         // userCountRef là tổng số user hiện tại (bao gồm mình).
+
+                    //         const currentCount = userCountRef.current;
+                    //         console.log('Check Group Leave. Count:', currentCount);
+
+                    //         setTimeout(() => {
+                    //             if (zpRef.current && typeof zpRef.current.hangUp === 'function') {
+                    //                 zpRef.current.hangUp();
+                    //             }
+                    //             setModal(false);
+                    //         }, 300);
+
+                    //         if (currentCount <= 2) {
+                    //             // Còn 2 người (mình + bạn), mình rời -> Hủy Call
+                    //             if (!userLeftFirstRef.current) {
+                    //                 sendEnd();
+                    //                 zpRef.current.hangUp();
+                    //                 console.log('Room còn <= 2 người, gửi ENDED.');
+                    //             }
+                    //             dispatch(updateStatus({ status: CallStatus.ENDED }));
+                    //         } else {
+                    //             // Còn đông -> Chỉ rời
+                    //             console.log('Room còn đông (', currentCount, '), chỉ rời phòng.');
+                    //             dispatch(updateStatus({ status: CallStatus.ENDED }));
+                    //         }
+                    //     } else {
+                    //         // Cuộc gọi 1-1 (people)
+                    //         setTimeout(() => {
+                    //             if (zpRef.current && typeof zpRef.current.hangUp === 'function') {
+                    //                 zpRef.current.hangUp();
+                    //             }
+                    //             setModal(false);
+                    //         }, 300);
+
+                    //         if (!userLeftFirstRef.current) {
+                    //             sendEnd();
+                    //             console.log('Kết thúc cuộc gọi 1-1');
+                    //         }
+
+                    //         dispatch(updateStatus({ status: CallStatus.ENDED }));
+                    //     }
+
+                    //     console.log('Call duration:', callDuration, 'seconds');
+                    //     userLeftFirstRef.current = false;
+                    // },
                 });
             } catch (error) {
                 console.error('Error joining room:', error);

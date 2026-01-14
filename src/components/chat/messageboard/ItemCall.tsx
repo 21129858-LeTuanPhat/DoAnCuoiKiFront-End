@@ -25,7 +25,7 @@ export default function ContentItemCall({ message, history }: { message: ChatMes
     }
 
     const { setModalCalling, setTypeCalling } = context
-    console.log('status trong call nè', message.mes.data)
+    // console.log('status trong call nè', message.mes.data)
     const formatTime = (seconds: number) => {
         const hrs = Math.floor(seconds / 3600);
         const mins = Math.floor((seconds % 3600) / 60);

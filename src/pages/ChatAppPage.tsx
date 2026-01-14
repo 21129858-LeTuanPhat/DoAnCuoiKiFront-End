@@ -7,7 +7,7 @@ import { useBoardContext } from '../hooks/useBoardContext';
 import { useDispatch, useSelector } from 'react-redux';
 import { RootState } from '../redux/store';
 import { Navigate, useNavigate } from 'react-router-dom';
-import { useEffect, useLayoutEffect, useState } from 'react';
+import { MutableRefObject, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { incomingCall } from '../redux/callReducer';
 import WebSocketManager from '../socket/WebSocketManager';
 import { ChatMessage, ISendMessage, TypeMess } from '../model/ChatMessage';
@@ -24,6 +24,7 @@ import { createContext } from 'react';
 export interface ICallContext {
     setModalCalling: React.Dispatch<React.SetStateAction<boolean>>;
     setTypeCalling: React.Dispatch<React.SetStateAction<number>>;
+    refStatusIncall: MutableRefObject<boolean>;
 }
 export const CallContext = createContext<ICallContext | null>(null);
 
@@ -37,6 +38,11 @@ function Home() {
 
     const user = useSelector((state: RootState) => state.user);
     const navigate = useNavigate();
+    const refStatusIncall = useRef<boolean>(false)
+    useEffect(() => {
+        console.log('refStatusIncall trong chat app', refStatusIncall)
+
+    }, [refStatusIncall])
     console.log('selected user home' + selectedUser);
     // useLayoutEffect(() => {
     //     if (!user.username) {
@@ -49,37 +55,36 @@ function Home() {
 
     return (
         <>
-            {callStore.callStatus === CallStatus.RINGING && <RingingModal open={true} onReload={() => setRe(prev => prev + 1)} />}
-            {selection.callStatus === CallStatus.IN_CALL && <CallModalPage></CallModalPage>}
-            {selection.callStatus === CallStatus.ENDED && <EndCallModal open={true} onReload={() => setRe(prev => prev + 1)}></EndCallModal>}
-            {selection.callStatus === CallStatus.CANCEL && <CancelModal open={true} onReload={() => setRe(prev => prev + 1)}></CancelModal>}
-            {selection.callStatus === CallStatus.REJECT && (<RejectModal open={true} onReload={() => setRe(prev => prev + 1)}></RejectModal>)}
-            {(selection.callStatus === CallStatus.TIMEOUT) && <TimeOutModal open={true} onReload={() => setRe(prev => prev + 1)}></TimeOutModal>}
+            <CallContext.Provider value={{ setModalCalling, setTypeCalling, refStatusIncall }}>
+                {callStore.callStatus === CallStatus.RINGING && <RingingModal open={true} onReload={() => setRe(prev => prev + 1)} />}
+                {selection.callStatus === CallStatus.IN_CALL && <CallModalPage></CallModalPage>}
+                {selection.callStatus === CallStatus.ENDED && <EndCallModal open={true} onReload={() => setRe(prev => prev + 1)}></EndCallModal>}
+                {selection.callStatus === CallStatus.CANCEL && <CancelModal open={true} onReload={() => setRe(prev => prev + 1)}></CancelModal>}
+                {selection.callStatus === CallStatus.REJECT && (<RejectModal open={true} onReload={() => setRe(prev => prev + 1)}></RejectModal>)}
+                {(selection.callStatus === CallStatus.TIMEOUT) && <TimeOutModal open={true} onReload={() => setRe(prev => prev + 1)}></TimeOutModal>}
 
-            {modalCalling && <CallModal open={modalCalling} setOpen={setModalCalling} typeCall={typeCalling} />}
-            <div className="flex h-screen ">
-                <aside className="hidden md:block w-[25%] relative">
-                    <SideBar />
-                </aside>
-                <main className="w-[75%]  md:block flex flex-col bg-[#f0f4fa] shadow-[0_4px_6px_-1px_rgba(0,0,0,0.2)]">
-                    {selectedUser === '' ? (
-                        <Welcome />
-                    ) : (
-                        <div>
-                            <CallContext.Provider value={{ setModalCalling, setTypeCalling }}>
+                {modalCalling && <CallModal open={modalCalling} setOpen={setModalCalling} typeCall={typeCalling} />}
+                <div className="flex h-screen ">
+                    <aside className="hidden md:block w-[25%] relative">
+                        <SideBar />
+                    </aside>
+                    <main className="w-[75%]  md:block flex flex-col bg-[#f0f4fa] shadow-[0_4px_6px_-1px_rgba(0,0,0,0.2)]">
+                        {selectedUser === '' ? (
+                            <Welcome />
+                        ) : (
+                            <div>
                                 <Header
                                     username={selectedUser}
                                     setOpen={setModalCalling}
                                     setTypeCalling={setTypeCalling}
                                 />
-
                                 <MainContent key={re} re={re} username={selectedUser} setRe={setRe} />
                                 <Footer username={selectedUser} />
-                            </CallContext.Provider>
-                        </div>
-                    )}
-                </main>
-            </div>
+                            </div>
+                        )}
+                    </main>
+                </div>
+            </CallContext.Provider>
         </>
     );
 }

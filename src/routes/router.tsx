@@ -15,7 +15,7 @@ export const routers = createBrowserRouter([
                 element: <RootLayout />,
                 children: [
                     { path: '/', element: <Home /> },
-                    { path: '/call-modal', element: <CallModalPage /> },
+                    { path: '/call-modal', element: <CallModalPage /> }
                 ]
             }
         ]

@@ -22,6 +22,7 @@ export default function CallModal({
     const { type } = useBoardContext();
     const callStore = useSelector((state: RootState) => state.call)
     const dispatch = useDispatch()
+
     const refSendMess = useRef<ReducerCall>({
         callStatus: CallStatus.IDLE,
         isIncoming: false,
@@ -85,7 +86,7 @@ export default function CallModal({
                 sendTimeout()
                 dispatch(updateStatus({ status: CallStatus.TIMEOUT }))
                 setOpen(false)
-            }, 45000)
+            }, 1000000000)
             return () => clearTimeout(timer)
         }
     }, [open])
@@ -134,8 +135,6 @@ export default function CallModal({
             }),
         );
     };
-
-
     useEffect(() => {
         if (open) {
             sendMessage()
