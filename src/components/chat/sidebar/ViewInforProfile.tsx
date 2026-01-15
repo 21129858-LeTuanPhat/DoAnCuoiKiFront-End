@@ -57,8 +57,11 @@ export function ViewInforProfile({
     if (!profileInfor) return <div></div>;
 
     return (
-        <div className="relative bg-black/40  flex flex-col items-center justify-between">
-            <div className="flex flex-col bg-white  max-w-md max-h-lg rounded-xl shadow-lg p-4">
+        <div className="absolute inset-0 z-50 bg-black/40  flex flex-col items-center justify-center p-4">
+            <div
+                className="flex flex-col bg-white  max-w-md max-h-lg rounded-xl shadow-lg p-4         transform transition-all duration-300
+        scale-100 opacity-100"
+            >
                 <div className="flex justify-between items-center">
                     <h2 className="text-xl font-semibold">Thông tin cá nhân</h2>
                     <CircleX className="cursor-pointer" onClick={onClose} />
@@ -71,8 +74,6 @@ export function ViewInforProfile({
                             alt="avatar"
                             className="w-20 h-20 rounded-full object-cover border-4 border-white shadow-lg"
                         />
-
-                        <div className="absolute right-0 bottom-0 p-2 rounded-full bg-blue-100 cursor-pointer"></div>
                     </div>
 
                     <div className="flex flex-1 flex-col">

@@ -57,7 +57,7 @@ export function InforProfile({ onClose, username }: { onClose: () => void; usern
 
                     <div className="flex flex-1 flex-col">
                         <p className="text-white font-semibold text-2xl">{username}</p>
-                        <p className="text-gray-300 text-md opacity-70">Xin chào! Đây là trang cá nhân của tôi.</p>
+                        <p className="text-gray-300 text-md opacity-70">{profileInfor?.introduce}</p>
                     </div>
 
                     <div className="flex items-center">

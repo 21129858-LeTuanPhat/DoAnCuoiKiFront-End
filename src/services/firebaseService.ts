@@ -233,16 +233,19 @@ async function createStory({
     imageUrl,
     content,
     username,
+    audioUrl,
 }: {
     imageUrl: string | null | undefined;
     content: string;
     username: string;
+    audioUrl: string | null | undefined;
 }) {
     const key = `${username}_${Date.now()}`;
     await set(ref(db, `stories/${key}`), {
         id: key,
         ownerUsername: username,
         imageUrl: imageUrl || '',
+        audioUrl: audioUrl || '',
         content,
         createAt: Date.now(),
         expireAt: Date.now() + 24 * 60 * 60 * 1000,

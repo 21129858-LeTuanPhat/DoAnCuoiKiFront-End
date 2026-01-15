@@ -14,8 +14,16 @@ import { REACT_BASE_URL } from '../../../../config/utils';
 import { useLocation, useNavigate } from 'react-router-dom';
 import CallModal from '../../../modal/CallModal';
 import ContentItem from './ContentItem';
-function MainContent({ username, setRe, re }: { username: any, setRe: React.Dispatch<React.SetStateAction<number>>, re: any }) {
-
+import { ChevronsDown } from 'lucide-react';
+function MainContent({
+    username,
+    setRe,
+    re,
+}: {
+    username: any;
+    setRe: React.Dispatch<React.SetStateAction<number>>;
+    re: any;
+}) {
     interface CallHistoryState {
         roomID: string;
         callMode: number;
@@ -196,11 +204,11 @@ function MainContent({ username, setRe, re }: { username: any, setRe: React.Disp
                                 console.log('Nhận được IN_CALL từ người gửi');
                                 break;
                             case CallStatus.ENDED:
-                                console.log('trong switch nè', mesObj.data.status)
-                                console.log(JSON.parse(decodeURIComponent(msg.data.mes)))
+                                console.log('trong switch nè', mesObj.data.status);
+                                console.log(JSON.parse(decodeURIComponent(msg.data.mes)));
 
-                                dispatch(updateStatus({ status: CallStatus.ENDED }))
-                                console.log('Nhận được end từ người gửi')
+                                dispatch(updateStatus({ status: CallStatus.ENDED }));
+                                console.log('Nhận được end từ người gửi');
                                 break;
                             case CallStatus.CANCEL:
                                 dispatch(updateStatus({ status: CallStatus.CANCEL }));

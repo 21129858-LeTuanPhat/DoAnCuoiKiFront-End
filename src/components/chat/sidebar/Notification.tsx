@@ -10,6 +10,8 @@ import { ViewInforProfile } from './ViewInforProfile';
 import { avatarDefault } from '../../../config/utils';
 import { ListConversationContext } from '../Context/ListConversation';
 import { set } from 'firebase/database';
+import { useBoardContext } from '../../../hooks/useBoardContext';
+import { Member } from '../../../model/Member';
 
 function Notification({ onClose, onCloseProfile }: { onClose: () => void; onCloseProfile: () => void }) {
     const [tab, setTab] = useState<'sent' | 'received'>('sent');
@@ -20,6 +22,7 @@ function Notification({ onClose, onCloseProfile }: { onClose: () => void; onClos
     const typeRef = useRef<string | null>(null);
     const statusRef = useRef<ResponseStatus | null>(null);
     const { setUsers } = useContext(ListConversationContext)!;
+    const { setSelectedUser, setType, setListMember } = useBoardContext();
 
     const handleViewProfile = (username: string, type: string, status: ResponseStatus) => {
         usernameSelectedRef.current = username;
@@ -90,6 +93,11 @@ function Notification({ onClose, onCloseProfile }: { onClose: () => void; onClos
                 );
             }
             setUsers((prev) => [...prev, { id: request.username, name: request.username, type: 1 }]);
+            const member: Member = { id: Date.now(), name: request.username };
+            console.log('member added to group:', member);
+            setSelectedUser(request.username);
+            setType('room');
+            setListMember((prev) => [...prev, member]);
         } else {
             if (changeStatus === 'connected') {
                 webSocket.sendMessage(
@@ -110,6 +118,7 @@ function Notification({ onClose, onCloseProfile }: { onClose: () => void; onClos
                         },
                     }),
                 );
+
                 setUsers((prev) => [...prev, { id: request.username, name: request.username, type: 0 }]);
             }
         }

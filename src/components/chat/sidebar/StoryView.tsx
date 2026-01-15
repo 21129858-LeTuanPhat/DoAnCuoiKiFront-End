@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import Story from '../../../model/Story';
 import { avatarDefault, formatDate, parseTimeAgo } from '../../../config/utils';
 import { CircleChevronLeftIcon, CircleChevronRight, CircleChevronRightIcon, CircleX, Eye, Heart } from 'lucide-react';
@@ -12,9 +12,11 @@ function StoryViewer({ stories, onClose, index }: { stories: Story[]; onClose: (
     const [progress, setProgress] = useState(0);
     const user = useSelector((state: RootState) => state.user);
     const { setSelectedUser, setType } = useBoardContext();
+    const audioRef = useRef<HTMLAudioElement | null>(null);
 
     const [like, setLike] = useState(false);
     const currentStory = stories[currentIndex];
+
     console.log('currentStory:', currentStory);
 
     const handeFocusInputMessage = () => {
@@ -43,11 +45,43 @@ function StoryViewer({ stories, onClose, index }: { stories: Story[]; onClose: (
         viewStory(currentStory.id);
     }, [currentStory.id]);
 
+    useEffect(() => {
+        const handlePlayAudio = async () => {
+            if (!currentStory.audioUrl) return;
+
+            if (audioRef.current) {
+                audioRef.current.pause();
+            }
+
+            const audio = new Audio(currentStory.audioUrl);
+            audio.loop = true;
+
+            audioRef.current = audio;
+            try {
+                await audio.play();
+            } catch (err) {
+                console.warn('Audio bị error', err);
+            }
+        };
+        handlePlayAudio();
+
+        return () => {
+            if (audioRef.current) {
+                audioRef.current.pause();
+                audioRef.current.currentTime = 0;
+            }
+        };
+    }, [currentStory.id]);
+
     const handleNext = () => {
         if (currentIndex < stories.length - 1) {
             setCurrentIndex(currentIndex + 1);
             setProgress(0);
         } else {
+            if (audioRef.current) {
+                audioRef.current.pause();
+                audioRef.current.currentTime = 0;
+            }
             onClose();
         }
     };
@@ -145,6 +179,10 @@ function StoryViewer({ stories, onClose, index }: { stories: Story[]; onClose: (
 
                             <CircleX color="gray" size={25} onClick={onClose} className="cursor-pointer" />
                         </div>
+
+                        <div className="z-50 flex justify-center ">
+                            <p className="text-white font-bold text-lg">{currentStory.content}</p>
+                        </div>
                     </div>
 
                     <div
@@ -194,7 +232,7 @@ function FlyingHeartItem({ heart }: { heart: FlyingHeart }) {
     const [fly, setFly] = useState(false);
 
     useEffect(() => {
-        requestAnimationFrame(() => setFly(true));
+        setFly(true);
     }, []);
 
     return (
@@ -203,13 +241,11 @@ function FlyingHeartItem({ heart }: { heart: FlyingHeart }) {
                 absolute bottom-24
                 text-red-500 fill-red-500
                 transition-all duration-1000 ease-out
-                ${fly ? '-translate-y-40 opacity-0 scale-125 rotate-12' : 'translate-y-0 opacity-100 scale-100'}
+                left-[${heart.left}%]
+                w-[${heart.size}px]
+                h-[${heart.size}px]
+                ${fly ? '-translate-y-40 opacity-0 scale-125 ' : 'translate-y-0 opacity-100 scale-100'}
             `}
-            style={{
-                left: `${heart.left}%`,
-                width: heart.size,
-                height: heart.size,
-            }}
         />
     );
 }
