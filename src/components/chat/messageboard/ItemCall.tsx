@@ -113,7 +113,7 @@ export default function ContentItemCall({ message, history }: { message: ChatMes
                 <div className="flex-1">
                     <h2 className="text-sm font-semibold text-gray-900 mb-1">
                         {
-                            lastHistory?.status
+                            lastHistory?.status || 'Cuộc gọi đang diễn ra'
                         }
                     </h2>
                     <p className="text-sm text-gray-500">
@@ -121,10 +121,12 @@ export default function ContentItemCall({ message, history }: { message: ChatMes
                     </p>
                 </div>
             </div>
-            {/* Nút Gọi lại */}
-            <button className="w-full bg-gray-100 hover:bg-gray-200 text-gray-900 font-medium py-2 px-4 rounded-xl text-sm transition-colors" onClick={handleCall}>
-                Gọi lại
-            </button>
+            {/* Nút Gọi lại - Chỉ hiển thị cho cuộc gọi 1-1 */}
+            {type === 'people' && (
+                <button className="w-full bg-gray-100 hover:bg-gray-200 text-gray-900 font-medium py-2 px-4 rounded-xl text-sm transition-colors" onClick={handleCall}>
+                    Gọi lại
+                </button>
+            )}
         </div>
     </div>) : (<div className="mt-4 flex items-end w-full justify-end">
 
@@ -144,7 +146,7 @@ export default function ContentItemCall({ message, history }: { message: ChatMes
                 <div className="flex-1">
                     <h2 className="text-sm font-semibold text-gray-900 mb-1">
                         {
-                            lastHistory?.status
+                            lastHistory?.status || 'Cuộc gọi đang diễn ra'
                         }
                     </h2>
                     <p className="text-sm text-gray-500">
@@ -152,10 +154,12 @@ export default function ContentItemCall({ message, history }: { message: ChatMes
                     </p>
                 </div>
             </div>
-            {/* Nút Gọi lại */}
-            <button className="w-full bg-gray-100 hover:bg-gray-200 text-gray-900 font-medium py-2 px-4 rounded-xl text-sm transition-colors" onClick={handleCall}>
-                Gọi lại
-            </button>
+            {/* Nút Gọi lại - Chỉ hiển thị cho cuộc gọi 1-1 */}
+            {type === 'people' && (
+                <button className="w-full bg-gray-100 hover:bg-gray-200 text-gray-900 font-medium py-2 px-4 rounded-xl text-sm transition-colors" onClick={handleCall}>
+                    Gọi lại
+                </button>
+            )}
         </div>
     </div>)) : (username !== message.name ? (<div className="mt-4 flex items-end w-full ">
         <img
@@ -171,7 +175,7 @@ export default function ContentItemCall({ message, history }: { message: ChatMes
                 <div className="flex-1">
                     <h2 className="text-sm font-semibold text-gray-900 mb-1">
                         {
-                            lastHistory?.status
+                            lastHistory?.status || 'Cuộc gọi đang diễn ra'
                         }
                     </h2>
                     <p className="text-sm text-gray-500">
@@ -179,10 +183,12 @@ export default function ContentItemCall({ message, history }: { message: ChatMes
                     </p>
                 </div>
             </div>
-            {/* Nút Gọi lại */}
-            <button className="w-full bg-gray-100 hover:bg-gray-200 text-gray-900 font-medium py-2 px-4 rounded-xl text-sm transition-colors">
-                Gọi lại
-            </button>
+            {/* Nút Gọi lại - Chỉ hiển thị cho cuộc gọi 1-1 */}
+            {type === 'people' && (
+                <button className="w-full bg-gray-100 hover:bg-gray-200 text-gray-900 font-medium py-2 px-4 rounded-xl text-sm transition-colors" onClick={handleCall}>
+                    Gọi lại
+                </button>
+            )}
         </div>
     </div>) : (<div className="mt-4 flex items-end w-full justify-end">
         <img
@@ -198,7 +204,7 @@ export default function ContentItemCall({ message, history }: { message: ChatMes
                 <div className="flex-1">
                     <h2 className="text-sm font-semibold text-gray-900 mb-1">
                         {
-                            lastHistory?.status
+                            lastHistory?.status || 'Cuộc gọi đang diễn ra'
                         }
                     </h2>
                     <p className="text-sm text-gray-500">
@@ -206,11 +212,13 @@ export default function ContentItemCall({ message, history }: { message: ChatMes
                     </p>
                 </div>
             </div>
-            {/* Nút Gọi lại */}
-            <button className="w-full bg-gray-100 hover:bg-gray-200 text-gray-900 font-medium py-2 px-4 rounded-xl text-sm transition-colors">
-                Gọi lại
-            </button>
+            {/* Nút Gọi lại - Chỉ hiển thị cho cuộc gọi 1-1 */}
+            {type === 'people' && (
+                <button className="w-full bg-gray-100 hover:bg-gray-200 text-gray-900 font-medium py-2 px-4 rounded-xl text-sm transition-colors" onClick={handleCall}>
+                    Gọi lại
+                </button>
+            )}
         </div>
     </div>))
-
 }
+

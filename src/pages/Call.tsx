@@ -27,14 +27,14 @@ export default function Call({ setModal }: { setModal: React.Dispatch<React.SetS
     const [callDuration, setCallDuration] = useState(0);
     const callStartTimeRef = useRef<number | null>(null);
     const [isWaiting, setIsWaiting] = useState(true);
-    console.log('call Duration nè', callDuration)
-    console.log('số user hiện tại:', userCount)
+    // console.log('call Duration nè', callDuration)
+    // console.log('số user hiện tại:', userCount)
     useEffect(() => {
 
         refDuration.current = callDuration
     }, [callDuration])
     const dispatch = useDispatch();
-    console.log('ref duration nè', refDuration)
+    // console.log('ref duration nè', refDuration)
 
     const startTimer = () => {
         if (!callStartTimeRef.current) {
@@ -56,14 +56,23 @@ export default function Call({ setModal }: { setModal: React.Dispatch<React.SetS
     };
 
     const sendEnd = () => {
-        console.log('gửi kết thúc cuộc gọi nè')
+        console.log('gửi kết thúc cuộc gọi nè');
         const ws = WebSocketManager.getInstance();
-        const callMess = {
+
+        // Thêm field 'from' nếu là room call
+        const callMess = callStore.type === 'room' ? {
             status: CallStatus.ENDED,
             roomURL: `/call?roomID=${callStore.roomID}&call_mode=${callStore.callMode}`,
             roomID: callStore.roomID,
-            duration: refDuration.current
+            duration: refDuration.current,
+            from: callStore.caller, // Người gọi ban đầu
+        } : {
+            status: CallStatus.ENDED,
+            roomURL: `/call?roomID=${callStore.roomID}&call_mode=${callStore.callMode}`,
+            roomID: callStore.roomID,
+            duration: refDuration.current,
         };
+
         ws.sendMessage(
             JSON.stringify({
                 action: 'onchat',
@@ -170,7 +179,7 @@ export default function Call({ setModal }: { setModal: React.Dispatch<React.SetS
                         }
                     },
                     onJoinRoom: () => {
-                        console.log('Joined room successfully');
+                        // console.log('Joined room successfully');
                         // Reset count to 1 (self) when joining
                         setUserCount(1);
                         userCountRef.current = 1;
@@ -178,25 +187,42 @@ export default function Call({ setModal }: { setModal: React.Dispatch<React.SetS
                     },
 
                     onLeaveRoom: () => {
-                        console.log('Left room');
-                        const isGroupCall = callStore.type
                         hasLeftRoomRef.current = true;
                         console.log('userLeftFirstRef:', userLeftFirstRef.current);
                         stopTimer();
-                        // setModal(false);
-                        // Lazy Cleanup Strategy: Just HangUp and Close
 
+                        // Lazy Cleanup Strategy: Just HangUp and Close
                         setTimeout(() => {
                             if (zpRef.current && typeof zpRef.current.hangUp === 'function') {
                                 zpRef.current.hangUp();
                             }
                             setModal(false);
                         }, 300);
-                        if (!userLeftFirstRef.current) {
-                            sendEnd();
-                            console.log('thằng rời nè');
+
+                        // Phân biệt logic theo type
+                        if (callStore.type === 'room') {
+                            // ROOM CALL: Chỉ gửi ENDED khi còn <= 2 người
+                            const currentCount = userCountRef.current;
+                            console.log('Room call ending. User count:', currentCount);
+
+                            if (currentCount <= 2 && !userLeftFirstRef.current) {
+                                // Còn 2 người (mình + 1 người khác), mình rời → Gửi ENDED
+                                sendEnd();
+                                console.log('Room còn <= 2 người, gửi ENDED');
+                            } else if (currentCount > 2) {
+                                // Còn > 2 người → Không gửi ENDED
+                                console.log('Room còn', currentCount, 'người, KHÔNG gửi ENDED');
+                            } else {
+                                console.log('Room: Người bị động, không gửi ENDED');
+                            }
                         } else {
-                            console.log('thằng bị động');
+                            // PEOPLE CALL: Logic cũ (luôn gửi ENDED nếu là người chủ động rời)
+                            if (!userLeftFirstRef.current) {
+                                sendEnd();
+                                console.log('People call: Gửi ENDED');
+                            } else {
+                                console.log('People call: Người bị động, không gửi');
+                            }
                         }
 
                         console.log('Call duration:', callDuration, 'seconds');

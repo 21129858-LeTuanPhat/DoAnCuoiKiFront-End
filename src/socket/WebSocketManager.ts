@@ -41,7 +41,9 @@ class WebSocketManager {
             };
             this.socket.onclose = () => {
                 console.log('đóng kết nối');
+
                 this.handleReconnect();
+
             };
         });
     }
@@ -64,7 +66,6 @@ class WebSocketManager {
     }
 
     public reCode() {
-        // this.unSubcribe('RE_LOGIN');
         console.log('dis connet rồi');
         this.unSubcribe('RE_LOGIN');
         this.onMessage('RE_LOGIN', (mes: any) => {
@@ -80,14 +81,17 @@ class WebSocketManager {
                 window.location.href = '/login';
             }
         });
+        const user = localStorage.getItem('username');
+        const code = localStorage.getItem('reCode');
+        if (!user || !code) return;
         this.sendMessage(
             JSON.stringify({
                 action: 'onchat',
                 data: {
                     event: 'RE_LOGIN',
                     data: {
-                        user: localStorage.getItem('username'),
-                        code: localStorage.getItem('reCode'),
+                        user: user,
+                        code: code,
                     },
                 },
             }),
@@ -113,9 +117,6 @@ class WebSocketManager {
                             console.log('Gửi message sau khi auth thành công');
                         }
                     }, 1000)
-
-
-                    // this.handleReconnect();
                 }
             } catch (err) {
                 console.error('Reconnect thất bại, không gửi được message', err);

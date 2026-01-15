@@ -100,11 +100,19 @@ export default function CallModal({
     const { selectedUser } = useBoardContext();
     const username = localStorage.getItem('username');
     console.log('room id:', roomID, ' name', username, 'selected user', selectedUser, ' type: ', type);
-    const callMess = {
+
+    // Thêm field 'from' nếu là room call
+    const callMess = type === 'room' ? {
+        status: CallStatus.CALLING,
+        roomURL: `/call?roomID=${roomID}&call_mode=${typeCall}`,
+        roomID: roomID,
+        from: username, // Người bắt đầu gọi
+    } : {
         status: CallStatus.CALLING,
         roomURL: `/call?roomID=${roomID}&call_mode=${typeCall}`,
         roomID: roomID,
     };
+
     const audioRef = useRef<HTMLAudioElement | null>(null);
     useEffect(() => {
         audioRef.current = new Audio(nokiaSound);
@@ -149,8 +157,6 @@ export default function CallModal({
         dispatch(updateStatus({ status: CallStatus.CANCEL }));
         setOpen(false);
     };
-
-    //className='min-h-screen bg-black flex flex-col items-center justify-between p-8'
 
     return (
         <>

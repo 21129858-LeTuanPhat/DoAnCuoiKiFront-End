@@ -1,6 +1,7 @@
-import { PanelLeft, UserPlus } from 'lucide-react';
+import { PanelLeft, UserPlus, MapPin } from 'lucide-react';
+import LocationModal from '../../../modal/LocationModal';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faPhone, faVideo } from '@fortawesome/free-solid-svg-icons';
+import { faLocationCrosshairs, faLocationDot, faPhone, faVideo } from '@fortawesome/free-solid-svg-icons';
 import { REACT_BASE_URL } from '../../../../config/utils';
 import { SetStateAction, useEffect, useState } from 'react';
 import CallModal from '../../../modal/CallModal';
@@ -26,16 +27,13 @@ function Header({
     setOpen: React.Dispatch<React.SetStateAction<boolean>>;
     setTypeCalling: React.Dispatch<React.SetStateAction<number>>;
 }) {
-    // const paddingTop = 50;
-    // const paddingLeft = 100;
-    // const width = window.innerWidth - paddingLeft * 2;
-    // const height = window.innerHeight - paddingTop * 2;
-
     const { selectedUser, type: typeMessage } = useBoardContext();
     const { type } = useBoardContext();
     console.log('selected user nè header', type)
     const [openPanel, setOpenPanel] = useState<boolean>(false);
     const [openAddUser, setOpenAddUser] = useState<boolean>(false);
+    const [openLocationModal, setOpenLocationModal] = useState<boolean>(false);
+
     const hanldeVoice = () => {
         setOpen(true);
         setTypeCalling(TypeMess.VOICE_CALL);
@@ -52,6 +50,7 @@ function Header({
     }, [selector.callStatus]);
     return (
         <>
+            {openLocationModal && <LocationModal isOpen={openLocationModal} onClose={() => setOpenLocationModal(false)} />}
             {openAddUser && <ModalAddUser openAddUser={openAddUser} setOpenAddUser={setOpenAddUser} />}
             {openPanel && <ListUserGroup openPanel={openPanel} setOpenPanel={setOpenPanel} />}
             <div className="flex items-center h-full justify-between px-4 py-3 bg-white overflow-auto">
@@ -83,6 +82,14 @@ function Header({
                             <UserPlus className="text-lg text-blue-600 text-[20px]" />
                         </button>
                     )}
+                    <button
+                        className="w-10 h-10 flex items-center justify-center rounded-full hover:bg-gray-200 transition"
+                        onClick={() => setOpenLocationModal(true)}
+                        title="Vị trí của bạn"
+                    >
+                        <FontAwesomeIcon icon={faLocationDot} className="text-lg text-blue-600 text-[20px]" />
+
+                    </button>
                     <button
                         className="w-10 h-10 flex items-center justify-center rounded-full hover:bg-gray-200 transition"
                         onClick={hanldeVoice}

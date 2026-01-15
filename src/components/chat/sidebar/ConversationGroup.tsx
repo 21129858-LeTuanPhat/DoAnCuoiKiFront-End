@@ -22,21 +22,21 @@ function ConversationGroup({ users }: { users: User[] }) {
         if (users.length === 0) return;
 
         const fetchProfiles = async () => {
-            console.log('Fetching group profiles...');
+            // console.log('Fetching group profiles...');
             const groups = await getAllInforGroup();
-            console.log('All group profiles:', groups);
+            // console.log('All group profiles:', groups);
 
             const updateGroups: InforGroup[] = users.map((group) => {
                 const groupProfile = groups?.find((g) => g.name === group.name);
                 return groupProfile
                     ? groupProfile
                     : {
-                          name: group.name,
-                          description: '',
-                          adminUsername: group.name,
-                          createAt: Date.now(),
-                          menbersCount: 1,
-                      };
+                        name: group.name,
+                        description: '',
+                        adminUsername: group.name,
+                        createAt: Date.now(),
+                        menbersCount: 1,
+                    };
             });
             setListGroup(updateGroups ?? []);
         };

@@ -34,7 +34,15 @@ export default function RingingModal({ open, onReload }: { open: boolean, onRelo
             audioRef.current?.pause()
         }
     }, [])
-    const callMess = {
+
+    // Thêm field 'from' nếu là room call
+    const username = localStorage.getItem('username');
+    const callMess = callStore.type === 'room' ? {
+        status: CallStatus.CONNECTING,
+        roomURL: `/call?roomID=${selection.roomID}&call_mode=${selection.callMode}`,
+        roomID: selection.roomID,
+        from: callStore.caller, // Người gọi ban đầu (KHÔNG phải người accept)
+    } : {
         status: CallStatus.CONNECTING,
         roomURL: `/call?roomID=${selection.roomID}&call_mode=${selection.callMode}`,
         roomID: selection.roomID,
@@ -51,22 +59,7 @@ export default function RingingModal({ open, onReload }: { open: boolean, onRelo
         roomID: selection.roomID,
     };
 
-    const handleAccept = () => {
-        if (!context) return;
-        console.log('nhấn accept')
-        // dispatch(inCall())
-        // else {
-        if (!context.refStatusIncall.current) {
-            dispatch(updateStatus({ status: CallStatus.CONNECTING }))
-            sendMessAccept()
-            return
-        }
-        console.log('nhấn accept nhưng refStatusIncall = true ')
 
-        // }
-
-        // sendSignal(callStore.caller as string, { type: callStore.callMode as string, roomID: callStore.roomID as string, status: CallStatus.ACCEPTED })
-    }
     const sendMessAccept = () => {
         const ws = WebSocketManager.getInstance();
         ws.sendMessage(
@@ -94,6 +87,22 @@ export default function RingingModal({ open, onReload }: { open: boolean, onRelo
             },
         }),)
     }
+    const handleAccept = () => {
+        if (!context) return;
+        console.log('nhấn accept')
+        // dispatch(inCall())
+        // else {
+        if (!context.refStatusIncall.current) {
+            dispatch(updateStatus({ status: CallStatus.CONNECTING }))
+            console.error('chuyển sendMessAccept')
+            sendMessAccept()
+            return
+        }
+        else {
+            console.error('nhấn accept nhưng refStatusIncall = true ')
+            dispatch(updateStatus({ status: CallStatus.IN_CALL }))
+        }
+    }
     const handleClose = () => {
         const ws = WebSocketManager.getInstance();
         ws.sendMessage(
@@ -109,20 +118,9 @@ export default function RingingModal({ open, onReload }: { open: boolean, onRelo
                 },
             }),
         );
-        console.log('reject nè', {
-            type: selection.callMode, data: JSON.stringify({
-                action: 'onchat',
-                data: {
-                    event: 'SEND_CHAT',
-                    data: {
-                        type: callStore.type,
-                        to: selection.caller,
-                        mes: (JSON.stringify({ type: selection.callMode, data: messReject })),
-                    },
-                },
-            })
-        })
+
         dispatch(resetCall())
+        if (context) context.refStatusIncall.current = false;
         if (onReload) onReload()
         setModal(false)
     }

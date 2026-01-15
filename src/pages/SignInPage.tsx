@@ -11,11 +11,11 @@ export default function SignInPage() {
     const [user, setUser] = useState<UserLogin>({ username: '', password: '' });
     const reducerUser = useSelector((state: RootState) => state.user)
     const navigate = useNavigate()
-    useEffect(() => {
-        if (reducerUser.username) {
-            navigate('/', { replace: true })
-        }
-    }, [reducerUser.username, navigate])
+    // useEffect(() => {
+    //     if (reducerUser.username) {
+    //         navigate('/', { replace: true })
+    //     }
+    // }, [reducerUser.username, navigate])
     return (
         <>
             <div className="login-layout w-full" style={{ backgroundColor: '#e8f3ff', height: '100vh' }}>

@@ -19,5 +19,6 @@ export interface ISendMessage {
 
 export enum TypeMess {
     VIDEO_CALL = 30,
-    VOICE_CALL = 40
+    VOICE_CALL = 40,
+    LOCATION = 99
 }

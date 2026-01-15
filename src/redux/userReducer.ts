@@ -32,6 +32,7 @@ const userReducer = createSlice({
         },
         logOut(state) {
             state.username = null
+            state.reCode = null
         }
     }
 })

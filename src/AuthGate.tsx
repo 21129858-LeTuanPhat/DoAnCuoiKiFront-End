@@ -31,10 +31,9 @@ export default
         }
 
         const handler = (msg: any) => {
-
-            if (msg.event && msg.event !== 'LOGIN' && msg.event !== 'RE_LOGIN') {
-                console.log('Skipping event:', msg.event)
-                return
+            // Chỉ xử lý LOGIN/RE_LOGIN events, bỏ qua các event khác KHÔNG chặn
+            if (!msg.event || (msg.event !== 'LOGIN' && msg.event !== 'RE_LOGIN')) {
+                return  // Không log, không chặn - để handler khác xử lý
             }
 
             if (msg.status === 'error') {

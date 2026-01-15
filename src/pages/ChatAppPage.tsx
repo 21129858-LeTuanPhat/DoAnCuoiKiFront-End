@@ -20,6 +20,7 @@ import TimeOutModal from '../components/modal/TimeOutModal';
 import RejectModal from '../components/modal/RejectModal';
 import CallModal from '../components/modal/CallModal';
 import { createContext } from 'react';
+import { useCurrentLocation } from '../components/Location/CurrentLocation';
 
 export interface ICallContext {
     setModalCalling: React.Dispatch<React.SetStateAction<boolean>>;
@@ -52,6 +53,8 @@ function Home() {
     // }, [user.username, navigate]);
     const dispatch = useDispatch();
     const selection = useSelector((state: RootState) => state.call);
+    const location = useCurrentLocation().getLocation();
+    console.log('location', location);
 
     return (
         <>
