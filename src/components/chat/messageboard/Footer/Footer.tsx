@@ -20,7 +20,16 @@ function Footer({ username }: { username: string }) {
     const MAX_LENGHT = 350;
     const [files, setFiles] = useState<any[]>([]);
     const [message, setMessage] = useState('');
-    const { listMessage, setListMessage, type, setRight } = useBoardContext();
+    const {
+        listMessage,
+        setListMessage,
+        type,
+        setRight,
+        setOpenRecommendation,
+        recommended,
+        setRecommended,
+        openRecommendation,
+    } = useBoardContext();
     const inputRef = useRef<any>(null);
     const user = useSelector((state: RootState) => state.user);
     const [popUp, setPopUp] = useState<boolean>(false);
@@ -126,6 +135,8 @@ function Footer({ username }: { username: string }) {
         sendMessage(message);
         setRight(true);
         setCheckLimit(false);
+        setRecommended({ input: '', reply: [] });
+        setOpenRecommendation(false);
     };
     const handleSendMessageKeyUp = (e: any) => {
         if (e.keyCode === 13) {
@@ -135,12 +146,38 @@ function Footer({ username }: { username: string }) {
             sendMessage(message);
             setRight(true);
             setCheckLimit(false);
+            setRecommended({ input: '', reply: [] });
+            setOpenRecommendation(false);
         }
+    };
+    const handleSendRecommendation = (item: string) => {
+        sendMessage(item);
+        setRight(true);
+        setOpenRecommendation(false);
+        setRecommended({ input: '', reply: [] });
     };
 
     return (
         <footer className="bg-white h-[65px] rounded-bl-lg ">
-            <div className="flex items-center h-full ">
+            {openRecommendation === true && (
+                <div className="h-3/6">
+                    <ul className="flex justify-center gap-4 text-base">
+                        {recommended.reply.map((item, index) => (
+                            <li
+                                onClick={() => handleSendRecommendation(item)}
+                                key={index}
+                                className="bg-purple-400 px-5 text-white  rounded-lg cursor-pointer 
+                                            flex items-center justify-center
+                                            hover:opacity-90 transition"
+                            >
+                                {item}
+                            </li>
+                        ))}
+                    </ul>
+                </div>
+            )}
+
+            <div className={openRecommendation === true ? 'flex items-center h-3/6 ' : 'flex items-center h-full '}>
                 <div className="flex">
                     <ImagePlus onClick={handlePopUpImage} className="cursor-pointer mt-2 mb-2 ml-4 mr-1 h-[21.5px]" />
                     <FolderUp onClick={handlePopUpFile} className="cursor-pointer mt-2 mb-2 ml-4 mr-4 h-[21.5px]" />

@@ -21,6 +21,7 @@ import RejectModal from '../components/modal/RejectModal';
 import CallModal from '../components/modal/CallModal';
 import { createContext } from 'react';
 import { ListConversationProvider } from '../components/chat/Context/ListConversation';
+import { initMessageNotification } from '../helps/notification';
 
 export interface ICallContext {
     setModalCalling: React.Dispatch<React.SetStateAction<boolean>>;
@@ -47,6 +48,13 @@ function Home() {
     // }, [user.username, navigate]);
     const dispatch = useDispatch();
     const selection = useSelector((state: RootState) => state.call);
+
+    useEffect(() => {
+        async function init() {
+            const check = await initMessageNotification();
+        }
+        init();
+    }, []);
 
     return (
         <>
@@ -84,7 +92,7 @@ function Home() {
                                     setTypeCalling={setTypeCalling}
                                 />
 
-                                <MainContent key={re} re={re} username={selectedUser} setRe={setRe} />
+                                <MainContent key={selectedUser} re={re} username={selectedUser} setRe={setRe} />
                                 <Footer username={selectedUser} />
                             </CallContext.Provider>
                         </div>
