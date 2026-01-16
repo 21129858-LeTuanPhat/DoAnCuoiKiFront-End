@@ -12,6 +12,7 @@ function BoardProvider({ children }: BoardProviderProps) {
     const [right, setRight] = useState<boolean>(false);
     const [owner, setOwner] = useState<string>('');
     const [listMember, setListMember] = useState<Member[]>([]);
+    const [darkMode, setDarkMode] = useState<boolean>(false);
     return (
         <BoardContext.Provider
             value={{
@@ -27,6 +28,8 @@ function BoardProvider({ children }: BoardProviderProps) {
                 setOwner,
                 listMember,
                 setListMember,
+                darkMode,
+                setDarkMode,
             }}
         >
             {children}

@@ -3,6 +3,7 @@ import FileItem from './FileItem';
 import FileImage from './FileImage';
 
 import { formatAnyTimeToVN } from '../../../../helps/formatServerTimeVN';
+import CardItem from './CardItem';
 interface ItemContent {
     message: ChatMessage;
     color: boolean;
@@ -41,6 +42,8 @@ function ContentItem({ message, color }: ItemContent) {
                                 <p> {message.mes.data} </p>
                             </div>
                         </div>
+                    ) : message.mes.type === -50 ? (
+                        <CardItem data={message.mes.data} />
                     ) : (
                         ''
                     )}

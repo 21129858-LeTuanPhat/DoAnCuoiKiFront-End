@@ -68,11 +68,9 @@ function Home() {
             )}
 
             {modalCalling && <CallModal open={modalCalling} setOpen={setModalCalling} typeCall={typeCalling} />}
-            <div className="flex h-screen ">
+            <div className="flex h-screen">
                 <aside className="hidden md:block w-[25%] relative">
-                    <ListConversationProvider>
-                        <SideBar />
-                    </ListConversationProvider>
+                    <SideBar />
                 </aside>
                 <main className="w-[75%]  md:block flex flex-col bg-[#f0f4fa] shadow-[0_4px_6px_-1px_rgba(0,0,0,0.2)]">
                     {selectedUser === '' ? (

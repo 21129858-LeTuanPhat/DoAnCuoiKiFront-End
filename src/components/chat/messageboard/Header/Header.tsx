@@ -1,7 +1,7 @@
-import { PanelLeft, UserPlus } from 'lucide-react';
+import { IdCard, PanelLeft, UserPlus } from 'lucide-react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faPhone, faVideo } from '@fortawesome/free-solid-svg-icons';
-import { REACT_BASE_URL } from '../../../../config/utils';
+import { avatarDefault, REACT_BASE_URL } from '../../../../config/utils';
 import { SetStateAction, useContext, useEffect, useState } from 'react';
 import CallModal from '../../../modal/CallModal';
 import { useBoardContext } from '../../../../hooks/useBoardContext';
@@ -17,6 +17,8 @@ import React from 'react';
 
 import ModalAddUser from './ModalAddUser';
 import { ProfileContext } from '../../Context/ProfileCotext';
+import { getImageUrl } from '../../../../services/firebaseService';
+import ShareCardModal from '../../sidebar/ShareCard';
 
 function Header({
     username,
@@ -36,6 +38,17 @@ function Header({
     const [openPanel, setOpenPanel] = useState<boolean>(false);
     const profileInfor = useContext(ProfileContext)?.profileInfor;
     const [openAddUser, setOpenAddUser] = useState<boolean>(false);
+    const [imageUrl, setImageUrl] = useState<string | null>(null);
+    const [openShareModal, setOpenShareModal] = useState(false);
+    useEffect(() => {
+        const fetchImage = async () => {
+            const imageUrl = await getImageUrl(username);
+            if (imageUrl) {
+                setImageUrl(imageUrl);
+            }
+        };
+        fetchImage();
+    }, [username]);
     const hanldeVoice = () => {
         setOpen(true);
         setTypeCalling(TypeMess.VOICE_CALL);
@@ -68,8 +81,7 @@ function Header({
                         </div>
                     )}
                     <img
-                        src="https://tse3.mm.bing.net/th/id/OIP.cGz8NopJvAgdkioxkugKoQHaHa?pid=Api&P=0&h=220"
-                        alt="hình ảnh"
+                        src={imageUrl ? imageUrl : avatarDefault}
                         className="rounded-full object-cover w-10 mx-2 h-[36px]"
                     />
                     <h3 className="mx-2 text-[23px] font-semibold">{username}</h3>
@@ -82,6 +94,14 @@ function Header({
                         >
                             <UserPlus className="text-lg text-blue-600 text-[20px]" />
                         </button>
+                    )}
+                    {typeMessage === 'people' && (
+                        <IdCard
+                            color="blue"
+                            size={20}
+                            className="cursor-pointer"
+                            onClick={() => setOpenShareModal(true)}
+                        />
                     )}
                     <button
                         className="w-10 h-10 flex items-center justify-center rounded-full hover:bg-gray-200 transition"
@@ -96,6 +116,7 @@ function Header({
                         <FontAwesomeIcon icon={faVideo} className="text-lg text-blue-600 text-[20px]" />
                     </button>
                 </div>
+                {openShareModal && <ShareCardModal onClose={() => setOpenShareModal(false)} sharedName={username} />}
             </div>{' '}
         </>
     );

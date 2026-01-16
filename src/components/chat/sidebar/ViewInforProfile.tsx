@@ -1,12 +1,20 @@
 import { CircleX, Heart } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { use, useContext, useEffect, useState } from 'react';
 import ProfileForm from '../../../model/ProfileForm';
-import { getUserProfile, getInforGroup } from '../../../services/firebaseService';
+import { getUserProfile, getInforGroup, getFriendName } from '../../../services/firebaseService';
 import { LoadingProfileSkeleton } from '../../modal/LoadingSkeleton';
 import InforGroup from '../../../model/InforGroup';
 import { avatarDefault, formatDate } from '../../../config/utils';
 import { ResponseStatus } from '../../../model/RequestConnect';
 import { useBoardContext } from '../../../hooks/useBoardContext';
+import { useSelector } from 'react-redux';
+import { RootState } from '../../../redux/store';
+import { Web } from '@mui/icons-material';
+import WebSocketManager from '../../../socket/WebSocketManager';
+import { ListConversationContext } from '../Context/ListConversation';
+import { User } from '../../../model/User';
+import ShareCardModal from './ShareCard';
+
 export function ViewInforProfile({
     onClose,
     onCloseNotification,
@@ -30,6 +38,7 @@ export function ViewInforProfile({
         setType(type);
         onCloseNotification();
     };
+    const [openShareModal, setOpenShareModal] = useState(false);
 
     useEffect(() => {
         const fetchProfile = async () => {
@@ -140,17 +149,38 @@ export function ViewInforProfile({
                             </div>
                         </>
                     )}
-                    {status === 'connected' && (
-                        <div className="w-full flex justify-center items-center">
-                            <button
-                                className="w-64 text-white font-semibold py-2 px-4 rounded-lg bg-gradient-to-r from-blue-500 to-pink-500 disabled:opacity-30 disabled:cursor-not-allowed"
-                                onClick={handleChat}
-                            >
-                                Nhắn tin
-                            </button>
-                        </div>
-                    )}
+                    <div className=" flex justify-center gap-3 mt-4">
+                        {status === 'connected' && (
+                            <>
+                                <button
+                                    className="flex-1 text-white font-semibold py-2 rounded-lg 
+                           bg-gradient-to-r from-blue-500 to-pink-500
+                           disabled:opacity-30 disabled:cursor-not-allowed"
+                                    onClick={handleChat}
+                                >
+                                    Nhắn tin
+                                </button>
+
+                                {type === 'people' && (
+                                    <button
+                                        className="flex-1 py-2 rounded-lg bg-green-500 
+                               text-white font-semibold"
+                                        onClick={() => setOpenShareModal(true)}
+                                    >
+                                        Chia sẻ
+                                    </button>
+                                )}
+                            </>
+                        )}
+                    </div>
                 </div>
+
+                {openShareModal && (
+                    <ShareCardModal
+                        onClose={() => setOpenShareModal(false)}
+                        sharedName={(profileInfor as ProfileForm).username}
+                    />
+                )}
             </div>
         </div>
     );
