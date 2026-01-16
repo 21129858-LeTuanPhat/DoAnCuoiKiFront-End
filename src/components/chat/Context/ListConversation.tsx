@@ -12,12 +12,14 @@ import { ProfileProvider } from './ProfileCotext';
 import WebSocketManager from '../../../socket/WebSocketManager';
 import { User } from '../../../model/User';
 import { LoadingProfileSkeleton } from '../../modal/LoadingSkeleton';
+import { useBoardContext } from '../../../hooks/useBoardContext';
 
 const ListConversationContext = createContext<ListConversationContextType | null>(null);
 
 function ListConversationProvider({ children }: { children: React.ReactNode }) {
     const [users, setUsers] = useState<User[]>([]);
     const [loading, setLoading] = useState(true);
+    const { setSelectedUser, setType, setOwner } = useBoardContext();
     useEffect(() => {
         const ws = WebSocketManager.getInstance();
         let isMounted = true;
@@ -34,7 +36,8 @@ function ListConversationProvider({ children }: { children: React.ReactNode }) {
             }
         });
 
-        ws.onMessage('CREATE_ROOM', (msg) => {
+        ws.onMessage(Date.now().toString(), (msg) => {
+            console.log('CREATE_ROOM in list con message received:', msg);
             if (msg.status === 'success' && msg.event === 'CREATE_ROOM') {
                 console.log(' Received user list:', msg.data);
                 // "data": {
@@ -45,17 +48,18 @@ function ListConversationProvider({ children }: { children: React.ReactNode }) {
                 //     "userList": [],
                 //     "chatData": []
                 // },
-                if (isMounted) {
-                    const userData = msg.data;
-                    const newUser: User = {
-                        id: userData.name,
-                        name: userData.name,
-                        type: 1,
-                    };
+                const userData = msg.data;
+                const newUser: User = {
+                    id: userData.name,
+                    name: userData.name,
+                    type: 1,
+                };
 
-                    setUsers((prevUsers) => [...prevUsers, newUser]);
-                    setLoading(false);
-                }
+                setUsers((prevUsers) => [...prevUsers, newUser]);
+                setSelectedUser(newUser.name);
+                setType('room');
+                setOwner(userData.own);
+                setLoading(false);
             }
         });
 

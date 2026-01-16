@@ -11,7 +11,7 @@ function useStories({ username }: { username: string }): Story[] {
     useEffect(() => {
         const unsubscribe = LoadStoryFeed(username, async (storyId) => {
             const snap = await get(ref(db, `stories/${storyId}`));
-            const story = snap.val();
+            const story: Story = snap.val();
             console.log('Loaded story:', story);
             const isLike = await isLikeStory(storyId, username);
             story.isLike = isLike;

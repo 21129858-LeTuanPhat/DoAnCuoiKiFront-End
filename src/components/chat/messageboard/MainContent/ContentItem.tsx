@@ -8,6 +8,7 @@ import { useState } from 'react';
 import { Forward } from 'lucide-react';
 
 import ModalShareMess from './ModalShareMess';
+import CardItem from './CardItem';
 interface ItemContent {
     message: ChatMessage;
     color: boolean;
@@ -96,6 +97,20 @@ function ContentItem({ message, color }: ItemContent) {
                         >
                             {formatAnyTimeToVN(message.createAt)}
                         </div>
+                    ) : message.mes.type === 1 ? (
+                        <FileImage data={message.mes.data} check={color === true ? false : true} />
+                    ) : message.mes.type === 2 ? (
+                        <FileItem data={message.mes.data} check={color === true ? false : true} />
+                    ) : message.mes.type === -1 ? (
+                        <div className="w-full ">
+                            <div className="m-auto flex items-center justify-center max-w-md break-words bg-gray-200 text-black p-2 rounded-3xl italic">
+                                <p> {message.mes.data} </p>
+                            </div>
+                        </div>
+                    ) : message.mes.type === -50 ? (
+                        <CardItem data={message.mes.data} />
+                    ) : (
+                        ''
                     )}
                 </div>
             </li>
