@@ -21,10 +21,12 @@ import { getImageUrl } from '../../../../services/firebaseService';
 import ShareCardModal from '../../sidebar/ShareCard';
 
 function Header({
+    darkMode,
     username,
     setOpen,
     setTypeCalling,
 }: {
+    darkMode: boolean;
     username: string;
     setOpen: React.Dispatch<React.SetStateAction<boolean>>;
     setTypeCalling: React.Dispatch<React.SetStateAction<number>>;
@@ -67,24 +69,37 @@ function Header({
         <>
             {openAddUser && <ModalAddUser openAddUser={openAddUser} setOpenAddUser={setOpenAddUser} />}
             {openPanel && <ListUserGroup openPanel={openPanel} setOpenPanel={setOpenPanel} />}
-            <div className="flex items-center h-full justify-between px-4 py-3 bg-white overflow-auto">
+            <div
+                className={`flex items-center h-full justify-between px-4 py-3  ${
+                    darkMode === false ? 'bg-white' : 'bg-[#232230]'
+                } overflow-auto`}
+            >
                 <div className="flex items-center">
                     {typeMessage === 'room' && (
                         <div
-                            className="relative before:content-[''] before:h-[24px] before:border-l-2 before:absolute before:top-1/2 before:left-14 before:bg-red-500 before:-translate-y-1/2
-                        hover:bg-gray-300 rounded-full transition"
+                            className={`relative before:content-[''] before:h-[24px] before:border-l-2 before:absolute before:top-1/2 before:left-14 before:bg-red-500 before:-translate-y-1/2
+                         ${darkMode === false ? 'hover:bg-gray-300' : 'hover:bg-neutral-100'} rounded-full transition`}
                         >
                             <PanelLeft
                                 onClick={() => setOpenPanel(true)}
-                                className="ml-4 mr-8 h-[36px] cursor-pointer"
+                                className={
+                                    darkMode === false
+                                        ? 'ml-4 mr-8 h-[36px] cursor-pointer'
+                                        : 'ml-4 mr-8 h-[36px] cursor-pointer text-blue-600'
+                                }
                             />
                         </div>
                     )}
-                    <img
-                        src={imageUrl ? imageUrl : avatarDefault}
-                        className="rounded-full object-cover w-10 mx-2 h-[36px]"
-                    />
-                    <h3 className="mx-2 text-[23px] font-semibold">{username}</h3>
+                    <img src={imageUrl ? imageUrl : avatarDefault} className={'rounded-full object-cover w-10 mx-2'} />
+                    <h3
+                        className={
+                            darkMode === false
+                                ? 'mx-2 text-[23px] font-semibold'
+                                : 'mx-2 text-[23px] font-semibold text-slate-300'
+                        }
+                    >
+                        {username}
+                    </h3>
                 </div>
                 <div className="flex items-center gap-4">
                     {typeMessage === 'room' && (

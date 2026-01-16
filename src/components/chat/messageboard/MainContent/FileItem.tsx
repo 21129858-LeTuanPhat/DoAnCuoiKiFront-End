@@ -11,8 +11,9 @@ interface DataFile {
     check: boolean;
     openShareButton: boolean;
     onClick?: () => void;
+    darkMode?: boolean;
 }
-function FileItem({ data = '', check = false, openShareButton, onClick }: DataFile) {
+function FileItem({ data = '', check = false, openShareButton, onClick, darkMode }: DataFile) {
     const filename = data.split('/').pop() ?? '';
     const parts = filename.split('-');
     const afterDash = parts.slice(1).join('-');
@@ -41,10 +42,12 @@ function FileItem({ data = '', check = false, openShareButton, onClick }: DataFi
             )}
         </div>
     ) : (
-        <div className="p-1 max-w-xs rounded-xl bg-white relative">
+        <div className={`p-1 max-w-xs rounded-xl ${darkMode === false ? 'bg-white' : 'bg-[#24232a]'}  relative`}>
             <a className=" p-2 no-underline flex gap-2 justify-between" href={data} download>
                 <div className="flex justify-center items-center">{FileItem}</div>
-                <div className="flex justify-center items-center text-black">
+                <div
+                    className={`flex justify-center items-center ${darkMode === false ? 'text-black' : 'text-white'} `}
+                >
                     <h3 className=" justify-center">{afterDash}</h3>
                 </div>
             </a>

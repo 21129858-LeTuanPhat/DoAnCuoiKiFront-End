@@ -81,7 +81,6 @@ function ModalShareMess({ data, type, openModalShare, setOpenModalShare }: Modal
             setListMessage((prev: ChatMessage[]) => [...prev, newMessage]);
         }
     };
-
     const handleConfirm = () => {
         const ws = WebSocketManager.getInstance();
         for (const user of selectedUsers) {

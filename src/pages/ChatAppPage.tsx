@@ -32,7 +32,7 @@ export const CallContext = createContext<ICallContext | null>(null);
 function Home() {
     const [re, setRe] = useState<number>(0);
 
-    const { listMessage, setListMessage, selectedUser } = useBoardContext();
+    const { listMessage, setListMessage, selectedUser, darkMode } = useBoardContext();
     const callStore = useSelector((state: RootState) => state.call);
     const [modalCalling, setModalCalling] = useState(false);
     const [typeCalling, setTypeCalling] = useState<number>(100);
@@ -76,24 +76,31 @@ function Home() {
             )}
 
             {modalCalling && <CallModal open={modalCalling} setOpen={setModalCalling} typeCall={typeCalling} />}
-            <div className="flex h-screen">
+            <div className="flex h-screen trasition-all duration-300">
                 <aside className="hidden md:block w-[25%] relative">
                     <SideBar />
                 </aside>
                 <main className="w-[75%]  md:block flex flex-col bg-[#f0f4fa] shadow-[0_4px_6px_-1px_rgba(0,0,0,0.2)]">
                     {selectedUser === '' ? (
-                        <Welcome />
+                        <Welcome darkMode={darkMode} />
                     ) : (
                         <div>
                             <CallContext.Provider value={{ setModalCalling, setTypeCalling }}>
                                 <Header
+                                    darkMode={darkMode}
                                     username={selectedUser}
                                     setOpen={setModalCalling}
                                     setTypeCalling={setTypeCalling}
                                 />
 
-                                <MainContent key={selectedUser} re={re} username={selectedUser} setRe={setRe} />
-                                <Footer username={selectedUser} />
+                                <MainContent
+                                    darkMode={darkMode}
+                                    key={selectedUser}
+                                    re={re}
+                                    username={selectedUser}
+                                    setRe={setRe}
+                                />
+                                <Footer darkMode={darkMode} username={selectedUser} />
                             </CallContext.Provider>
                         </div>
                     )}

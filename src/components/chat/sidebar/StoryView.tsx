@@ -7,7 +7,17 @@ import { useSelector } from 'react-redux';
 import { RootState } from '../../../redux/store';
 import { useBoardContext } from '../../../hooks/useBoardContext';
 
-function StoryViewer({ stories, onClose, index }: { stories: Story[]; onClose: () => void; index: number }) {
+function StoryViewer({
+    darkMode,
+    stories,
+    onClose,
+    index,
+}: {
+    darkMode: boolean;
+    stories: Story[];
+    onClose: () => void;
+    index: number;
+}) {
     const [currentIndex, setCurrentIndex] = useState(index);
     const [progress, setProgress] = useState(0);
     const user = useSelector((state: RootState) => state.user);
@@ -26,7 +36,7 @@ function StoryViewer({ stories, onClose, index }: { stories: Story[]; onClose: (
     };
 
     useEffect(() => {
-        const intervalTime = 50;
+        const intervalTime = 1000;
 
         const timer = setInterval(() => {
             setProgress((prev) => {

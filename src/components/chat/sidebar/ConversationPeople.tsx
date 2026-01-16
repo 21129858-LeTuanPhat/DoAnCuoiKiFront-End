@@ -7,7 +7,13 @@ import SearchUserModal from './SearchBar';
 import { getAllProfile } from '../../../services/firebaseService';
 import ProfileForm from '../../../model/ProfileForm';
 
-function ConversationPeople({ users }: { users: User[] }) {
+interface ConversationPeopleProps {
+    darkMode: boolean;
+    setDarkMode: (darkMode: boolean) => void;
+    users: User[];
+}
+
+function ConversationPeople({ darkMode, setDarkMode, users }: ConversationPeopleProps) {
     const { selectedUser, setSelectedUser, setType } = useBoardContext();
     const [open, setOpen] = useState(false);
     const [listUser, setListUser] = useState<ProfileForm[]>([]);
@@ -44,15 +50,28 @@ function ConversationPeople({ users }: { users: User[] }) {
         <>
             <div className="flex flex-col w-full">
                 <div className="flex justify-between items-center w-full">
-                    <p className="text-gray-500 select-none cursor-pointer">Bạn bè</p>
+                    <p
+                        className={
+                            darkMode === false
+                                ? 'text-gray-500 select-none cursor-pointer'
+                                : 'text-white select-none cursor-pointer'
+                        }
+                    >
+                        Bạn bè
+                    </p>
                     <Plus
-                        className="cursor-default hover:cursor-pointer text-gray-500"
+                        className={
+                            darkMode === false
+                                ? 'cursor-default hover:cursor-pointer text-gray-500'
+                                : 'cursor-default hover:cursor-pointer text-white'
+                        }
                         onClick={() => setOpen(!open)}
                     />
                 </div>
                 <div className="flex flex-col gap-3 mt-5">
                     {listUser.map((user) => (
                         <ConversationItem
+                            darkMode={darkMode}
                             key={user.username}
                             user={user}
                             isActive={selectedUser === user.username}

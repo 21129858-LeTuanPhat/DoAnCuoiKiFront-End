@@ -11,12 +11,19 @@ function Moji() {
             <div className="flex space-x-2">
                 <Sun size={18} className="text-white" />
                 <button
-                    className="relative w-12 h-6 rounded-2xl bg-slate-300 shadow-sm"
+                    className={
+                        darkMode === false
+                            ? 'relative w-12 h-6 rounded-2xl bg-slate-300 shadow-sm'
+                            : 'relative w-12 h-6 rounded-2xl bg-gray-600 shadow-sm'
+                    }
                     onClick={() => setDarkMode(!darkMode)}
                 >
                     <span
-                        className={`absolute w-5 h-5 left-0 top-0.5 bottom-0.5 bg-white rounded-full 
-                        transition-transform ${darkMode ? 'translate-x-7' : 'translate-x-0'}`}
+                        className={
+                            darkMode === false
+                                ? 'absolute w-5 h-5 left-0 top-0.5 bottom-0.5 bg-white rounded-full transition-transform translate-x-0 '
+                                : 'absolute w-5 h-5 left-0 top-0.5 bottom-0.5 bg-black rounded-full transition-transform translate-x-7'
+                        }
                     ></span>
                 </button>
 

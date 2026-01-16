@@ -15,7 +15,7 @@ import PopUp from '../Footer/PopUp';
 import { supabaseClient } from '../../../../config/supaBaseConfig';
 import { set } from 'firebase/database';
 
-function Footer({ username }: { username: string }) {
+function Footer({ darkMode, username }: { darkMode: boolean; username: string }) {
     const MAX_SIZE = 20 * 1024;
     const MAX_LENGHT = 350;
     const [files, setFiles] = useState<any[]>([]);
@@ -158,7 +158,7 @@ function Footer({ username }: { username: string }) {
     };
 
     return (
-        <footer className="bg-white h-[65px] rounded-bl-lg ">
+        <footer className={`${darkMode === false ? 'bg-white' : 'bg-[#232230]'}  h-[73px] `}>
             {openRecommendation === true && (
                 <div className="h-3/6">
                     <ul className="flex justify-center gap-4 text-base">
@@ -179,8 +179,18 @@ function Footer({ username }: { username: string }) {
 
             <div className={openRecommendation === true ? 'flex items-center h-3/6 ' : 'flex items-center h-full '}>
                 <div className="flex">
-                    <ImagePlus onClick={handlePopUpImage} className="cursor-pointer mt-2 mb-2 ml-4 mr-1 h-[21.5px]" />
-                    <FolderUp onClick={handlePopUpFile} className="cursor-pointer mt-2 mb-2 ml-4 mr-4 h-[21.5px]" />
+                    <ImagePlus
+                        onClick={handlePopUpImage}
+                        className={`cursor-pointer mt-2 mb-2 ml-4 mr-1 h-[21.5px] ${
+                            darkMode === false ? 'text-black' : 'text-white'
+                        }`}
+                    />
+                    <FolderUp
+                        onClick={handlePopUpFile}
+                        className={`cursor-pointer mt-2 mb-2 ml-4 mr-4 h-[21.5px] ${
+                            darkMode === false ? 'text-black' : 'text-white'
+                        }`}
+                    />
                     {popUp && (
                         <PopUp
                             checkFile={checkFile}
@@ -206,14 +216,13 @@ function Footer({ username }: { username: string }) {
                         value={message}
                         placeholder="Soạn tin nhắn ..."
                         rows={1}
-                        className="flex-[8]
+                        className={`flex-[8]
                                 p-2
                                 border-none outline-none
                                 bg-transparent
                                 resize-none
                                 whitespace-pre-wrap
-                                break-words
-                                 "
+                                break-words ${darkMode === false ? 'text-black' : 'text-white'}`}
                         onChange={handleMessage}
                         onKeyUp={handleSendMessageKeyUp}
                     />
@@ -228,7 +237,11 @@ function Footer({ username }: { username: string }) {
                                 );
                             }}
                         >
-                            <Smile className="cursor-pointer rounded-full hover:bg-purple-400 hover:text-white" />
+                            <Smile
+                                className={`cursor-pointer rounded-full hover:bg-purple-400 hover:text-white ${
+                                    darkMode === false ? 'text-black' : 'text-white'
+                                }`}
+                            />
                         </HeadlessTippy>
                     </button>
                 </div>

@@ -17,6 +17,7 @@ function BoardProvider({ children }: BoardProviderProps) {
     const [recommended, setRecommended] = useState<AIRecommendation>({ input: '', reply: [] });
     const [openRecommendation, setOpenRecommendation] = useState<boolean>(false);
     const [userList, setUserList] = useState<User[]>([]);
+    const [darkMode, setDarkMode] = useState<boolean>(false);
     return (
         <BoardContext.Provider
             value={{
@@ -38,6 +39,8 @@ function BoardProvider({ children }: BoardProviderProps) {
                 setOpenRecommendation,
                 userList,
                 setUserList,
+                darkMode,
+                setDarkMode,
             }}
         >
             {children}

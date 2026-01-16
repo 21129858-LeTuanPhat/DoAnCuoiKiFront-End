@@ -12,8 +12,9 @@ import CardItem from './CardItem';
 interface ItemContent {
     message: ChatMessage;
     color: boolean;
+    darkMode?: boolean;
 }
-function ContentItem({ message, color }: ItemContent) {
+function ContentItem({ darkMode, message, color }: ItemContent) {
     const [openShareButton, setOpenShareButton] = useState(false);
     const [openModalShare, setOpenModalShare] = useState(false);
 
@@ -45,11 +46,17 @@ function ContentItem({ message, color }: ItemContent) {
                         )}
                         {message.mes.type === 0 ? (
                             <div
-                                className={
-                                    color === true
-                                        ? 'max-w-xl break-words bg-white text-black p-2 rounded-xl relative '
-                                        : 'max-w-xl break-words bg-purple-400 text-white p-2 rounded-xl relative'
-                                }
+                                className={`max-w-xl break-words p-2 rounded-xl relative
+                         ${
+                             darkMode === false
+                                 ? color === true
+                                     ? 'bg-white text-black'
+                                     : 'bg-purple-400 text-white'
+                                 : color === true
+                                 ? 'bg-[#24232a] text-white'
+                                 : 'bg-purple-400 text-white'
+                         }
+                            `}
                             >
                                 <p className="break-words">{message.mes.data}</p>
                                 {openShareButton && (
@@ -66,6 +73,7 @@ function ContentItem({ message, color }: ItemContent) {
                             </div>
                         ) : message.mes.type === 1 ? (
                             <FileImage
+                                darkMode={darkMode}
                                 onClick={() => setOpenModalShare(true)}
                                 openShareButton={openShareButton}
                                 data={message.mes.data}
@@ -73,6 +81,7 @@ function ContentItem({ message, color }: ItemContent) {
                             />
                         ) : message.mes.type === 2 ? (
                             <FileItem
+                                darkMode={darkMode}
                                 onClick={() => setOpenModalShare(true)}
                                 openShareButton={openShareButton}
                                 data={message.mes.data}
@@ -84,34 +93,12 @@ function ContentItem({ message, color }: ItemContent) {
                                     <p> {message.mes.data} </p>
                                 </div>
                             </div>
+                        ) : message.mes.type === -50 ? (
+                            <CardItem data={message.mes.data} />
                         ) : (
                             ''
                         )}
                     </div>
-
-                    {message.mes.type !== -1 && (
-                        <div
-                            className={
-                                color === true ? 'text-xs text-gray-500 mt-1' : 'text-xs text-gray-500 mt-1 text-right'
-                            }
-                        >
-                            {formatAnyTimeToVN(message.createAt)}
-                        </div>
-                    ) : message.mes.type === 1 ? (
-                        <FileImage data={message.mes.data} check={color === true ? false : true} />
-                    ) : message.mes.type === 2 ? (
-                        <FileItem data={message.mes.data} check={color === true ? false : true} />
-                    ) : message.mes.type === -1 ? (
-                        <div className="w-full ">
-                            <div className="m-auto flex items-center justify-center max-w-md break-words bg-gray-200 text-black p-2 rounded-3xl italic">
-                                <p> {message.mes.data} </p>
-                            </div>
-                        </div>
-                    ) : message.mes.type === -50 ? (
-                        <CardItem data={message.mes.data} />
-                    ) : (
-                        ''
-                    )}
                 </div>
             </li>
         </>

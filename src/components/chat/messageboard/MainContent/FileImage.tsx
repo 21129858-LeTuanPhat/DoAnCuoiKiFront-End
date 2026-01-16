@@ -5,8 +5,9 @@ interface DataImage {
     check: boolean;
     openShareButton: boolean;
     onClick?: () => void;
+    darkMode?: boolean;
 }
-function FileImage({ data = '', check = false, openShareButton, onClick }: DataImage) {
+function FileImage({ data = '', check = false, openShareButton, onClick, darkMode }: DataImage) {
     const filename = data.split('/').pop() ?? '';
     const parts = filename.split('-');
     const afterDash = parts.slice(1).join('-');
@@ -42,9 +43,13 @@ function FileImage({ data = '', check = false, openShareButton, onClick }: DataI
             )}
         </div>
     ) : (
-        <div className="max-w-xs rounded-xl flex flex-col bg-white relative">
+        <div
+            className={`max-w-xs rounded-xl flex flex-col ${
+                darkMode === false ? 'bg-white' : 'bg-[#24232a]'
+            }  relative`}
+        >
             <img src={data} alt="ảnh bị lỗi" className="rounded-t-xl" />
-            <div className="flex justify-between p-4 text-black">
+            <div className={`flex justify-between p-4  ${darkMode === false ? 'text-black' : 'text-white'}`}>
                 <h3>{afterDash}</h3>
                 <ArrowBigDownDash onClick={() => downloadImage(data)} className="cursor-pointer" />
             </div>

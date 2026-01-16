@@ -23,7 +23,7 @@ function PopUp({ checkFile, setCheckNull, checkNull, loading, onClose, files, se
     };
     return (
         <div className="fixed inset-0 flex items-center justify-center bg-black/40 z-50">
-            <div className="relative z-10 min-w-96 bg-white rounded-lg p-2">
+            <div className={`relative z-10 min-w-96 bg-white  rounded-lg p-2`}>
                 <div className="w-full flex justify-end">
                     <X className="mb-2 cursor-pointer" onClick={onClose} />
                 </div>
@@ -67,8 +67,8 @@ function PopUp({ checkFile, setCheckNull, checkNull, loading, onClose, files, se
                         name="files"
                         labelIdle={
                             checkFile === true
-                                ? 'Kéo & thả file hoặc <span class="filepond--label-action">Chọn file</span>'
-                                : 'Kéo & thả ảnh hoặc <span class="filepond--label-action">Chọn ảnh</span>'
+                                ? `Kéo & thả file hoặc <span class="filepond--label-action">Chọn file</span>`
+                                : `Kéo & thả ảnh hoặc <span class="filepond--label-action">Chọn ảnh</span>`
                         }
                     />
                 </div>
