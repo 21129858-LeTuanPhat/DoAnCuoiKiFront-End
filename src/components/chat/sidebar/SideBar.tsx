@@ -16,6 +16,7 @@ import ListStory from './ListStory';
 import StoryViewer from './StoryView';
 import Story from '../../../model/Story';
 import { ListConversationContext } from '../Context/ListConversation';
+import { useBoardContext } from '../../../hooks/useBoardContext';
 
 function SideBar() {
     const loginname = useSelector((state: RootState) => state.user);
@@ -24,6 +25,11 @@ function SideBar() {
     const storiesRef = useRef<Story[]>([]);
     const indexRef = useRef(0);
     const { users, setUsers, loading, setLoading } = useContext(ListConversationContext)!;
+    const { setUserList } = useBoardContext();
+    useEffect(() => {
+        const userList = users.filter((user) => user.name !== loginname.username);
+        setUserList(userList);
+    }, [users]);
 
     return (
         <div className="flex flex-col h-full w-full *:items-start  p-3 shadow-sm ">

@@ -2,6 +2,7 @@ import { Dispatch, SetStateAction } from 'react';
 import { ChatMessage } from './ChatMessage';
 import { Member } from './Member';
 import { AIRecommendation } from './AIRecommendation';
+import { User } from './User';
 export interface BoardContextType {
     selectedUser: string;
     setSelectedUser: Dispatch<SetStateAction<string>>;
@@ -19,6 +20,8 @@ export interface BoardContextType {
     setRecommended: React.Dispatch<React.SetStateAction<AIRecommendation>>;
     openRecommendation: boolean;
     setOpenRecommendation: React.Dispatch<React.SetStateAction<boolean>>;
+    userList: User[];
+    setUserList: React.Dispatch<React.SetStateAction<User[]>>;
 
     //Dùng thằng này thì nó mới địnhg nghĩa giống React về set khi dùng useState
     //     setSelectedUser('Nam');
