@@ -86,27 +86,21 @@ export default function CallModal({
                 sendTimeout()
                 dispatch(updateStatus({ status: CallStatus.TIMEOUT }))
                 setOpen(false)
-            }, 1000000000)
+            }, 15000)
             return () => clearTimeout(timer)
         }
     }, [open])
-    // const openModal = useState<boolean>(open)
-    useEffect(() => {
-        if (callStore.callStatus === CallStatus.IN_CALL) {
-            setOpen(false)
-        }
-    }, [callStore.callStatus])
+
     const roomID = randomRoomID();
     const { selectedUser } = useBoardContext();
     const username = localStorage.getItem('username');
     console.log('room id:', roomID, ' name', username, 'selected user', selectedUser, ' type: ', type);
 
-    // Thêm field 'from' nếu là room call
     const callMess = type === 'room' ? {
         status: CallStatus.CALLING,
         roomURL: `/call?roomID=${roomID}&call_mode=${typeCall}`,
         roomID: roomID,
-        from: username, // Người bắt đầu gọi
+        from: username,
     } : {
         status: CallStatus.CALLING,
         roomURL: `/call?roomID=${roomID}&call_mode=${typeCall}`,
@@ -149,9 +143,6 @@ export default function CallModal({
         }
     }, [open])
 
-    // useEffect(() => {
-
-    // }, [open])
     const handleClose = () => {
         sendEnd()
         dispatch(updateStatus({ status: CallStatus.CANCEL }));
@@ -170,7 +161,6 @@ export default function CallModal({
                         width: 400,
                         height: 500,
                         bgcolor: 'background.paper',
-                        // background: 'linear-gradient(to right, #9333ea, #ec4899)',
                         boxShadow: 24,
                         borderRadius: 2,
                         outline: 'none',
@@ -183,9 +173,8 @@ export default function CallModal({
                     <div className="flex-1 flex items-center justify-center">
                         <div className="text-center">
                             <div className="w-32 h-32 mx-auto mb-6 rounded-full bg-gradient-to-br from-gray-400 to-gray-500 flex items-center justify-center">
-
                             </div>
-                            <h1 className="text-gray-900 text-2xl font-semibold mb-2">{type}</h1>
+                            <h1 className="text-gray-900 text-2xl font-semibold mb-2">{type === 'room' ? `Nhóm ${selectedUser}` : ` ${selectedUser}`}</h1>
                             <p className="text-gray-500 text-sm">Đang gọi...</p>
                         </div>
                     </div>

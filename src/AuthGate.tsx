@@ -31,13 +31,12 @@ export default
         }
 
         const handler = (msg: any) => {
-            // Chỉ xử lý LOGIN/RE_LOGIN events, bỏ qua các event khác KHÔNG chặn
             if (!msg.event || (msg.event !== 'LOGIN' && msg.event !== 'RE_LOGIN')) {
-                return  // Không log, không chặn - để handler khác xử lý
+                return
             }
 
             if (msg.status === 'error') {
-                console.error('RE_LOGIN failed:', msg)
+                console.error('RE_LOGIN failed trong auth:', msg)
                 localStorage.clear()
                 navigate('/login', { replace: true })
                 setCheckingAuth(false)
@@ -70,7 +69,6 @@ export default
             }
         }
         ws.onMessage('RE_LOGIN', handler)
-
         const performReLogin = async () => {
             try {
                 await ws.connect2(SOCKET_BASE_URL)
@@ -94,7 +92,7 @@ export default
         return () => ws.unSubcribe('RE_LOGIN')
     }, [])
     if (checkingAuth) {
-        return <div>Đang kiểm tra xác thực...</div>
+        return <div>Đang kiểm tra auth...</div>
     }
     return <Outlet />
 }

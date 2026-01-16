@@ -37,7 +37,7 @@ export default function TimeOutModal({ open, onReload }: { open: boolean, onRelo
                         Kết thúc!
                     </Typography>
                     <Typography sx={{ mt: 3 }}>
-                        {callStore.isIncoming ? `Bạn đã bỏ lỡ cuộc gọi từ ${callStore.caller}` : `Người nhận không bắt máy. Vui lòng gọi lại sau`}
+                        {callStore.isIncoming ? `Bạn đã bỏ lỡ cuộc gọi từ ${callStore.caller}` : `Không bắt máy. Vui lòng gọi lại sau`}
                     </Typography>
                     <Button
                         variant="contained"

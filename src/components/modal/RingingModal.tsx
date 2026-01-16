@@ -28,20 +28,21 @@ export default function RingingModal({ open, onReload }: { open: boolean, onRelo
     useEffect(() => {
         audioRef.current = new Audio(nokiaSound)
         audioRef.current.volume = 0.7
-        audioRef.current.play()
+        audioRef.current.play().catch(error => {
+            console.warn("lỗi sound", error);
+        })
         audioRef.current.loop = true
         return () => {
             audioRef.current?.pause()
         }
     }, [])
 
-    // Thêm field 'from' nếu là room call
     const username = localStorage.getItem('username');
     const callMess = callStore.type === 'room' ? {
         status: CallStatus.CONNECTING,
         roomURL: `/call?roomID=${selection.roomID}&call_mode=${selection.callMode}`,
         roomID: selection.roomID,
-        from: callStore.caller, // Người gọi ban đầu (KHÔNG phải người accept)
+        from: callStore.caller,
     } : {
         status: CallStatus.CONNECTING,
         roomURL: `/call?roomID=${selection.roomID}&call_mode=${selection.callMode}`,
@@ -49,7 +50,7 @@ export default function RingingModal({ open, onReload }: { open: boolean, onRelo
     };
 
     useEffect(() => {
-        if (callStore.callStatus === CallStatus.TIMEOUT) {
+        if (callStore.callStatus === CallStatus.TIMEOUT || callStore.callStatus === CallStatus.ENDED || callStore.callStatus === CallStatus.BUSY) {
             setModal(false)
         }
     }, [callStore.callStatus])
@@ -154,8 +155,12 @@ export default function RingingModal({ open, onReload }: { open: boolean, onRelo
                         <Typography variant="h6" component="h2" fontWeight={700} paddingBottom={3}>
                             Cuộc gọi đến                    </Typography>
                         <Avatar sx={{ bgcolor: deepOrange[500], width: 70, height: 70 }}>Oke</Avatar>
-                        <Typography fontWeight={700} fontSize={20} paddingTop={3} >{callStore.caller}</Typography>
-                        <Typography fontSize={15} marginBottom={3} >đang gọi cho bạn</Typography>
+                        <Typography fontWeight={700} fontSize={20} paddingTop={3} >
+                            {callStore.type === 'room' ? `Nhóm ${callStore.caller}` : callStore.caller}
+                        </Typography>
+                        <Typography fontSize={15} marginBottom={3} >
+                            {callStore.type === 'room' ? 'Đang có cuộc gọi' : 'đang gọi cho bạn'}
+                        </Typography>
                         <Box sx={{ display: 'flex', justifyContent: 'space-around', width: '100%' }}>
                             <Button onClick={handleAccept}
                                 variant="contained"

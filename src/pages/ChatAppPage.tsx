@@ -18,9 +18,11 @@ import EndCallModal from '../components/modal/EndCallModal';
 import CancelModal from '../components/modal/CancelModal';
 import TimeOutModal from '../components/modal/TimeOutModal';
 import RejectModal from '../components/modal/RejectModal';
+import BusyModal from '../components/modal/BusyModal';
 import CallModal from '../components/modal/CallModal';
 import { createContext } from 'react';
 import { useCurrentLocation } from '../components/Location/CurrentLocation';
+import PinMessageModal from '../components/modal/PinMessageModal';
 
 export interface ICallContext {
     setModalCalling: React.Dispatch<React.SetStateAction<boolean>>;
@@ -28,6 +30,14 @@ export interface ICallContext {
     refStatusIncall: MutableRefObject<boolean>;
 }
 export const CallContext = createContext<ICallContext | null>(null);
+
+interface PinnedMessage {
+    id: number;
+    title: string;
+    content: string;
+    importance: 'low' | 'medium' | 'high';
+    timestamp: Date;
+}
 
 function Home() {
     const [re, setRe] = useState<number>(0)
@@ -37,6 +47,10 @@ function Home() {
     const [modalCalling, setModalCalling] = useState(false);
     const [typeCalling, setTypeCalling] = useState<number>(100);
 
+    const [showPinModal, setShowPinModal] = useState(false);
+
+
+
     const user = useSelector((state: RootState) => state.user);
     const navigate = useNavigate();
     const refStatusIncall = useRef<boolean>(false)
@@ -44,17 +58,18 @@ function Home() {
         console.log('refStatusIncall trong chat app', refStatusIncall)
 
     }, [refStatusIncall])
+    useEffect(() => {
+        if (callStore.callStatus === CallStatus.BUSY ||
+            callStore.callStatus === CallStatus.REJECT ||
+            callStore.callStatus === CallStatus.ENDED ||
+            callStore.callStatus === CallStatus.TIMEOUT ||
+            callStore.callStatus === CallStatus.IN_CALL) {
+            setModalCalling(false)
+        }
+    }, [callStore.callStatus])
     console.log('selected user home' + selectedUser);
-    // useLayoutEffect(() => {
-    //     if (!user.username) {
-    //         // navigate('/login', { replace: true });
-    //         return <Navigate to="/login" replace />;
-    //     }
-    // }, [user.username, navigate]);
     const dispatch = useDispatch();
     const selection = useSelector((state: RootState) => state.call);
-    const location = useCurrentLocation().getLocation();
-    console.log('location', location);
 
     return (
         <>
@@ -64,9 +79,11 @@ function Home() {
                 {selection.callStatus === CallStatus.ENDED && <EndCallModal open={true} onReload={() => setRe(prev => prev + 1)}></EndCallModal>}
                 {selection.callStatus === CallStatus.CANCEL && <CancelModal open={true} onReload={() => setRe(prev => prev + 1)}></CancelModal>}
                 {selection.callStatus === CallStatus.REJECT && (<RejectModal open={true} onReload={() => setRe(prev => prev + 1)}></RejectModal>)}
+                {selection.callStatus === CallStatus.BUSY && (<BusyModal open={true} onReload={() => setRe(prev => prev + 1)}></BusyModal>)}
                 {(selection.callStatus === CallStatus.TIMEOUT) && <TimeOutModal open={true} onReload={() => setRe(prev => prev + 1)}></TimeOutModal>}
 
                 {modalCalling && <CallModal open={modalCalling} setOpen={setModalCalling} typeCall={typeCalling} />}
+
                 <div className="flex h-screen ">
                     <aside className="hidden md:block w-[25%] relative">
                         <SideBar />
@@ -75,13 +92,22 @@ function Home() {
                         {selectedUser === '' ? (
                             <Welcome />
                         ) : (
-                            <div>
+                            <div className="flex flex-col h-full overflow-hidden relative">
                                 <Header
                                     username={selectedUser}
                                     setOpen={setModalCalling}
                                     setTypeCalling={setTypeCalling}
+                                    onReload={() => setRe(prev => prev + 1)}
+                                    setOpenPinModal={setShowPinModal}
                                 />
-                                <MainContent key={re} re={re} username={selectedUser} setRe={setRe} />
+                                <MainContent
+                                    key={selectedUser}
+                                    re={re}
+                                    username={selectedUser}
+                                    setRe={setRe}
+                                    showPinModal={showPinModal}
+                                    setShowPinModal={setShowPinModal}
+                                />
                                 <Footer username={selectedUser} />
                             </div>
                         )}

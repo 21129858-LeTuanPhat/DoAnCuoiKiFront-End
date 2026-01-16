@@ -17,7 +17,25 @@ import ContentItem from './ContentItem';
 import { ChevronsDown } from 'lucide-react';
 import { CallContext } from '../../../../pages/ChatAppPage';
 import LocationItem from './LocationItem';
-function MainContent({ username, setRe, re }: { username: any, setRe: React.Dispatch<React.SetStateAction<number>>, re: any }) {
+import PinMessageDisplay from '../Header/PinMessageDisplay';
+import PinnedMessagesListModal from '../../../modal/PinnedMessagesListModal';
+import PinMessageModal from '../../../modal/PinMessageModal';
+
+interface PinnedMessage {
+    id: string;
+    title: string;
+    content: string;
+    importance: 'low' | 'medium' | 'high';
+
+}
+
+function MainContent({ username, setRe, re, showPinModal, setShowPinModal }: {
+    username: any,
+    setRe: React.Dispatch<React.SetStateAction<number>>,
+    re: any,
+    showPinModal: boolean,
+    setShowPinModal: React.Dispatch<React.SetStateAction<boolean>>
+}) {
 
     interface CallHistoryState {
         roomID: string;
@@ -51,6 +69,27 @@ function MainContent({ username, setRe, re }: { username: any, setRe: React.Disp
         if (!div) return;
         div.scrollTop = div.scrollHeight;
         setNotify(false);
+    };
+
+    // Pin Message State
+    const [pinnedMessages, setPinnedMessages] = useState<PinnedMessage[]>([]);
+    const [showPinListModal, setShowPinListModal] = useState(false);
+
+    const handleUnpin = (id: string) => {
+        setPinnedMessages(prev => prev.filter(msg => msg.id !== id));
+    };
+
+    const handlePin = (id: string, title: string, content: string, importance: 'low' | 'medium' | 'high') => {
+        const newPinMessage: PinnedMessage = {
+            id,
+            title,
+            content,
+            importance
+        };
+        setPinnedMessages((prev) => {
+            if (prev.some(p => p.id === newPinMessage.id)) return prev;
+            return [...prev, newPinMessage];
+        });
     };
     useEffect(() => {
         const callMessages = listMessage.filter((msg) => msg.mes.type >= 10);
@@ -99,7 +138,7 @@ function MainContent({ username, setRe, re }: { username: any, setRe: React.Disp
     useLayoutEffect(() => {
         setListMessage([]);
         setPage(1);
-    }, [username]);
+    }, [username, re]);
     const selectionRef = useRef<ReducerCall>({
         callStatus: CallStatus.IDLE,
         isIncoming: false,
@@ -126,7 +165,6 @@ function MainContent({ username, setRe, re }: { username: any, setRe: React.Disp
         const ws = WebSocketManager.getInstance();
         const username = localStorage.getItem('username');
 
-        // Thêm field 'from' nếu là room call
         const callMess = callSelection.type === 'room' ? {
             status: CallStatus.IN_CALL,
             roomURL: `/call?roomID=${callSelection.roomID}&call_mode=${callSelection.callMode}`,
@@ -178,7 +216,23 @@ function MainContent({ username, setRe, re }: { username: any, setRe: React.Disp
             ws.onMessage('GET_PEOPLE_CHAT_MES', (msg) => {
                 console.log('msg maincontent people', msg)
                 if (msg.status === 'success' && msg.event === 'SEND_CHAT') {
+                    console.log('Decode mes:', decodeURIComponent(msg.data.mes));
                     const mesObj: any = JSON.parse(decodeURIComponent(msg.data.mes));
+                    console.log('Parsed mesObj:', mesObj);
+                    if (mesObj.type === TypeMess.PIN) {
+                        console.log('tin nhắn pin nè', mesObj)
+                        const newPinMessage: PinnedMessage = {
+                            id: mesObj.data.id || msg.data.id,
+                            title: mesObj.data.title,
+                            content: mesObj.data.content,
+                            importance: mesObj.data.importance,
+
+                        };
+                        setPinnedMessages((prev) => {
+                            if (prev.some(p => p.id === newPinMessage.id)) return prev;
+                            return [...prev, newPinMessage];
+                        });
+                    }
                     if (mesObj.type === TypeMess.VIDEO_CALL || mesObj.type === TypeMess.VOICE_CALL) {
                         if (msg.data.type === 0) {
 
@@ -186,6 +240,29 @@ function MainContent({ username, setRe, re }: { username: any, setRe: React.Disp
                             switch (mesObj.data.status) {
                                 case CallStatus.CALLING:
                                     console.log('trong switch nè', mesObj.data.status);
+                                    if (msg.data.name === localStorage.getItem('username')) {
+                                        return;
+                                    }
+                                    if (selectionRef.current.callStatus === CallStatus.IN_CALL || selectionRef.current.callStatus === CallStatus.CALLING || selectionRef.current.callStatus === CallStatus.RINGING || selectionRef.current.callStatus === CallStatus.CONNECTING) {
+                                        const messReject = {
+                                            status: CallStatus.BUSY,
+                                            roomURL: mesObj.data.roomURL,
+                                            roomID: mesObj.data.roomID,
+                                        };
+                                        const ws = WebSocketManager.getInstance();
+                                        ws.sendMessage(JSON.stringify({
+                                            action: 'onchat',
+                                            data: {
+                                                event: 'SEND_CHAT',
+                                                data: {
+                                                    type: 'people',
+                                                    to: msg.data.name,
+                                                    mes: encodeURIComponent(JSON.stringify({ type: mesObj.type, data: messReject })),
+                                                },
+                                            },
+                                        }));
+                                        return;
+                                    }
                                     dispatch(
                                         incomingCall({
                                             roomURL: mesObj.data.roomURL,
@@ -229,6 +306,115 @@ function MainContent({ username, setRe, re }: { username: any, setRe: React.Disp
                                 case CallStatus.TIMEOUT:
                                     console.log('trong switch  TIMEOUT nè', mesObj.data.status);
                                     dispatch(updateStatus({ status: CallStatus.TIMEOUT }));
+                                    break;
+                                case CallStatus.BUSY:
+                                    console.log('User is busy');
+                                    dispatch(updateStatus({ status: CallStatus.BUSY }));
+                                    break;
+                            }
+                        }
+                        else if (msg.data.type === 1) {
+                            switch (mesObj.data.status) {
+                                case CallStatus.CALLING:
+                                    console.log('trong switch nè', mesObj.data.status);
+                                    if (msg.data.name === localStorage.getItem('username')) {
+                                        return;
+                                    }
+
+                                    dispatch(
+                                        incomingCall({
+                                            roomURL: mesObj.data.roomURL,
+                                            roomID: mesObj.data.roomID,
+                                            caller: msg.data.type === 1 ? msg.data.to : msg.data.name,
+                                            callMode:
+                                                mesObj.type === TypeMess.VIDEO_CALL
+                                                    ? TypeMess.VIDEO_CALL
+                                                    : TypeMess.VOICE_CALL,
+                                            type: msg.data.type === 0 ? 'people' : 'room',
+                                        }),
+                                    );
+                                    break;
+                                case CallStatus.REJECT:
+                                    console.log('Group Call: Ignored REJECT from', msg.data.name);
+                                    break;
+                                case CallStatus.CONNECTING:
+                                    console.log('Group Call: Nhận CONNECTING từ:', msg.data.name, '(người gửi), from:', mesObj.data.from, '(người gọi ban đầu), callStatus:', selectionRef.current.callStatus);
+                                    if (!context) return;
+                                    const myUsernameConnecting = localStorage.getItem('username');
+                                    if (msg.data.name === myUsernameConnecting) {
+                                        console.log('Bỏ qua CONNECTING từ chính mình');
+                                        break;
+                                    }
+
+                                    if (selectionRef.current.callStatus === CallStatus.CALLING && !context.refStatusIncall.current) {
+                                        console.log('Người gọi nhận CONNECTING, gửi IN_CALL và vào room');
+                                        setTimeout(() => {
+                                            sendInCall();
+                                            dispatch(updateStatus({ status: CallStatus.IN_CALL }));
+                                        }, 100);
+                                    }
+
+                                    else if (selectionRef.current.callStatus === CallStatus.RINGING) {
+                                        context.refStatusIncall.current = true;
+                                        console.log('Người khác đã accept, nhưng mình vẫn đang ringing - KHÔNG tự động join');
+
+                                    }
+                                    else if (selectionRef.current.callStatus === CallStatus.IDLE) {
+                                        context.refStatusIncall.current = true;
+                                        console.log('Nhận CONNECTING khi vẫn đang IDLE - Đánh dấu có người đã vào');
+
+                                    }
+                                    else if (selectionRef.current.callStatus === CallStatus.IN_CALL) {
+                                        console.log('Đã IN_CALL rồi, bỏ qua CONNECTING');
+                                    }
+                                    else {
+                                        console.log('Trường hợp khác - callStatus:', selectionRef.current.callStatus, 'refStatusIncall:', context.refStatusIncall.current);
+                                    }
+                                    break;
+                                case CallStatus.IN_CALL:
+                                    console.log('Nhận IN_CALL từ:', msg.data.name, '(người gửi), from:', mesObj.data.from, '(người gọi ban đầu), callStatus:', selectionRef.current.callStatus);
+                                    if (!context) return;
+
+
+                                    const myUsernameInCall = localStorage.getItem('username');
+                                    if (msg.data.name === myUsernameInCall) {
+                                        console.log('Bỏ qua IN_CALL từ chính mình');
+                                        break;
+                                    }
+
+                                    if (selectionRef.current.callStatus === CallStatus.CONNECTING && !context.refStatusIncall.current) {
+                                        dispatch(updateStatus({ status: CallStatus.IN_CALL }));
+                                    }
+                                    else if (selectionRef.current.callStatus === CallStatus.RINGING) {
+                                        context.refStatusIncall.current = true;
+                                        console.log('Người khác đã vào call, nhưng mình vẫn đang ringing');
+
+                                    }
+                                    else {
+                                        context.refStatusIncall.current = true;
+                                    }
+                                    break;
+                                case CallStatus.ENDED:
+                                    if (selectionRef.current.callStatus === CallStatus.IDLE) {
+                                        return
+                                    }
+                                    console.log('trong switch nè', mesObj.data.status)
+                                    console.log(JSON.parse(decodeURIComponent(msg.data.mes)))
+                                    dispatch(updateStatus({ status: CallStatus.ENDED }))
+                                    console.log('Nhận được end từ người gửi')
+                                    break;
+                                case CallStatus.CANCEL:
+                                    if (selectionRef.current.callStatus === CallStatus.RINGING) {
+                                        dispatch(updateStatus({ status: CallStatus.CANCEL }));
+                                    }
+                                    break;
+                                case CallStatus.TIMEOUT:
+                                    console.log('trong switch  TIMEOUT nè', mesObj.data.status);
+                                    dispatch(updateStatus({ status: CallStatus.TIMEOUT }));
+                                    break;
+                                case CallStatus.BUSY:
+                                    console.log('Users are busy');
+                                    dispatch(updateStatus({ status: CallStatus.BUSY }));
                                     break;
                             }
                         }
@@ -302,18 +488,54 @@ function MainContent({ username, setRe, re }: { username: any, setRe: React.Disp
                 console.log('msg maincontent room', msg)
                 if (msg.status === 'success' && msg.event === 'SEND_CHAT') {
                     const mesObj: any = JSON.parse(decodeURIComponent(msg.data.mes));
+                    if (mesObj.type === TypeMess.PIN) {
+                        console.log('tin nhắn pin nè', mesObj)
+                        const newPinMessage: PinnedMessage = {
+                            id: mesObj.data.id || msg.data.id,
+                            title: mesObj.data.title,
+                            content: mesObj.data.content,
+                            importance: mesObj.data.importance,
+                        };
+                        setPinnedMessages((prev) => {
+                            if (prev.some(p => p.id === newPinMessage.id)) return prev;
+                            return [...prev, newPinMessage];
+                        });
+                    }
                     if (mesObj.type === TypeMess.VIDEO_CALL || mesObj.type === TypeMess.VOICE_CALL) {
+                        if (msg.data.type === 0) {
 
-                        if (msg.data.type === 1) {
 
                             switch (mesObj.data.status) {
                                 case CallStatus.CALLING:
                                     console.log('trong switch nè', mesObj.data.status);
+                                    if (msg.data.name === localStorage.getItem('username')) {
+                                        return;
+                                    }
+                                    if (selectionRef.current.callStatus === CallStatus.IN_CALL || selectionRef.current.callStatus === CallStatus.CALLING || selectionRef.current.callStatus === CallStatus.RINGING || selectionRef.current.callStatus === CallStatus.CONNECTING) {
+                                        const messReject = {
+                                            status: CallStatus.BUSY,
+                                            roomURL: mesObj.data.roomURL,
+                                            roomID: mesObj.data.roomID,
+                                        };
+                                        const ws = WebSocketManager.getInstance();
+                                        ws.sendMessage(JSON.stringify({
+                                            action: 'onchat',
+                                            data: {
+                                                event: 'SEND_CHAT',
+                                                data: {
+                                                    type: 'people',
+                                                    to: msg.data.name,
+                                                    mes: encodeURIComponent(JSON.stringify({ type: mesObj.type, data: messReject })),
+                                                },
+                                            },
+                                        }));
+                                        return;
+                                    }
                                     dispatch(
                                         incomingCall({
                                             roomURL: mesObj.data.roomURL,
                                             roomID: mesObj.data.roomID,
-                                            caller: msg.data.type === 1 ? msg.data.to : msg.data.name,
+                                            caller: msg.data.name,
                                             callMode:
                                                 mesObj.type === TypeMess.VIDEO_CALL
                                                     ? TypeMess.VIDEO_CALL
@@ -323,78 +545,26 @@ function MainContent({ username, setRe, re }: { username: any, setRe: React.Disp
                                     );
                                     break;
                                 case CallStatus.REJECT:
-                                    // Group Call: Always ignore REJECT. One person rejecting shouldn't stop the call.
-                                    console.log('Group Call: Ignored REJECT from', msg.data.name);
+                                    console.log('trong switch  REJECT nè', mesObj.data.status);
+                                    dispatch(updateStatus({ status: CallStatus.REJECT }));
                                     break;
                                 case CallStatus.CONNECTING:
-                                    console.log('Group Call: Nhận CONNECTING từ:', msg.data.name, '(người gửi), from:', mesObj.data.from, '(người gọi ban đầu), callStatus:', selectionRef.current.callStatus);
-                                    if (!context) return;
-                                    // Bỏ qua message từ chính mình (dùng msg.data.name - người gửi message)
-                                    const myUsernameConnecting = localStorage.getItem('username');
-                                    if (msg.data.name === myUsernameConnecting) {
-                                        console.log('Bỏ qua CONNECTING từ chính mình');
-                                        break;
-                                    }
-
-                                    // User A (người gọi - đang CALLING): Nhận CONNECTING từ B → Gửi IN_CALL và vào room
-                                    if (selectionRef.current.callStatus === CallStatus.CALLING && !context.refStatusIncall.current) {
-                                        console.log('Người gọi nhận CONNECTING, gửi IN_CALL và vào room');
-                                        setTimeout(() => {
-                                            sendInCall();
-                                            dispatch(updateStatus({ status: CallStatus.IN_CALL }));
-                                        }, 100);
-                                    }
-                                    // else if (selection.callStatus === CallStatus.CONNECTING && !context.refStatusIncall.current) {
-                                    //     console.log('Mình cũng đã accept, gửi IN_CALL');
-                                    //     setTimeout(() => {
-                                    //         sendInCall();
-                                    //         dispatch(updateStatus({ status: CallStatus.IN_CALL }));
-                                    //     }, 100);
-                                    //       dispatch(updateStatus({ status: CallStatus.IN_CALL }));
-                                    // }
-                                    else if (selectionRef.current.callStatus === CallStatus.RINGING) {
-                                        context.refStatusIncall.current = true;
-                                        console.log('Người khác đã accept, nhưng mình vẫn đang ringing - KHÔNG tự động join');
-
-                                    }
-                                    else if (selectionRef.current.callStatus === CallStatus.IDLE) {
-                                        context.refStatusIncall.current = true;
-                                        console.log('Nhận CONNECTING khi vẫn đang IDLE - Đánh dấu có người đã vào');
-
-                                    }
-                                    else if (selectionRef.current.callStatus === CallStatus.IN_CALL) {
-                                        console.log('Đã IN_CALL rồi, bỏ qua CONNECTING');
-                                    }
-                                    else {
-                                        console.log('Trường hợp khác - callStatus:', selectionRef.current.callStatus, 'refStatusIncall:', context.refStatusIncall.current);
-                                    }
+                                    console.log('trong switch nè', mesObj.data.status);
+                                    console.log('Nhận được CONNECTING, gửi IN_CALL');
+                                    setTimeout(() => {
+                                        sendInCall();
+                                        dispatch(updateStatus({ status: CallStatus.IN_CALL }));
+                                    }, 100);
                                     break;
                                 case CallStatus.IN_CALL:
-                                    console.log('Nhận IN_CALL từ:', msg.data.name, '(người gửi), from:', mesObj.data.from, '(người gọi ban đầu), callStatus:', selectionRef.current.callStatus);
-                                    if (!context) return;
-
-
-                                    const myUsernameInCall = localStorage.getItem('username');
-                                    if (msg.data.name === myUsernameInCall) {
-                                        console.log('Bỏ qua IN_CALL từ chính mình');
-                                        break;
-                                    }
-
-                                    if (selectionRef.current.callStatus === CallStatus.CONNECTING && !context.refStatusIncall.current) {
-                                        dispatch(updateStatus({ status: CallStatus.IN_CALL }));
-                                    }
-                                    else if (selectionRef.current.callStatus === CallStatus.RINGING) {
-                                        context.refStatusIncall.current = true;
-                                        console.log('Người khác đã vào call, nhưng mình vẫn đang ringing');
-
-                                    }
-                                    else {
-                                        context.refStatusIncall.current = true;
-                                    }
+                                    console.log('trong switch nè', mesObj.data.status);
+                                    dispatch(updateStatus({ status: CallStatus.IN_CALL }));
+                                    console.log('Nhận được IN_CALL từ người gửi');
                                     break;
                                 case CallStatus.ENDED:
                                     console.log('trong switch nè', mesObj.data.status)
                                     console.log(JSON.parse(decodeURIComponent(msg.data.mes)))
+
                                     dispatch(updateStatus({ status: CallStatus.ENDED }))
                                     console.log('Nhận được end từ người gửi')
                                     break;
@@ -405,8 +575,117 @@ function MainContent({ username, setRe, re }: { username: any, setRe: React.Disp
                                     console.log('trong switch  TIMEOUT nè', mesObj.data.status);
                                     dispatch(updateStatus({ status: CallStatus.TIMEOUT }));
                                     break;
+                                case CallStatus.BUSY:
+                                    console.log('User is busy');
+                                    dispatch(updateStatus({ status: CallStatus.BUSY }));
+                                    break;
                             }
                         }
+                        else
+                            if (msg.data.type === 1) {
+                                switch (mesObj.data.status) {
+                                    case CallStatus.CALLING:
+                                        console.log('trong switch nè', mesObj.data.status);
+                                        if (msg.data.name === localStorage.getItem('username')) {
+                                            return;
+                                        }
+                                        dispatch(
+                                            incomingCall({
+                                                roomURL: mesObj.data.roomURL,
+                                                roomID: mesObj.data.roomID,
+                                                caller: msg.data.type === 1 ? msg.data.to : msg.data.name,
+                                                callMode:
+                                                    mesObj.type === TypeMess.VIDEO_CALL
+                                                        ? TypeMess.VIDEO_CALL
+                                                        : TypeMess.VOICE_CALL,
+                                                type: msg.data.type === 0 ? 'people' : 'room',
+                                            }),
+                                        );
+                                        break;
+                                    case CallStatus.REJECT:
+                                        console.log('Group Call: Ignored REJECT from', msg.data.name);
+                                        break;
+                                    case CallStatus.CONNECTING:
+                                        console.log('Group Call: Nhận CONNECTING từ:', msg.data.name, '(người gửi), from:', mesObj.data.from, '(người gọi ban đầu), callStatus:', selectionRef.current.callStatus);
+                                        if (!context) return;
+                                        const myUsernameConnecting = localStorage.getItem('username');
+                                        if (msg.data.name === myUsernameConnecting) {
+                                            console.log('Bỏ qua CONNECTING từ chính mình');
+                                            break;
+                                        }
+
+                                        if (selectionRef.current.callStatus === CallStatus.CALLING && !context.refStatusIncall.current) {
+                                            console.log('Người gọi nhận CONNECTING, gửi IN_CALL và vào room');
+                                            setTimeout(() => {
+                                                sendInCall();
+                                                dispatch(updateStatus({ status: CallStatus.IN_CALL }));
+                                            }, 100);
+                                        }
+
+                                        else if (selectionRef.current.callStatus === CallStatus.RINGING) {
+                                            context.refStatusIncall.current = true;
+                                            console.log('Người khác đã accept, nhưng mình vẫn đang ringing - KHÔNG tự động join');
+
+                                        }
+                                        else if (selectionRef.current.callStatus === CallStatus.IDLE) {
+                                            context.refStatusIncall.current = true;
+                                            console.log('Nhận CONNECTING khi vẫn đang IDLE - Đánh dấu có người đã vào');
+
+                                        }
+                                        else if (selectionRef.current.callStatus === CallStatus.IN_CALL) {
+                                            console.log('Đã IN_CALL rồi, bỏ qua CONNECTING');
+                                        }
+                                        else {
+                                            console.log('Trường hợp khác - callStatus:', selectionRef.current.callStatus, 'refStatusIncall:', context.refStatusIncall.current);
+                                        }
+                                        break;
+                                    case CallStatus.IN_CALL:
+                                        console.log('Nhận IN_CALL từ:', msg.data.name, '(người gửi), from:', mesObj.data.from, '(người gọi ban đầu), callStatus:', selectionRef.current.callStatus);
+                                        if (!context) return;
+
+
+                                        const myUsernameInCall = localStorage.getItem('username');
+                                        if (msg.data.name === myUsernameInCall) {
+                                            console.log('Bỏ qua IN_CALL từ chính mình');
+                                            break;
+                                        }
+
+                                        if (selectionRef.current.callStatus === CallStatus.CONNECTING && !context.refStatusIncall.current) {
+                                            dispatch(updateStatus({ status: CallStatus.IN_CALL }));
+                                        }
+                                        else if (selectionRef.current.callStatus === CallStatus.RINGING) {
+                                            context.refStatusIncall.current = true;
+                                            console.log('Người khác đã vào call, nhưng mình vẫn đang ringing');
+
+                                        }
+                                        else {
+                                            context.refStatusIncall.current = true;
+                                        }
+                                        break;
+                                    case CallStatus.ENDED:
+                                        if (selectionRef.current.callStatus === CallStatus.IDLE) {
+                                            return
+                                        }
+                                        console.log('trong switch nè', mesObj.data.status)
+                                        console.log(JSON.parse(decodeURIComponent(msg.data.mes)))
+                                        dispatch(updateStatus({ status: CallStatus.ENDED }))
+                                        console.log('Nhận được end từ người gửi')
+                                        break;
+                                    case CallStatus.CANCEL:
+                                        if (selectionRef.current.callStatus === CallStatus.RINGING) {
+                                            dispatch(updateStatus({ status: CallStatus.CANCEL }));
+                                        }
+                                        break;
+                                    case CallStatus.TIMEOUT:
+                                        console.log('trong switch  TIMEOUT nè', mesObj.data.status);
+                                        dispatch(updateStatus({ status: CallStatus.TIMEOUT }));
+                                        break;
+                                    case CallStatus.BUSY:
+                                        console.log('Users are busy');
+                                        dispatch(updateStatus({ status: CallStatus.BUSY }));
+                                        break;
+                                }
+                            }
                         return;
                     }
                 }
@@ -480,7 +759,7 @@ function MainContent({ username, setRe, re }: { username: any, setRe: React.Disp
                 ws.unSubcribe('GET_ROOM_CHAT_MES');
             }
         };
-    }, [page]);
+    }, [page, re]);
 
     useLayoutEffect(() => {
         const div = divRef.current;
@@ -530,7 +809,26 @@ function MainContent({ username, setRe, re }: { username: any, setRe: React.Disp
 
     return (
         <>
-            <section className="bg-[#f0f4fa] h-[calc(737.6px-72px-65px)]">
+            <PinnedMessagesListModal
+                isOpen={showPinListModal}
+                onClose={() => setShowPinListModal(false)}
+                messages={pinnedMessages}
+                onUnpin={handleUnpin}
+            />
+            <PinMessageModal
+                isOpen={showPinModal}
+                onClose={() => setShowPinModal(false)}
+                onPin={handlePin}
+            />
+            <section className="bg-[#f0f4fa] h-[calc(737.6px-72px-65px)] relative">
+                {pinnedMessages.length > 0 && (
+                    <div className="absolute top-0 left-0 right-0 z-10 shadow-md">
+                        <PinMessageDisplay
+                            messages={pinnedMessages}
+                            onOpenList={() => setShowPinListModal(true)}
+                        />
+                    </div>
+                )}
                 {initialLoading ? (
                     <div className="h-full flex items-center justify-center">
                         <div className="w-10 h-10 border-4 border-gray-300 border-t-blue-500 rounded-full animate-spin" />
@@ -581,6 +879,7 @@ function MainContent({ username, setRe, re }: { username: any, setRe: React.Disp
                                     return <LocationItem message={message} key={index} />;
                                 }
                                 if (objectMess.type < 10) {
+
                                     return <Content message={message} key={index} />;
                                 }
                             })}

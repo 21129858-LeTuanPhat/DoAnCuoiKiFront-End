@@ -4,11 +4,10 @@ import store, { RootState } from '../redux/store';
 import { setReCode } from '../redux/userReducer';
 import { SOCKET_BASE_URL } from '../config/utils';
 import { ReCodeInterface } from '../model/User';
+import { rejects } from 'assert';
 class WebSocketManager {
     private static webSocketManager: WebSocketManager;
-
     private socket: WebSocket | null = null;
-
     private listeners: Map<string, (msg: WSMessage) => void> = new Map();
     private intentionalClose = false;
     private constructor() { }
@@ -20,8 +19,12 @@ class WebSocketManager {
         return WebSocketManager.webSocketManager;
     }
     public connect2(url: string): Promise<void> {
-        return new Promise((resolve) => {
-            if (this.socket?.readyState === WebSocket.OPEN) {
+        return new Promise((resolve, reject) => {
+            if (
+                this.socket &&
+                (this.socket.readyState === WebSocket.OPEN ||
+                    this.socket.readyState === WebSocket.CONNECTING)
+            ) {
                 resolve();
                 return;
             }
@@ -38,37 +41,44 @@ class WebSocketManager {
 
             this.socket.onerror = (err) => {
                 console.log('lỗi:', err);
+                // reject(err);
+
             };
-            this.socket.onclose = () => {
+            this.socket.onclose = (err) => {
+                console.log("close code:", err.code);
+                console.log("reason:", err.reason);
+                console.log("wasClean:", err.wasClean);
                 console.log('đóng kết nối');
+                if (!this.intentionalClose) {
 
-                this.handleReconnect();
-
+                    this.handleReconnect(err.code);
+                }
             };
         });
     }
-    private reconnecting = false;
-
-    private handleReconnect() {
-        console.log('handle reconnect')
-        if (this.reconnecting) return;
-        this.reconnecting = true;
-
-        this.connect2(SOCKET_BASE_URL)
-            .then(() => {
-                this.reconnecting = false;
-                this.reCode();
-            })
-            .catch(() => {
-                this.reconnecting = false;
-            });
-
+    private isReconnecting = false;
+    private async handleReconnect(code?: number) {
+        if (this.isReconnecting) return;
+        this.isReconnecting = true;
+        let delay = 3000;
+        if (code === 1001) delay = 10000; // server restart
+        await new Promise((resolve) => setTimeout(resolve, delay));
+        console.log('executing reconnect');
+        try {
+            await this.connect2(SOCKET_BASE_URL);
+            this.reCode();
+        } catch (error) {
+            console.log('lỗi trong handleReconnect');
+        }
+        finally {
+            this.isReconnecting = false;
+        }
     }
 
     public reCode() {
         console.log('dis connet rồi');
-        this.unSubcribe('RE_LOGIN');
-        this.onMessage('RE_LOGIN', (mes: any) => {
+        this.unSubcribe('RE_LOGIN_MANAGER');
+        this.onMessage('RE_LOGIN_MANAGER', (mes: any) => {
             console.log('re code trong ws', mes);
             const objReCode: ReCodeInterface = mes.data;
             console.log('objReCode', objReCode);
@@ -78,7 +88,8 @@ class WebSocketManager {
                 store.dispatch(setReCode({ reCode: objReCode.RE_LOGIN_CODE }));
             }
             if (mes.status === 'error') {
-                window.location.href = '/login';
+                // window.location.href = '/login';
+                console.log('RE_LOGIN failed in WebSocketManager');
             }
         });
         const user = localStorage.getItem('username');
@@ -102,7 +113,15 @@ class WebSocketManager {
     }
     public async sendMessage(message: string): Promise<void> {
         console.log(message)
+        const now = new Date();
+
+        const hours = now.getHours();      // 0 - 23
+        const minutes = now.getMinutes();  // 0 - 59
+        const seconds = now.getSeconds();  // 0 - 59
+
+        console.log(hours, minutes, seconds);
         if (this.socket && this.socket.readyState === WebSocket.OPEN) {
+            console.log('Gửi message khi socket mở', message);
             this.socket.send(message);
         }
         else {

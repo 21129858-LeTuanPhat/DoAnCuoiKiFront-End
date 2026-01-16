@@ -1,4 +1,4 @@
-import { PanelLeft, UserPlus, MapPin } from 'lucide-react';
+import { PanelLeft, UserPlus, MapPin, Pin } from 'lucide-react';
 import LocationModal from '../../../modal/LocationModal';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faLocationCrosshairs, faLocationDot, faPhone, faVideo } from '@fortawesome/free-solid-svg-icons';
@@ -22,10 +22,14 @@ function Header({
     username,
     setOpen,
     setTypeCalling,
+    onReload,
+    setOpenPinModal
 }: {
     username: string;
     setOpen: React.Dispatch<React.SetStateAction<boolean>>;
     setTypeCalling: React.Dispatch<React.SetStateAction<number>>;
+    onReload?: () => void;
+    setOpenPinModal: React.Dispatch<React.SetStateAction<boolean>>;
 }) {
     const { selectedUser, type: typeMessage } = useBoardContext();
     const { type } = useBoardContext();
@@ -50,7 +54,8 @@ function Header({
     }, [selector.callStatus]);
     return (
         <>
-            {openLocationModal && <LocationModal isOpen={openLocationModal} onClose={() => setOpenLocationModal(false)} />}
+
+            {openLocationModal && <LocationModal onReload={onReload} isOpen={openLocationModal} onClose={() => setOpenLocationModal(false)} />}
             {openAddUser && <ModalAddUser openAddUser={openAddUser} setOpenAddUser={setOpenAddUser} />}
             {openPanel && <ListUserGroup openPanel={openPanel} setOpenPanel={setOpenPanel} />}
             <div className="flex items-center h-full justify-between px-4 py-3 bg-white overflow-auto">
@@ -84,8 +89,15 @@ function Header({
                     )}
                     <button
                         className="w-10 h-10 flex items-center justify-center rounded-full hover:bg-gray-200 transition"
+                        onClick={() => setOpenPinModal(true)}
+                        title="Ghim thông báo"
+                    >
+                        <Pin className="text-lg text-blue-600 w-5 h-5" />
+                    </button>
+                    <button
+                        className="w-10 h-10 flex items-center justify-center rounded-full hover:bg-gray-200 transition"
                         onClick={() => setOpenLocationModal(true)}
-                        title="Vị trí của bạn"
+                        title="Chia sẻ vị trí của bạn"
                     >
                         <FontAwesomeIcon icon={faLocationDot} className="text-lg text-blue-600 text-[20px]" />
 
@@ -109,3 +121,4 @@ function Header({
 }
 
 export default React.memo(Header);
+

@@ -7,9 +7,10 @@ import { useBoardContext } from '../../hooks/useBoardContext';
 interface LocationModalProps {
     isOpen: boolean;
     onClose: () => void;
+    onReload?: () => void
 }
 
-const LocationModal: React.FC<LocationModalProps> = ({ isOpen, onClose }) => {
+const LocationModal: React.FC<LocationModalProps> = ({ isOpen, onClose, onReload }) => {
     const { location, error, getLocation } = useCurrentLocation();
     useEffect(() => {
         if (isOpen) {
@@ -37,6 +38,7 @@ const LocationModal: React.FC<LocationModalProps> = ({ isOpen, onClose }) => {
             }),
         );
         onClose();
+        if (onReload) onReload()
     };
 
     return (
@@ -62,6 +64,7 @@ const LocationModal: React.FC<LocationModalProps> = ({ isOpen, onClose }) => {
                         </div>
                     ) : location ? (
                         <iframe
+                            title='hihi'
                             className="w-full h-full rounded shadow-sm"
                             src={`https://maps.google.com/maps?q=${location}&output=embed`}
                         ></iframe>

@@ -229,69 +229,7 @@ export default function Call({ setModal }: { setModal: React.Dispatch<React.SetS
                         userLeftFirstRef.current = false;
                         dispatch(updateStatus({ status: CallStatus.ENDED }));
                     },
-                    // onLeaveRoom: () => {
-                    //     console.log('Left room');
-                    //     const isGroupCall = callStore.type;
-                    //     hasLeftRoomRef.current = true;
-                    //     console.log('userLeftFirstRef:', userLeftFirstRef.current);
-                    //     stopTimer();
 
-                    //     // Kiểm tra số lượng người dùng hiện tại
-                    //     const currentUserCount = userCount - 1;
-                    //     console.log('Số người còn lại sau khi rời:', currentUserCount);
-
-                    //     // Nếu là cuộc gọi nhóm
-                    //     if (isGroupCall === 'room') {
-                    //         // Logic: 
-                    //         // Nếu còn > 2 người (tức là sau khi mình đi còn >= 2 người): Không gửi ENDED.
-                    //         // Nếu còn <= 2 người (tức là chỉ có mình với 1 người, hoặc mình mình): Gửi ENDED để kết thúc cho người kia.
-                    //         // Lưu ý: userCountRef.current tại đây có thể chưa trừ mình ra? 
-                    //         // onLeaveRoom kích hoạt khi MÌNH LEAVE.
-                    //         // userCountRef là tổng số user hiện tại (bao gồm mình).
-
-                    //         const currentCount = userCountRef.current;
-                    //         console.log('Check Group Leave. Count:', currentCount);
-
-                    //         setTimeout(() => {
-                    //             if (zpRef.current && typeof zpRef.current.hangUp === 'function') {
-                    //                 zpRef.current.hangUp();
-                    //             }
-                    //             setModal(false);
-                    //         }, 300);
-
-                    //         if (currentCount <= 2) {
-                    //             // Còn 2 người (mình + bạn), mình rời -> Hủy Call
-                    //             if (!userLeftFirstRef.current) {
-                    //                 sendEnd();
-                    //                 zpRef.current.hangUp();
-                    //                 console.log('Room còn <= 2 người, gửi ENDED.');
-                    //             }
-                    //             dispatch(updateStatus({ status: CallStatus.ENDED }));
-                    //         } else {
-                    //             // Còn đông -> Chỉ rời
-                    //             console.log('Room còn đông (', currentCount, '), chỉ rời phòng.');
-                    //             dispatch(updateStatus({ status: CallStatus.ENDED }));
-                    //         }
-                    //     } else {
-                    //         // Cuộc gọi 1-1 (people)
-                    //         setTimeout(() => {
-                    //             if (zpRef.current && typeof zpRef.current.hangUp === 'function') {
-                    //                 zpRef.current.hangUp();
-                    //             }
-                    //             setModal(false);
-                    //         }, 300);
-
-                    //         if (!userLeftFirstRef.current) {
-                    //             sendEnd();
-                    //             console.log('Kết thúc cuộc gọi 1-1');
-                    //         }
-
-                    //         dispatch(updateStatus({ status: CallStatus.ENDED }));
-                    //     }
-
-                    //     console.log('Call duration:', callDuration, 'seconds');
-                    //     userLeftFirstRef.current = false;
-                    // },
                 });
             } catch (error) {
                 console.error('Error joining room:', error);

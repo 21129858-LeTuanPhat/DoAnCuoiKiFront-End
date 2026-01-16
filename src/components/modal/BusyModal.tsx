@@ -1,15 +1,19 @@
-
 import { Box, Button, Modal, Typography } from '@mui/material'
 import HighlightOffIcon from '@mui/icons-material/HighlightOff';
-import React, { useState } from 'react'
+import React, { useContext, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux';
+import VideoCameraFrontIcon from '@mui/icons-material/VideoCameraFront';
 import { CallStatus } from '../../model/CallProps';
 import { resetCall } from '../../redux/callReducer'
+import { LocalPhone } from '@mui/icons-material';
 import { RootState } from '../../redux/store';
-export default function CancelModal({ open, onReload }: { open: boolean, onReload?: () => void }) {
-    const [openModal, setModal] = useState(open)
-    const dispatch = useDispatch()
+import { TypeMess } from '../../model/ChatMessage';
+import { CallContext } from '../../pages/ChatAppPage';
+export default function BusyModal({ open, onReload }: { open: boolean, onReload?: () => void }) {
+    const [openModal, setModal] = useState<boolean>(open)
     const callStore = useSelector((state: RootState) => state.call)
+    const dispatch = useDispatch()
+    const context = useContext(CallContext)
     return (
         <div>
             <Modal
@@ -31,14 +35,14 @@ export default function CancelModal({ open, onReload }: { open: boolean, onReloa
                         textAlign: 'center',
                     }}
                 >
-                    <HighlightOffIcon
+                    {callStore.callMode === TypeMess.VOICE_CALL ? (<LocalPhone
                         sx={{ fontSize: 100, color: 'red', mb: 2 }}
-                    />
+                    />) : (<VideoCameraFrontIcon sx={{ fontSize: 100, color: 'red', mb: 2 }}></VideoCameraFrontIcon>)}
                     <Typography variant="h6" component="h2" fontWeight={700}>
-                        {callStore.caller}!
+                        Bận!
                     </Typography>
                     <Typography sx={{ mt: 3 }}>
-                        {callStore.isIncoming ? `Cuộc gọi đã bị hủy` : `Đã hủy cuộc gọi`}
+                        Người nhận hiện đang bận
                     </Typography>
                     <Button
                         variant="contained"
@@ -47,6 +51,7 @@ export default function CancelModal({ open, onReload }: { open: boolean, onReloa
                         onClick={() => {
                             setModal(false)
                             dispatch(resetCall())
+                            if (context) context.refStatusIncall.current = false; // Reset cho cuộc gọi tiếp theo
                             if (onReload) onReload()
                         }}
                     >
@@ -54,6 +59,7 @@ export default function CancelModal({ open, onReload }: { open: boolean, onReloa
                     </Button>
                 </Box>
             </Modal>
-        </div>
+        </div >
     )
+
 }
