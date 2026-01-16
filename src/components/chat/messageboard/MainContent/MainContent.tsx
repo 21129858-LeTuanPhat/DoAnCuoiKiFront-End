@@ -115,6 +115,7 @@ function MainContent({
         setOpenRecommendation(false);
         divRef.current = null;
     }, [username]);
+
     const selectionRef = useRef<ReducerCall>({
         callStatus: CallStatus.IDLE,
         isIncoming: false,
@@ -412,13 +413,10 @@ function MainContent({
         };
     }, [page]);
 
-    useEffect(() => {
-        console.log('useEffect 3');
+    useLayoutEffect(() => {
         const div = divRef.current;
         if (!div) return;
         if (listMessage.length === 0) return;
-        console.log('chiều cao scrollHeight:', div.scrollHeight);
-        console.log('chiều cao clientHeight:', div.clientHeight);
         if (page === 1 && oneTimeRef.current === true && div.scrollHeight > div.clientHeight) {
             div.scrollTop = div.scrollHeight;
             oneTimeRef.current = false;
@@ -497,8 +495,8 @@ function MainContent({
                                 onClick={handleOnDown}
                                 className={
                                     notify === true
-                                        ? "fixed right-8 bottom-24  z-5 p-2 bg-white rounded-full cursor-pointer  before:absolute before:content-['1+'] before:text-pink-400 before:text-sm before:-bottom-2 before:left-1 before:bg-purple-300 before:px-1 before:rounded-full "
-                                        : 'fixed right-8 bottom-24  z-5 p-2 bg-white rounded-full cursor-pointer'
+                                        ? "fixed right-8 bottom-24  z-10 p-2 bg-white rounded-full cursor-pointer  before:absolute before:content-['1+'] before:text-pink-400 before:text-sm before:-bottom-2 before:left-1 before:bg-purple-300 before:px-1 before:rounded-full "
+                                        : 'fixed right-8 bottom-24  z-10 p-2 bg-white rounded-full cursor-pointer'
                                 }
                             >
                                 <ChevronsDown color="gray" size="30" />
