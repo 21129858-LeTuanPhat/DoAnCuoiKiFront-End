@@ -6,17 +6,31 @@ import { useContext } from 'react';
 import { ProfileContext } from '../Context/ProfileCotext';
 import { Notification } from './Notification';
 import { avatarDefault } from '../../../config/utils';
-export function Profile() {
+export function Profile({ darkMode }: { darkMode: boolean }) {
     const { profileInfor } = useContext(ProfileContext)!;
     const img_url = profileInfor?.imageUrl ?? avatarDefault;
     const [open, setOpen] = useState(false);
 
     return (
         <>
-            <div className="flex justify-between items-center bg-gray-200 shadow-sm w-full p-2  my-1 rounded-xl select-none ">
+            <div
+                className={
+                    darkMode === false
+                        ? 'flex justify-between items-center bg-gray-200 shadow-sm w-full p-2  my-1 rounded-xl select-none '
+                        : 'flex justify-between items-center bg-[#24232a] shadow-sm w-full p-2  my-1 rounded-xl select-none'
+                }
+            >
                 <div className="flex gap-3 items-center ">
                     <img src={img_url} className="w-10 h-10 rounded-full object-cover" />
-                    <p className="text-[#3e4040] font-medium text-md hover:">{profileInfor?.username}</p>
+                    <p
+                        className={
+                            darkMode === false
+                                ? 'text-[#3e4040] font-medium text-md '
+                                : 'text-white font-medium text-md'
+                        }
+                    >
+                        {profileInfor?.username}
+                    </p>
                 </div>
 
                 <div className="flex  justify-center items-center h-full">

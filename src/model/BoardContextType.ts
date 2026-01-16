@@ -22,6 +22,8 @@ export interface BoardContextType {
     setOpenRecommendation: React.Dispatch<React.SetStateAction<boolean>>;
     userList: User[];
     setUserList: React.Dispatch<React.SetStateAction<User[]>>;
+    darkMode: boolean;
+    setDarkMode: React.Dispatch<React.SetStateAction<boolean>>;
 
     //Dùng thằng này thì nó mới địnhg nghĩa giống React về set khi dùng useState
     //     setSelectedUser('Nam');

@@ -25,17 +25,25 @@ function SideBar() {
     const storiesRef = useRef<Story[]>([]);
     const indexRef = useRef(0);
     const { users, setUsers, loading, setLoading } = useContext(ListConversationContext)!;
-    const { setUserList } = useBoardContext();
+    const { setUserList, darkMode, setDarkMode } = useBoardContext();
     useEffect(() => {
         const userList = users.filter((user) => user.name !== loginname.username);
         setUserList(userList);
     }, [users]);
 
     return (
-        <div className="flex flex-col h-full w-full *:items-start  p-3 shadow-sm ">
+        <div
+            className={
+                darkMode === false
+                    ? 'flex flex-col h-full w-full *:items-start  p-3 shadow-sm '
+                    : 'flex flex-col h-full w-full *:items-start  p-3 shadow-sm bg-black text-black'
+            }
+        >
             <Moji />
             <ProfileProvider>
                 <ListStory
+                    darkMode={darkMode}
+                    setDarkMode={setDarkMode}
                     onOpenCreateStory={() => {
                         setopenStory(true);
                     }}
@@ -47,20 +55,33 @@ function SideBar() {
                 />
             </ProfileProvider>
 
-            <div className="flex-1 w-full overflow-y-auto px-3 py-1 space-y-3">
+            <div
+                className={
+                    darkMode === false
+                        ? 'flex-1 w-full overflow-y-auto  scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-200 px-3 py-1 space-y-3'
+                        : 'flex-1 w-full overflow-y-auto  scrollbar-thin scrollbar-thumb-[#3b4a5f] scrollbar-track-black px-3 py-1 space-y-3'
+                }
+            >
                 <ConversationPeople
+                    darkMode={darkMode}
+                    setDarkMode={setDarkMode}
                     users={users.filter((user) => user.type === 0 && user.name !== loginname.username)}
                 />
-                <ConversationGroup users={users.filter((user) => user.type === 1)} />
+                <ConversationGroup
+                    darkMode={darkMode}
+                    setDarkMode={setDarkMode}
+                    users={users.filter((user) => user.type === 1)}
+                />
             </div>
 
             <ProfileProvider>
-                <Profile />
+                <Profile darkMode={darkMode} />
             </ProfileProvider>
 
             {openStory && <FormCreateStory onClose={() => setopenStory(false)} />}
             {openStoryView && (
                 <StoryViewer
+                    darkMode={darkMode}
                     stories={storiesRef.current}
                     index={indexRef.current}
                     onClose={() => setOpenStoryView(false)}

@@ -18,10 +18,12 @@ import { ChevronsDown } from 'lucide-react';
 import { set } from 'firebase/database';
 import { showMessageNotification } from '../../../../helps/notification';
 function MainContent({
+    darkMode,
     username,
     setRe,
     re,
 }: {
+    darkMode: boolean;
     username: any;
     setRe: React.Dispatch<React.SetStateAction<number>>;
     re: any;
@@ -468,7 +470,13 @@ function MainContent({
     const [openReject, setReject] = useState<boolean>(false);
     return (
         <>
-            <section className="bg-[#f0f4fa] h-[calc(737.6px-72px-65px)]">
+            <section
+                className={
+                    darkMode === false
+                        ? 'bg-[#f0f4fa] h-[calc(737.6px-72px-65px)]'
+                        : 'bg-[#111116] h-[calc(737.6px-72px-65px)]'
+                }
+            >
                 {initialLoading ? (
                     <div className="h-full flex items-center justify-center">
                         <div className="w-10 h-10 border-4 border-gray-300 border-t-blue-500 rounded-full animate-spin" />
@@ -485,7 +493,11 @@ function MainContent({
                 ) : (
                     <div
                         ref={divRef}
-                        className="h-full overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-200"
+                        className={`h-full overflow-y-auto scrollbar-thin ${
+                            darkMode === false
+                                ? 'scrollbar-thumb-gray-300 scrollbar-track-gray-200'
+                                : 'scrollbar-thumb-[#3b4a5f] scrollbar-track-black'
+                        }`}
                     >
                         {fetchingMore && (
                             <div className="text-center text-sm text-gray-500 py-2">Đang tải tin nhắn cũ...</div>
@@ -516,7 +528,7 @@ function MainContent({
                                     }
                                 }
                                 if (objectMess.type < 10) {
-                                    return <Content message={message} key={index} />;
+                                    return <Content darkMode={darkMode} message={message} key={index} />;
                                 }
                             })}
                         </ul>
