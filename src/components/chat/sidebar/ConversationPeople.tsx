@@ -21,7 +21,7 @@ function ConversationPeople({ users }: { users: User[] }) {
         if (users.length === 0) return;
 
         const fetchProfiles = async () => {
-            console.log('Fetching profiles...');
+            console.log('Fetch profiles...');
             const profiles = await getAllProfile();
             console.log('profiles:', profiles);
             const updateProfiles = users.map((user) => {

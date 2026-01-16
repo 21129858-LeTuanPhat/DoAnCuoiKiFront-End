@@ -7,6 +7,7 @@ import { useSelector } from 'react-redux';
 import { RootState } from '../../../redux/store';
 import { LoadingProfileSkeleton } from '../../modal/LoadingSkeleton';
 import { WSMessage } from '../../../model/WSMessage';
+import { set } from 'firebase/database';
 
 function FormCreateGroup({ onClose }: { onClose: () => void }) {
     const inputRef = useRef<HTMLInputElement>(null);
@@ -74,12 +75,36 @@ function FormCreateGroup({ onClose }: { onClose: () => void }) {
             return;
         }
         setLoading(true);
-        let uploadedImageUrl = null;
-        console.log('IMAGE FILE REF2:', imageFileRef.current);
-        if (imageFileRef.current !== null) {
-            uploadedImageUrl = await handleUploadImage(imageFileRef.current, 'group_image');
-        }
+
         const ws = WebSocketManager.getInstance();
+        const key = Date.now().toString();
+
+        ws.onMessage(key, async (msg) => {
+            if (msg.event === 'CREATE_ROOM') {
+                if (msg.status === 'success') {
+                    let uploadedImageUrl = null;
+                    console.log('IMAGE FILE REF2:', imageFileRef.current);
+                    if (imageFileRef.current !== null) {
+                        uploadedImageUrl = await handleUploadImage(imageFileRef.current, 'group_image');
+                    }
+
+                    await createGroup({
+                        name: groupName,
+                        description: groupDescription,
+                        imageUrl: uploadedImageUrl || undefined,
+                        adminUsername: user.username!,
+                        members: invitedUsers,
+                    });
+                    console.log(' Room created successfully:', msg.data);
+                    setLoading(false);
+                    onClose();
+                } else {
+                    setMemberError('Tên nhóm đã tồn tại, vui lòng chọn tên khác');
+                    setLoading(false);
+                }
+                ws.unSubcribe(key);
+            }
+        });
 
         ws.sendMessage(
             JSON.stringify({
@@ -92,19 +117,7 @@ function FormCreateGroup({ onClose }: { onClose: () => void }) {
                 },
             }),
         );
-
-        await createGroup({
-            name: groupName,
-            description: groupDescription,
-            imageUrl: uploadedImageUrl || undefined,
-            adminUsername: user.username!,
-            members: invitedUsers,
-        });
-        setLoading(false);
-        onClose();
     };
-
-    if (loading) return <LoadingProfileSkeleton />;
 
     return (
         <div className=" flex justify-center items-center fixed inset-0 z-50 bg-black/40">
@@ -116,93 +129,104 @@ function FormCreateGroup({ onClose }: { onClose: () => void }) {
                     </button>
                 </div>
 
-                <div className="flex flex-col gap-2">
-                    <div className="flex gap-3 items-center justify-center">
-                        <div className="relative">
-                            <img
-                                src={
-                                    avatarUrl ??
-                                    'https://tse3.mm.bing.net/th/id/OIP.yGZbQOjxXDG_TrUC67FWtwHaGS?pid=Api&P=0&h=220'
-                                }
-                                alt={'Avatar Group'}
-                                className="w-32 h-32 rounded-full object-cover border-4 border-gray-300"
+                {loading ? (
+                    <LoadingProfileSkeleton />
+                ) : (
+                    <div>
+                        <div className="flex flex-col gap-2">
+                            <div className="flex gap-3 items-center justify-center">
+                                <div className="relative select-none">
+                                    <img
+                                        src={
+                                            avatarUrl ??
+                                            'https://tse3.mm.bing.net/th/id/OIP.yGZbQOjxXDG_TrUC67FWtwHaGS?pid=Api&P=0&h=220'
+                                        }
+                                        alt={'Avatar Group'}
+                                        className="w-32 h-32 rounded-full object-cover border-4 border-gray-300"
+                                    />
+                                    <div
+                                        className="absolute right-1 bottom-1 p-2 rounded-full bg-blue-100 cursor-pointer"
+                                        onClick={() => inputRef.current?.click()}
+                                    >
+                                        <Camera size={18} color="#03aeec" />
+                                    </div>
+
+                                    <input
+                                        ref={inputRef}
+                                        type="file"
+                                        accept="image/*"
+                                        className="hidden"
+                                        onChange={handleAvatarChange}
+                                    />
+                                </div>
+                            </div>
+                            <InputInfor
+                                label="Tên nhóm"
+                                placeholder="Nhập tên nhóm..."
+                                value={groupName}
+                                onChange={(value: string) => setGroupName(value)}
                             />
-                            <div
-                                className="absolute right-1 bottom-1 p-2 rounded-full bg-blue-100 cursor-pointer"
-                                onClick={() => inputRef.current?.click()}
-                            >
-                                <Camera size={18} color="#03aeec" />
+                            <InputInfor
+                                label="Mô tả nhóm"
+                                placeholder="Nhập mô tả nhóm..."
+                                value={groupDescription}
+                                onChange={(value: string) => setGroupDescription(value)}
+                            />
+                        </div>
+
+                        <div>
+                            <label className="text-md font-semibold text-black">Thành viên</label>
+
+                            <div className="flex gap-2 mt-2">
+                                <input
+                                    type="text"
+                                    value={memberKeyword}
+                                    onChange={(e) => setMemberKeyword(e.target.value)}
+                                    className="flex-1 px-3 py-2 border rounded-lg focus:outline-none"
+                                    placeholder="Gửi lời mời thành viên vào nhóm..."
+                                />
+                                <button
+                                    type="button"
+                                    onClick={handleCheckMember}
+                                    className="flex justify-end items-center px-3 w-10 h-10 rounded-full  bg-blue-500 text-white"
+                                >
+                                    <Plus />
+                                </button>
                             </div>
 
-                            <input
-                                ref={inputRef}
-                                type="file"
-                                accept="image/*"
-                                className="hidden"
-                                onChange={handleAvatarChange}
-                            />
+                            {invitedUsers.length > 0 && (
+                                <div className="mt-3 flex flex-col gap-2">
+                                    {invitedUsers.map((u) => (
+                                        <div
+                                            key={u}
+                                            className="flex justify-between items-center px-3 py-2 border rounded-lg"
+                                        >
+                                            <span>{u}</span>
+                                            <button
+                                                type="button"
+                                                onClick={() =>
+                                                    setInvitedUsers((prev) => prev.filter((item) => item !== u))
+                                                }
+                                                className="text-gray-500 hover:text-red-500"
+                                            >
+                                                <CircleX size={18} />
+                                            </button>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+
+                            {memberError && <p className="mt-1 ml-1 text-sm text-red-500">{memberError}</p>}
                         </div>
-                    </div>
-                    <InputInfor
-                        label="Tên nhóm"
-                        placeholder="Nhập tên nhóm..."
-                        value={groupName}
-                        onChange={(value: string) => setGroupName(value)}
-                    />
-                    <InputInfor
-                        label="Mô tả nhóm"
-                        placeholder="Nhập mô tả nhóm..."
-                        value={groupDescription}
-                        onChange={(value: string) => setGroupDescription(value)}
-                    />
-                </div>
 
-                <div>
-                    <label className="text-md font-semibold text-black">Thành viên</label>
-
-                    <div className="flex gap-2 mt-2">
-                        <input
-                            type="text"
-                            value={memberKeyword}
-                            onChange={(e) => setMemberKeyword(e.target.value)}
-                            className="flex-1 px-3 py-2 border rounded-lg focus:outline-none"
-                            placeholder="Gửi lời mời thành viên vào nhóm..."
-                        />
                         <button
-                            type="button"
-                            onClick={handleCheckMember}
-                            className="flex justify-end items-center px-3 w-10 h-10 rounded-full  bg-blue-500 text-white"
+                            className="w-full mt-4 py-2 rounded-3xl bg-gradient-to-r from-blue-500 to-pink-500 text-white font-semibold "
+                            onClick={handleCreateGroup}
                         >
-                            <Plus />
+                            Tạo Nhóm
                         </button>
                     </div>
-
-                    {invitedUsers.length > 0 && (
-                        <div className="mt-3 flex flex-col gap-2">
-                            {invitedUsers.map((u) => (
-                                <div key={u} className="flex justify-between items-center px-3 py-2 border rounded-lg">
-                                    <span>{u}</span>
-                                    <button
-                                        type="button"
-                                        onClick={() => setInvitedUsers((prev) => prev.filter((item) => item !== u))}
-                                        className="text-gray-500 hover:text-red-500"
-                                    >
-                                        <CircleX size={18} />
-                                    </button>
-                                </div>
-                            ))}
-                        </div>
-                    )}
-
-                    {memberError && <p className="mt-1 ml-1 text-sm text-red-500">{memberError}</p>}
-                </div>
-
-                <button
-                    className="mt-4 py-2 rounded-3xl bg-gradient-to-r from-blue-500 to-pink-500 text-white font-semibold "
-                    onClick={handleCreateGroup}
-                >
-                    Tạo Nhóm
-                </button>
+                )}
             </div>
         </div>
     );

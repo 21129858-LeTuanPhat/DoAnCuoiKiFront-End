@@ -1,6 +1,7 @@
 interface Story {
     id: string;
     imageUrl?: string;
+    audioUrl?: string;
     content: string;
     ownerAvatarUrl?: string;
     ownerUsername: string;

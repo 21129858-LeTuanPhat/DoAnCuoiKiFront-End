@@ -1,9 +1,9 @@
 import cameraImg from './../../../assets/img/icon_file/camera.png';
 import { useRef, useState } from 'react';
 import EmojiPicker, { EmojiClickData } from 'emoji-picker-react';
-import { XCircle } from 'lucide-react';
+import { Headphones, XCircle } from 'lucide-react';
 import WebSocketManager from '../../../socket/WebSocketManager';
-import { handleUploadImage } from '../../../services/supabaseService';
+import { handleUploadImage, handleUploadAudio } from '../../../services/supabaseService';
 import { LoadingProfileSkeleton } from '../../modal/LoadingSkeleton';
 import { create } from 'domain';
 import { set } from 'firebase/database';
@@ -22,10 +22,33 @@ function FormCreateStory({ onClose }: { onClose: () => void }) {
     const [loading, setLoading] = useState(false);
     const user = useSelector((state: RootState) => state.user);
 
-    const handleChangeAvatar = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const audioInputRef = useRef<HTMLInputElement>(null);
+    const [audioFile, setAudioFile] = useState<File | null>(null);
+
+    const handleChangeImage = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if (!file) return;
         setImageFile(file);
+        setError(null);
+    };
+
+    const handleChangeAudio = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+
+        if (!file.type.startsWith('audio/')) {
+            setError('Vui lòng chọn file âm thanh hợp lệ');
+            return;
+        }
+        const max_size = 5 * 1024 * 1024;
+
+        if (file.size > max_size) {
+            setError('File âm thanh phải nhỏ hơn 5MB');
+            return;
+        }
+
+        setError(null);
+        setAudioFile(file);
     };
 
     const handleEmojiClick = (emojiData: EmojiClickData) => {
@@ -33,8 +56,11 @@ function FormCreateStory({ onClose }: { onClose: () => void }) {
     };
 
     const handleCreateStory = async () => {
-        if (content.trim() === '') {
-            setError('Vui lòng nhập tên nhóm');
+        if (error) {
+            return;
+        }
+        if (!imageFile) {
+            setError('Vui lòng chọn hình ảnh trước khi tạo story.');
             return;
         }
         setLoading(true);
@@ -43,11 +69,18 @@ function FormCreateStory({ onClose }: { onClose: () => void }) {
         if (imageFile !== null) {
             uploadedImageUrl = await handleUploadImage(imageFile, 'group_image');
         }
+        console.log('audio FILE :', audioFile);
+
+        let uploadedAudioUrl = null;
+        if (audioFile !== null) {
+            uploadedAudioUrl = await handleUploadAudio(audioFile, 'story_audio');
+        }
 
         await createStory({
             imageUrl: uploadedImageUrl,
             content,
             username: user.username!,
+            audioUrl: uploadedAudioUrl,
         });
         setLoading(false);
         onClose();
@@ -63,29 +96,63 @@ function FormCreateStory({ onClose }: { onClose: () => void }) {
 
                 <SeparatorHorizontal />
 
+                <div className="w-full">
+                    <p className="text-sm text-gray-600 mb-1">Âm thanh</p>
+
+                    <div className="flex items-center gap-3">
+                        <button
+                            type="button"
+                            onClick={() => audioInputRef.current?.click()}
+                            className="px-4 py-2 border rounded-lg bg-white hover:bg-gray-100 flex items-center gap-2"
+                        >
+                            <Headphones size={16} />
+                        </button>
+
+                        {audioFile && (
+                            <div className="flex items-center gap-2 px-3 py-2 bg-gray-200 rounded-lg">
+                                <span className="text-sm max-w-[120px] truncate">{audioFile.name}</span>
+                                <XCircle
+                                    size={16}
+                                    className="cursor-pointer text-gray-500 hover:text-red-500"
+                                    onClick={() => setAudioFile(null)}
+                                />
+                            </div>
+                        )}
+                    </div>
+
+                    <input
+                        ref={audioInputRef}
+                        type="file"
+                        accept="audio/*"
+                        className="hidden"
+                        onChange={handleChangeAudio}
+                    />
+                </div>
+
                 {loading ? (
                     <LoadingProfileSkeleton />
                 ) : (
                     <>
                         <div
-                            className="p-2 w-full h-48 bg-blue-100 rounded-xl cursor-pointer flex justify-center items-center relative"
+                            className="p-2 w-full h-48 bg-blue-100 rounded-xl cursor-pointer flex justify-center items-center relative select-none"
                             onClick={() => inputRef.current?.click()}
                         >
                             <img
                                 src={imageFile ? URL.createObjectURL(imageFile) : cameraImg}
-                                className="w-full h-full object-cover rounded-xl"
+                                className="w-full h-full object-cover rounded-xl select-none"
                                 alt=""
                             />
 
                             {selectedEmoji && <span className="absolute top-2 right-2 text-4xl">{selectedEmoji}</span>}
                         </div>
+                        <p className="text-red-500 py-2 select-none">{error}</p>
 
                         <input
                             ref={inputRef}
                             type="file"
                             accept="image/*"
                             className="hidden"
-                            onChange={handleChangeAvatar}
+                            onChange={handleChangeImage}
                         />
 
                         <SeparatorHorizontal />
