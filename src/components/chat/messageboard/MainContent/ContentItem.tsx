@@ -53,8 +53,8 @@ function ContentItem({ darkMode, message, color }: ItemContent) {
                                      ? 'bg-white text-black'
                                      : 'bg-purple-400 text-white'
                                  : color === true
-                                 ? 'bg-[#24232a] text-white'
-                                 : 'bg-purple-400 text-white'
+                                   ? 'bg-[#24232a] text-white'
+                                   : 'bg-purple-400 text-white'
                          }
                             `}
                             >
@@ -99,6 +99,15 @@ function ContentItem({ darkMode, message, color }: ItemContent) {
                             ''
                         )}
                     </div>
+                    {message.mes.type !== -1 && (
+                        <div
+                            className={
+                                color === true ? 'text-xs text-gray-500 mt-1' : 'text-xs text-gray-500 mt-1 text-right'
+                            }
+                        >
+                            {formatAnyTimeToVN(message.createAt)}
+                        </div>
+                    )}
                 </div>
             </li>
         </>

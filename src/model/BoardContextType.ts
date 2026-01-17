@@ -24,6 +24,8 @@ export interface BoardContextType {
     setUserList: React.Dispatch<React.SetStateAction<User[]>>;
     darkMode: boolean;
     setDarkMode: React.Dispatch<React.SetStateAction<boolean>>;
+    encodeEmoji: boolean;
+    setEncodeEmoji: React.Dispatch<React.SetStateAction<boolean>>;
 
     //Dùng thằng này thì nó mới địnhg nghĩa giống React về set khi dùng useState
     //     setSelectedUser('Nam');

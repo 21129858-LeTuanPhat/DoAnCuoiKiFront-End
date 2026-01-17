@@ -18,6 +18,7 @@ function BoardProvider({ children }: BoardProviderProps) {
     const [openRecommendation, setOpenRecommendation] = useState<boolean>(false);
     const [userList, setUserList] = useState<User[]>([]);
     const [darkMode, setDarkMode] = useState<boolean>(false);
+    const [encodeEmoji, setEncodeEmoji] = useState<boolean>(false);
     return (
         <BoardContext.Provider
             value={{
@@ -41,6 +42,8 @@ function BoardProvider({ children }: BoardProviderProps) {
                 setUserList,
                 darkMode,
                 setDarkMode,
+                encodeEmoji,
+                setEncodeEmoji,
             }}
         >
             {children}

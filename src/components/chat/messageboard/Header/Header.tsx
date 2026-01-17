@@ -90,7 +90,10 @@ function Header({
                             />
                         </div>
                     )}
-                    <img src={imageUrl ? imageUrl : avatarDefault} className={'rounded-full object-cover w-10 mx-2'} />
+                    <img
+                        src={imageUrl ? imageUrl : avatarDefault}
+                        className={'rounded-full object-cover w-10 h-10 mx-2'}
+                    />
                     <h3
                         className={
                             darkMode === false

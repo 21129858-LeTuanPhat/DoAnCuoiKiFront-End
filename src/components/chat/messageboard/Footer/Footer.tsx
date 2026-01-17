@@ -29,6 +29,8 @@ function Footer({ darkMode, username }: { darkMode: boolean; username: string })
         recommended,
         setRecommended,
         openRecommendation,
+        setEncodeEmoji,
+        encodeEmoji,
     } = useBoardContext();
     const inputRef = useRef<any>(null);
     const user = useSelector((state: RootState) => state.user);
@@ -103,7 +105,7 @@ function Footer({ darkMode, username }: { darkMode: boolean; username: string })
             setCheckLimit(true);
             return;
         }
-
+        setEncodeEmoji(true);
         setCheckLimit(false);
         setMessage(nextValue);
     };
@@ -126,6 +128,7 @@ function Footer({ darkMode, username }: { darkMode: boolean; username: string })
         setListMessage,
         inputRef,
         setMessage,
+        encodeEmoji,
     });
 
     const handleSendMessage = () => {
@@ -137,6 +140,7 @@ function Footer({ darkMode, username }: { darkMode: boolean; username: string })
         setCheckLimit(false);
         setRecommended({ input: '', reply: [] });
         setOpenRecommendation(false);
+        setEncodeEmoji(false);
     };
     const handleSendMessageKeyUp = (e: any) => {
         if (e.keyCode === 13) {
@@ -148,6 +152,7 @@ function Footer({ darkMode, username }: { darkMode: boolean; username: string })
             setCheckLimit(false);
             setRecommended({ input: '', reply: [] });
             setOpenRecommendation(false);
+            setEncodeEmoji(false);
         }
     };
     const handleSendRecommendation = (item: string) => {
@@ -155,12 +160,13 @@ function Footer({ darkMode, username }: { darkMode: boolean; username: string })
         setRight(true);
         setOpenRecommendation(false);
         setRecommended({ input: '', reply: [] });
+        setEncodeEmoji(false);
     };
 
     return (
-        <footer className={`${darkMode === false ? 'bg-white' : 'bg-[#232230]'}  h-[73px] `}>
+        <footer className={`${darkMode === false ? 'bg-white' : 'bg-[#232230]'} relative  h-[73px] `}>
             {openRecommendation === true && (
-                <div className="h-3/6">
+                <div className=" absolute -top-9 left-0 w-full ">
                     <ul className="flex justify-center gap-4 text-base">
                         {recommended.reply.map((item, index) => (
                             <li
@@ -177,7 +183,7 @@ function Footer({ darkMode, username }: { darkMode: boolean; username: string })
                 </div>
             )}
 
-            <div className={openRecommendation === true ? 'flex items-center h-3/6 ' : 'flex items-center h-full '}>
+            <div className={openRecommendation === true ? 'flex items-center h-full ' : 'flex items-center h-full '}>
                 <div className="flex">
                     <ImagePlus
                         onClick={handlePopUpImage}
