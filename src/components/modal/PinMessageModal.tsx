@@ -31,7 +31,7 @@ const PinMessageModal: React.FC<PinMessageModalProps> = ({ isOpen, onClose, onPi
                     data: {
                         type: type,
                         to: selectedUser,
-                        mes: encodeURIComponent(JSON.stringify({ type: TypeMess.PIN, data: { id: idPin, title: title, content: content, importance: importance } }))
+                        mes: encodeURIComponent(JSON.stringify({ type: TypeMess.PIN, data: { id: idPin, title: title, content: content, importance: importance, status: 'pin' } }))
                     },
                 },
             }),
@@ -43,7 +43,7 @@ const PinMessageModal: React.FC<PinMessageModalProps> = ({ isOpen, onClose, onPi
                 data: {
                     type: type,
                     to: selectedUser,
-                    mes: (JSON.stringify({ type: TypeMess.PIN, data: { id: idPin, title: title, content: content, importance: importance } }))
+                    mes: (JSON.stringify({ type: TypeMess.PIN, data: { id: idPin, title: title, content: content, importance: importance, status: 'pin' } }))
                 },
             }
         }))
@@ -139,13 +139,13 @@ const PinMessageModal: React.FC<PinMessageModalProps> = ({ isOpen, onClose, onPi
                         <button
                             type="button"
                             onClick={onClose}
-                            className="px-4 py-2 text-gray-600 bg-gray-100 rounded-md "
+                            className="px-4 py-1  bg-gray-100 rounded-md "
                         >
                             Hủy
                         </button>
                         <button
                             type="submit"
-                            className="px-4 py-2 text-white bg-blue-600 rounded-md "
+                            className="px-4 py-1 text-white bg-blue-600 rounded-md "
                         >
                             Ghim
                         </button>

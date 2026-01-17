@@ -86,7 +86,7 @@ export default function CallModal({
                 sendTimeout()
                 dispatch(updateStatus({ status: CallStatus.TIMEOUT }))
                 setOpen(false)
-            }, 15000)
+            }, 1500000)
             return () => clearTimeout(timer)
         }
     }, [open])

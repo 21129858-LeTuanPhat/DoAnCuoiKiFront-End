@@ -4,10 +4,11 @@ import store, { RootState } from '../redux/store';
 import { setReCode } from '../redux/userReducer';
 import { SOCKET_BASE_URL } from '../config/utils';
 import { ReCodeInterface } from '../model/User';
-import { rejects } from 'assert';
 class WebSocketManager {
     private static webSocketManager: WebSocketManager;
+
     private socket: WebSocket | null = null;
+
     private listeners: Map<string, (msg: WSMessage) => void> = new Map();
     private intentionalClose = false;
     private constructor() { }
@@ -19,12 +20,8 @@ class WebSocketManager {
         return WebSocketManager.webSocketManager;
     }
     public connect2(url: string): Promise<void> {
-        return new Promise((resolve, reject) => {
-            if (
-                this.socket &&
-                (this.socket.readyState === WebSocket.OPEN ||
-                    this.socket.readyState === WebSocket.CONNECTING)
-            ) {
+        return new Promise((resolve) => {
+            if (this.socket?.readyState === WebSocket.OPEN) {
                 resolve();
                 return;
             }
@@ -41,44 +38,35 @@ class WebSocketManager {
 
             this.socket.onerror = (err) => {
                 console.log('lỗi:', err);
-                // reject(err);
-
             };
-            this.socket.onclose = (err) => {
-                console.log("close code:", err.code);
-                console.log("reason:", err.reason);
-                console.log("wasClean:", err.wasClean);
+            this.socket.onclose = () => {
                 console.log('đóng kết nối');
-                if (!this.intentionalClose) {
-
-                    this.handleReconnect(err.code);
-                }
+                this.handleReconnect();
             };
         });
     }
-    private isReconnecting = false;
-    private async handleReconnect(code?: number) {
-        if (this.isReconnecting) return;
-        this.isReconnecting = true;
-        let delay = 3000;
-        if (code === 1001) delay = 10000; // server restart
-        await new Promise((resolve) => setTimeout(resolve, delay));
-        console.log('executing reconnect');
-        try {
-            await this.connect2(SOCKET_BASE_URL);
-            this.reCode();
-        } catch (error) {
-            console.log('lỗi trong handleReconnect');
-        }
-        finally {
-            this.isReconnecting = false;
-        }
+    private reconnecting = false;
+
+    private handleReconnect() {
+        console.log('handle reconnect');
+        if (this.reconnecting) return;
+        this.reconnecting = true;
+
+        this.connect2(SOCKET_BASE_URL)
+            .then(() => {
+                this.reconnecting = false;
+                this.reCode();
+            })
+            .catch(() => {
+                this.reconnecting = false;
+            });
     }
 
     public reCode() {
+        // this.unSubcribe('RE_LOGIN');
         console.log('dis connet rồi');
-        this.unSubcribe('RE_LOGIN_MANAGER');
-        this.onMessage('RE_LOGIN_MANAGER', (mes: any) => {
+        this.unSubcribe('RE_LOGIN');
+        this.onMessage('RE_LOGIN', (mes: any) => {
             console.log('re code trong ws', mes);
             const objReCode: ReCodeInterface = mes.data;
             console.log('objReCode', objReCode);
@@ -88,21 +76,20 @@ class WebSocketManager {
                 store.dispatch(setReCode({ reCode: objReCode.RE_LOGIN_CODE }));
             }
             if (mes.status === 'error') {
-                // window.location.href = '/login';
-                console.log('RE_LOGIN failed in WebSocketManager');
+                window.location.href = '/login';
             }
         });
-        const user = localStorage.getItem('username');
-        const code = localStorage.getItem('reCode');
-        if (!user || !code) return;
+        const us = localStorage.getItem('username')
+        const reC = localStorage.getItem('reCode')
+        if (!us || !reC) return;
         this.sendMessage(
             JSON.stringify({
                 action: 'onchat',
                 data: {
                     event: 'RE_LOGIN',
                     data: {
-                        user: user,
-                        code: code,
+                        user: localStorage.getItem('username'),
+                        code: localStorage.getItem('reCode'),
                     },
                 },
             }),
@@ -112,19 +99,10 @@ class WebSocketManager {
         this.listeners.set(event, cb);
     }
     public async sendMessage(message: string): Promise<void> {
-        console.log(message)
-        const now = new Date();
-
-        const hours = now.getHours();      // 0 - 23
-        const minutes = now.getMinutes();  // 0 - 59
-        const seconds = now.getSeconds();  // 0 - 59
-
-        console.log(hours, minutes, seconds);
+        console.log(message);
         if (this.socket && this.socket.readyState === WebSocket.OPEN) {
-            console.log('Gửi message khi socket mở', message);
             this.socket.send(message);
-        }
-        else {
+        } else {
             try {
                 await this.connect2(SOCKET_BASE_URL);
                 if (this.socket && this.socket.readyState === WebSocket.OPEN) {
@@ -135,7 +113,8 @@ class WebSocketManager {
                             this.socket.send(message);
                             console.log('Gửi message sau khi auth thành công');
                         }
-                    }, 1000)
+                    }, 1000);
+
                 }
             } catch (err) {
                 console.error('Reconnect thất bại, không gửi được message', err);
@@ -143,7 +122,7 @@ class WebSocketManager {
         }
     }
     public disconnect(): void {
-        console.log('đã bị đóng connect')
+        console.log('đã bị đóng connect');
         if (!this.socket) return;
         this.intentionalClose = true;
         this.socket.close();

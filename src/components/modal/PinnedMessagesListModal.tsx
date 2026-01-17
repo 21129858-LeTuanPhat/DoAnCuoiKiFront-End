@@ -17,18 +17,7 @@ interface PinnedMessagesListModalProps {
 }
 
 const PinnedMessagesListModal: React.FC<PinnedMessagesListModalProps> = ({ isOpen, onClose, messages, onUnpin }) => {
-    const [isVisible, setIsVisible] = useState(false);
-
-    useEffect(() => {
-        if (isOpen) {
-            setIsVisible(true);
-        } else {
-            const timer = setTimeout(() => setIsVisible(false), 300);
-            return () => clearTimeout(timer);
-        }
-    }, [isOpen]);
-
-    if (!isVisible && !isOpen) return null;
+    if (!isOpen) return null;
 
     const getImportanceIcon = (importance: string) => {
         switch (importance) {
@@ -47,17 +36,13 @@ const PinnedMessagesListModal: React.FC<PinnedMessagesListModalProps> = ({ isOpe
     };
 
     return (
-        <div
-            className={`fixed inset-0 z-[9999] flex items-center justify-center transition-opacity duration-300
-            ${isOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}`}
-        >
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center pointer-events-auto">
             <div
-                className="absolute inset-0 bg-black/40 backdrop-blur-sm transition-opacity"
+                className="absolute inset-0 bg-black/40"
                 onClick={onClose}
             />
 
-            <div className={`relative bg-white w-full max-w-lg mx-4 rounded-2xl shadow-2xl transform transition-all duration-300 flex flex-col max-h-[80vh]
-                ${isOpen ? 'scale-100 translate-y-0' : 'scale-95 translate-y-4'}`}>
+            <div className="relative bg-white w-full max-w-lg mx-4 rounded-2xl shadow-2xl flex flex-col max-h-[80vh]">
 
                 <div className="py-2 px-3 border-b border-gray-100 flex items-center justify-between bg-gray-50/50 rounded-t-2xl">
                     <div className="flex items-center gap-3">

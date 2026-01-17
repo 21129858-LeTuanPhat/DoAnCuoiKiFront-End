@@ -5,6 +5,8 @@ import WebSocketManager from "./socket/WebSocketManager"
 import { RootState } from "./redux/store"
 import { setReCode } from "./redux/userReducer"
 import { SOCKET_BASE_URL } from "./config/utils"
+import { LoadingProfileSkeleton } from "./components/modal/LoadingSkeleton"
+import LoadingModal from "./components/modal/LoadingModal"
 export default
     function AuthGate() {
     const user = useSelector((s: RootState) => s.user)
@@ -16,6 +18,7 @@ export default
     useEffect(() => {
         if (ran.current) return
         ran.current = true
+
         const username = localStorage.getItem('username')
         const reCode = localStorage.getItem('reCode')
         const ws = WebSocketManager.getInstance()
@@ -24,6 +27,7 @@ export default
             setCheckingAuth(false)
             return
         }
+
         if (!username || !reCode) {
             navigate('/login', { replace: true })
             setCheckingAuth(false)
@@ -31,12 +35,15 @@ export default
         }
 
         const handler = (msg: any) => {
-            if (!msg.event || (msg.event !== 'LOGIN' && msg.event !== 'RE_LOGIN')) {
+            // console.log('Full message:', JSON.stringify(msg, null, 2))
+
+            if (msg.event && msg.event !== 'LOGIN' && msg.event !== 'RE_LOGIN') {
+                console.log('Skipping event:', msg.event)
                 return
             }
 
             if (msg.status === 'error') {
-                console.error('RE_LOGIN failed trong auth:', msg)
+                console.error('RE_LOGIN failed:', msg)
                 localStorage.clear()
                 navigate('/login', { replace: true })
                 setCheckingAuth(false)
@@ -44,7 +51,6 @@ export default
             }
 
             if (msg.status === 'success') {
-                // Lấy reCode từ response
                 const newReCode = msg.data?.RE_LOGIN_CODE
                 console.log('Extracted reCode:', newReCode)
 
@@ -57,7 +63,7 @@ export default
                     return
                 }
 
-                console.log('RE_LOGIN success, updating state with:', {
+                console.log('RE_LOGIN success:', {
                     reCode: newReCode,
                     username: username
                 })
@@ -68,7 +74,8 @@ export default
                 setCheckingAuth(false)
             }
         }
-        ws.onMessage('RE_LOGIN', handler)
+        ws.onMessage('RE_LOGIN1', handler)
+
         const performReLogin = async () => {
             try {
                 await ws.connect2(SOCKET_BASE_URL)
@@ -89,10 +96,12 @@ export default
         }
         performReLogin()
 
-        return () => ws.unSubcribe('RE_LOGIN')
+        return () => ws.unSubcribe('RE_LOGIN1')
     }, [])
     if (checkingAuth) {
-        return <div>Đang kiểm tra auth...</div>
+        return <div>
+            <LoadingModal open={true}></LoadingModal>
+        </div>
     }
     return <Outlet />
 }

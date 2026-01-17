@@ -77,6 +77,24 @@ function MainContent({ username, setRe, re, showPinModal, setShowPinModal }: {
 
     const handleUnpin = (id: string) => {
         setPinnedMessages(prev => prev.filter(msg => msg.id !== id));
+        const ws = WebSocketManager.getInstance();
+        const msgData = {
+            id,
+            status: 'unpin'
+        };
+        ws.sendMessage(
+            JSON.stringify({
+                action: 'onchat',
+                data: {
+                    event: 'SEND_CHAT',
+                    data: {
+                        type: type,
+                        to: selectedUser,
+                        mes: encodeURIComponent(JSON.stringify({ type: TypeMess.PIN, data: msgData }))
+                    },
+                },
+            }),
+        );
     };
 
     const handlePin = (id: string, title: string, content: string, importance: 'low' | 'medium' | 'high') => {
@@ -137,6 +155,7 @@ function MainContent({ username, setRe, re, showPinModal, setShowPinModal }: {
 
     useLayoutEffect(() => {
         setListMessage([]);
+        setPinnedMessages([]);
         setPage(1);
     }, [username, re]);
     const selectionRef = useRef<ReducerCall>({
@@ -169,7 +188,7 @@ function MainContent({ username, setRe, re, showPinModal, setShowPinModal }: {
             status: CallStatus.IN_CALL,
             roomURL: `/call?roomID=${callSelection.roomID}&call_mode=${callSelection.callMode}`,
             roomID: callSelection.roomID,
-            from: callSelection.caller, // Người gọi ban đầu (KHÔNG phải người gửi IN_CALL)
+            from: callSelection.caller,
         } : {
             status: CallStatus.IN_CALL,
             roomURL: `/call?roomID=${callSelection.roomID}&call_mode=${callSelection.callMode}`,
@@ -219,50 +238,44 @@ function MainContent({ username, setRe, re, showPinModal, setShowPinModal }: {
                     console.log('Decode mes:', decodeURIComponent(msg.data.mes));
                     const mesObj: any = JSON.parse(decodeURIComponent(msg.data.mes));
                     console.log('Parsed mesObj:', mesObj);
-                    if (mesObj.type === TypeMess.PIN) {
-                        console.log('tin nhắn pin nè', mesObj)
-                        const newPinMessage: PinnedMessage = {
-                            id: mesObj.data.id || msg.data.id,
-                            title: mesObj.data.title,
-                            content: mesObj.data.content,
-                            importance: mesObj.data.importance,
-
-                        };
-                        setPinnedMessages((prev) => {
-                            if (prev.some(p => p.id === newPinMessage.id)) return prev;
-                            return [...prev, newPinMessage];
-                        });
-                    }
                     if (mesObj.type === TypeMess.VIDEO_CALL || mesObj.type === TypeMess.VOICE_CALL) {
+
                         if (msg.data.type === 0) {
 
-
+                            console.log('Parsed mesObj:', mesObj);
                             switch (mesObj.data.status) {
                                 case CallStatus.CALLING:
                                     console.log('trong switch nè', mesObj.data.status);
                                     if (msg.data.name === localStorage.getItem('username')) {
                                         return;
                                     }
-                                    if (selectionRef.current.callStatus === CallStatus.IN_CALL || selectionRef.current.callStatus === CallStatus.CALLING || selectionRef.current.callStatus === CallStatus.RINGING || selectionRef.current.callStatus === CallStatus.CONNECTING) {
-                                        const messReject = {
-                                            status: CallStatus.BUSY,
-                                            roomURL: mesObj.data.roomURL,
-                                            roomID: mesObj.data.roomID,
-                                        };
+                                    if (selectionRef.current.callStatus === CallStatus.IN_CALL) {
+                                        console.log('Đang trong cuộc gọi, gửi BUSY');
                                         const ws = WebSocketManager.getInstance();
-                                        ws.sendMessage(JSON.stringify({
-                                            action: 'onchat',
-                                            data: {
-                                                event: 'SEND_CHAT',
+                                        ws.sendMessage(
+                                            JSON.stringify({
+                                                action: 'onchat',
                                                 data: {
-                                                    type: 'people',
-                                                    to: msg.data.name,
-                                                    mes: encodeURIComponent(JSON.stringify({ type: mesObj.type, data: messReject })),
+                                                    event: 'SEND_CHAT',
+                                                    data: {
+                                                        type: 'people',
+                                                        to: msg.data.name,
+                                                        mes: encodeURIComponent(
+                                                            JSON.stringify({
+                                                                type: mesObj.type,
+                                                                data: {
+                                                                    status: CallStatus.BUSY,
+                                                                    roomID: mesObj.data.roomID
+                                                                }
+                                                            }),
+                                                        ),
+                                                    },
                                                 },
-                                            },
-                                        }));
+                                            }),
+                                        );
                                         return;
                                     }
+
                                     dispatch(
                                         incomingCall({
                                             roomURL: mesObj.data.roomURL,
@@ -320,7 +333,9 @@ function MainContent({ username, setRe, re, showPinModal, setShowPinModal }: {
                                     if (msg.data.name === localStorage.getItem('username')) {
                                         return;
                                     }
-
+                                    if (selectionRef.current.callStatus === CallStatus.IN_CALL) {
+                                        return;
+                                    }
                                     dispatch(
                                         incomingCall({
                                             roomURL: mesObj.data.roomURL,
@@ -424,6 +439,35 @@ function MainContent({ username, setRe, re, showPinModal, setShowPinModal }: {
                 if (msg.status === 'success') {
                     if (msg.event === 'GET_PEOPLE_CHAT_MES') {
                         oldScrollHeightRef.current = divRef.current?.scrollHeight || 0;
+
+                        if (page === 1) {
+                            const tempPins: PinnedMessage[] = [];
+                            const unpinnedIds = new Set<string>();
+                            msg.data.forEach((item: any) => {
+                                try {
+                                    const mesObj = JSON.parse(decodeURIComponent(item.mes));
+                                    if (mesObj.type === TypeMess.PIN) {
+                                        if (mesObj.data.status === 'unpin') {
+                                            unpinnedIds.add(mesObj.data.id);
+                                        } else if (mesObj.data.status === 'pin') {
+                                            if (!unpinnedIds.has(mesObj.data.id)) {
+                                                tempPins.push({
+                                                    id: mesObj.data.id || item.id,
+                                                    title: mesObj.data.title,
+                                                    content: mesObj.data.content,
+                                                    importance: mesObj.data.importance,
+                                                });
+                                                unpinnedIds.add(mesObj.data.id);
+                                            }
+                                        }
+                                    }
+                                } catch (e) {
+                                    console.log('Error parsing pin message:', e);
+                                }
+                            });
+                            setPinnedMessages(tempPins.reverse());
+                        }
+
                         const parsedList: ChatMessage[] = msg.data.map((item: any) => {
                             try {
                                 const mesObj = JSON.parse(decodeURIComponent(item.mes));
@@ -454,6 +498,23 @@ function MainContent({ username, setRe, re, showPinModal, setShowPinModal }: {
                     } else if (msg.event === 'SEND_CHAT') {
                         oldScrollHeightRef.current = divRef.current?.scrollHeight || 0;
                         const mesObj = JSON.parse(decodeURIComponent(msg.data.mes));
+
+                        if (mesObj.type === TypeMess.PIN) {
+                            if (mesObj.data.status === 'unpin') {
+                                setPinnedMessages((prev) => prev.filter(msg => msg.id !== mesObj.data.id));
+                            } else {
+                                const newPinMessage: PinnedMessage = {
+                                    id: mesObj.data.id || msg.data.id,
+                                    title: mesObj.data.title,
+                                    content: mesObj.data.content,
+                                    importance: mesObj.data.importance,
+                                };
+                                setPinnedMessages((prev) => {
+                                    if (prev.some(p => p.id === newPinMessage.id)) return prev;
+                                    return [...prev, newPinMessage];
+                                });
+                            }
+                        }
                         const newMessage: ChatMessage = {
                             id: msg.data.id,
                             name: msg.data.name,
@@ -488,49 +549,59 @@ function MainContent({ username, setRe, re, showPinModal, setShowPinModal }: {
                 console.log('msg maincontent room', msg)
                 if (msg.status === 'success' && msg.event === 'SEND_CHAT') {
                     const mesObj: any = JSON.parse(decodeURIComponent(msg.data.mes));
+                    console.log('mesObj', mesObj)
                     if (mesObj.type === TypeMess.PIN) {
                         console.log('tin nhắn pin nè', mesObj)
-                        const newPinMessage: PinnedMessage = {
-                            id: mesObj.data.id || msg.data.id,
-                            title: mesObj.data.title,
-                            content: mesObj.data.content,
-                            importance: mesObj.data.importance,
-                        };
-                        setPinnedMessages((prev) => {
-                            if (prev.some(p => p.id === newPinMessage.id)) return prev;
-                            return [...prev, newPinMessage];
-                        });
+                        if (mesObj.data.status === 'unpin') {
+                            setPinnedMessages((prev) => prev.filter(msg => msg.id !== mesObj.data.id));
+                        } else {
+                            const newPinMessage: PinnedMessage = {
+                                id: mesObj.data.id || msg.data.id,
+                                title: mesObj.data.title,
+                                content: mesObj.data.content,
+                                importance: mesObj.data.importance,
+                            };
+                            setPinnedMessages((prev) => {
+                                if (prev.some(p => p.id === newPinMessage.id)) return prev;
+                                return [...prev, newPinMessage];
+                            });
+                        }
                     }
                     if (mesObj.type === TypeMess.VIDEO_CALL || mesObj.type === TypeMess.VOICE_CALL) {
                         if (msg.data.type === 0) {
-
-
                             switch (mesObj.data.status) {
                                 case CallStatus.CALLING:
                                     console.log('trong switch nè', mesObj.data.status);
                                     if (msg.data.name === localStorage.getItem('username')) {
                                         return;
                                     }
-                                    if (selectionRef.current.callStatus === CallStatus.IN_CALL || selectionRef.current.callStatus === CallStatus.CALLING || selectionRef.current.callStatus === CallStatus.RINGING || selectionRef.current.callStatus === CallStatus.CONNECTING) {
-                                        const messReject = {
-                                            status: CallStatus.BUSY,
-                                            roomURL: mesObj.data.roomURL,
-                                            roomID: mesObj.data.roomID,
-                                        };
+                                    if (selectionRef.current.callStatus === CallStatus.IN_CALL) {
+                                        console.log('Đang trong cuộc gọi, gửi BUSY');
                                         const ws = WebSocketManager.getInstance();
-                                        ws.sendMessage(JSON.stringify({
-                                            action: 'onchat',
-                                            data: {
-                                                event: 'SEND_CHAT',
+                                        ws.sendMessage(
+                                            JSON.stringify({
+                                                action: 'onchat',
                                                 data: {
-                                                    type: 'people',
-                                                    to: msg.data.name,
-                                                    mes: encodeURIComponent(JSON.stringify({ type: mesObj.type, data: messReject })),
+                                                    event: 'SEND_CHAT',
+                                                    data: {
+                                                        type: 'people',
+                                                        to: msg.data.name,
+                                                        mes: encodeURIComponent(
+                                                            JSON.stringify({
+                                                                type: mesObj.type,
+                                                                data: {
+                                                                    status: CallStatus.BUSY,
+                                                                    roomID: mesObj.data.roomID
+                                                                }
+                                                            }),
+                                                        ),
+                                                    },
                                                 },
-                                            },
-                                        }));
+                                            }),
+                                        );
                                         return;
                                     }
+
                                     dispatch(
                                         incomingCall({
                                             roomURL: mesObj.data.roomURL,
@@ -587,6 +658,9 @@ function MainContent({ username, setRe, re, showPinModal, setShowPinModal }: {
                                     case CallStatus.CALLING:
                                         console.log('trong switch nè', mesObj.data.status);
                                         if (msg.data.name === localStorage.getItem('username')) {
+                                            return;
+                                        }
+                                        if (selectionRef.current.callStatus === CallStatus.IN_CALL) {
                                             return;
                                         }
                                         dispatch(
@@ -694,6 +768,35 @@ function MainContent({ username, setRe, re, showPinModal, setShowPinModal }: {
                         oldScrollHeightRef.current = divRef.current?.scrollHeight || 0;
                         setOwner(msg.data.own);
                         setListMember(msg.data.userList);
+                        //ghim tin nhắn
+                        if (page === 1) {
+                            const tempPins: PinnedMessage[] = [];
+                            const unpinnedIds = new Set<string>();
+                            msg.data.chatData.forEach((item: any) => {
+                                try {
+                                    const mesObj = JSON.parse(decodeURIComponent(item.mes));
+                                    if (mesObj.type === TypeMess.PIN) {
+                                        if (mesObj.data.status === 'unpin') {
+                                            unpinnedIds.add(mesObj.data.id);
+                                        } else if (mesObj.data.status === 'pin') {
+                                            if (!unpinnedIds.has(mesObj.data.id)) {
+                                                tempPins.push({
+                                                    id: mesObj.data.id || item.id,
+                                                    title: mesObj.data.title,
+                                                    content: mesObj.data.content,
+                                                    importance: mesObj.data.importance,
+                                                });
+                                                unpinnedIds.add(mesObj.data.id);
+                                            }
+                                        }
+                                    }
+                                } catch (e) {
+                                    console.log('Error parsing pin message:', e);
+                                }
+                            });
+                            setPinnedMessages(tempPins.reverse());
+                        }
+
                         const parsedList: ChatMessage[] = msg.data.chatData.map((item: any) => {
                             const mesObj = JSON.parse(decodeURIComponent(item.mes));
                             return {
@@ -821,14 +924,7 @@ function MainContent({ username, setRe, re, showPinModal, setShowPinModal }: {
                 onPin={handlePin}
             />
             <section className="bg-[#f0f4fa] h-[calc(737.6px-72px-65px)] relative">
-                {pinnedMessages.length > 0 && (
-                    <div className="absolute top-0 left-0 right-0 z-10 shadow-md">
-                        <PinMessageDisplay
-                            messages={pinnedMessages}
-                            onOpenList={() => setShowPinListModal(true)}
-                        />
-                    </div>
-                )}
+
                 {initialLoading ? (
                     <div className="h-full flex items-center justify-center">
                         <div className="w-10 h-10 border-4 border-gray-300 border-t-blue-500 rounded-full animate-spin" />
@@ -862,6 +958,15 @@ function MainContent({ username, setRe, re, showPinModal, setShowPinModal }: {
                                 <ChevronsDown color="gray" size="30" />
                             </div>
                         )}
+                        {pinnedMessages.length > 0 && (
+                            console.log('pinnedMessages', pinnedMessages),
+                            <div className="absolute top-0 left-0 right-0 z-10 shadow-md">
+                                <PinMessageDisplay
+                                    messages={pinnedMessages}
+                                    onOpenList={() => setShowPinListModal(true)}
+                                />
+                            </div>
+                        )}
                         <ul className="p-2">
                             {listMessage.map((message, index) => {
                                 const objectMess: { type: number; data: any } = message.mes;
@@ -879,7 +984,6 @@ function MainContent({ username, setRe, re, showPinModal, setShowPinModal }: {
                                     return <LocationItem message={message} key={index} />;
                                 }
                                 if (objectMess.type < 10) {
-
                                     return <Content message={message} key={index} />;
                                 }
                             })}
@@ -890,5 +994,4 @@ function MainContent({ username, setRe, re, showPinModal, setShowPinModal }: {
         </>
     );
 }
-
 export default MainContent;

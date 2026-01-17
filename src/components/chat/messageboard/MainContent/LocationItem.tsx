@@ -51,11 +51,6 @@ function LocationItem({ message }: LocationItemProps) {
 
                     </div>
                 </div>
-                {/* <div
-                    className={isOther ? 'text-xs text-gray-500 mt-1' : 'text-xs text-gray-500 mt-1 text-right'}
-                >
-                    {formatAnyTimeToVN(message.createAt)}
-                </div> */}
             </div>
         </li>
     );

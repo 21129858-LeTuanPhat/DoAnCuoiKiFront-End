@@ -79,24 +79,30 @@ function Welcome() {
                         switch (mesObj.data.status) {
                             case CallStatus.CALLING:
                                 console.log('trong switch nè', mesObj.data.status);
-                                if (selectionRef.current.callStatus === CallStatus.IN_CALL || selectionRef.current.callStatus === CallStatus.CALLING || selectionRef.current.callStatus === CallStatus.RINGING || selectionRef.current.callStatus === CallStatus.CONNECTING) {
-                                    const messReject = {
-                                        status: CallStatus.BUSY,
-                                        roomURL: mesObj.data.roomURL,
-                                        roomID: mesObj.data.roomID,
-                                    };
+                                if (selectionRef.current.callStatus === CallStatus.IN_CALL) {
+                                    console.log('Đang trong cuộc gọi, gửi BUSY');
                                     const ws = WebSocketManager.getInstance();
-                                    ws.sendMessage(JSON.stringify({
-                                        action: 'onchat',
-                                        data: {
-                                            event: 'SEND_CHAT',
+                                    ws.sendMessage(
+                                        JSON.stringify({
+                                            action: 'onchat',
                                             data: {
-                                                type: 'people',
-                                                to: msg.data.name,
-                                                mes: encodeURIComponent(JSON.stringify({ type: mesObj.type, data: messReject })),
+                                                event: 'SEND_CHAT',
+                                                data: {
+                                                    type: 'people',
+                                                    to: msg.data.name,
+                                                    mes: encodeURIComponent(
+                                                        JSON.stringify({
+                                                            type: mesObj.type,
+                                                            data: {
+                                                                status: CallStatus.BUSY,
+                                                                roomID: mesObj.data.roomID
+                                                            }
+                                                        }),
+                                                    ),
+                                                },
                                             },
-                                        },
-                                    }));
+                                        }),
+                                    );
                                     return;
                                 }
                                 dispatch(
@@ -153,6 +159,9 @@ function Welcome() {
                             case CallStatus.CALLING:
                                 console.log('trong switch nè', mesObj.data.status);
                                 if (msg.data.name === localStorage.getItem('username')) {
+                                    return;
+                                }
+                                if (selectionRef.current.callStatus === CallStatus.IN_CALL) {
                                     return;
                                 }
 

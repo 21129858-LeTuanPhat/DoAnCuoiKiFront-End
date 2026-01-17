@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
 import '../../index.css';
 import { Link, useNavigate } from 'react-router-dom';
 import { UserLogin } from '../../model/User';
@@ -17,6 +17,7 @@ export default function FormLogin({ user, setUser }: FormLoginProps) {
     const [error, setError] = useState<{ username: string; password: string }>({ username: '', password: '' });
     const [loading, setLoading] = useState<boolean>(false);
     const [responseLogin, setResponseLogin] = useState<string>('');
+
     console.log(user);
     const handleForm = (): boolean => {
         setError({ username: '', password: '' });
@@ -65,11 +66,9 @@ export default function FormLogin({ user, setUser }: FormLoginProps) {
                         <label className="block text-gray-700 text-sm font-bold mb-2">Tên đăng nhập</label>
                         <input
                             value={user.username}
-                            className={`shadow mb-2 appearance-none border ${
-                                error.username.trim() !== '' ? 'border-red-500' : ''
-                            } rounded w-full py-2 px-3  ${
-                                responseLogin.trim() !== '' ? 'border-red-500' : ''
-                            } text-gray-700 leading-tight focus:outline-none focus:shadow-outline`}
+                            className={`shadow mb-2 appearance-none border ${error.username.trim() !== '' ? 'border-red-500' : ''
+                                } rounded w-full py-2 px-3  ${responseLogin.trim() !== '' ? 'border-red-500' : ''
+                                } text-gray-700 leading-tight focus:outline-none focus:shadow-outline`}
                             id="username"
                             type="text"
                             placeholder="Tên đăng nhập"
@@ -82,11 +81,9 @@ export default function FormLogin({ user, setUser }: FormLoginProps) {
                         <label className="block text-gray-700 text-sm font-bold mb-2">Mật khẩu</label>
                         <input
                             value={user.password}
-                            className={`shadow appearance-none border   ${
-                                responseLogin.trim() !== '' ? 'border-red-500' : ''
-                            } rounded w-full py-2 px-3  ${
-                                error.password.trim() !== '' ? 'border-red-500' : ''
-                            } text-gray-700 mb-2 leading-tight focus:outline-none focus:shadow-outline`}
+                            className={`shadow appearance-none border   ${responseLogin.trim() !== '' ? 'border-red-500' : ''
+                                } rounded w-full py-2 px-3  ${error.password.trim() !== '' ? 'border-red-500' : ''
+                                } text-gray-700 mb-2 leading-tight focus:outline-none focus:shadow-outline`}
                             id="password"
                             type="password"
                             placeholder="********"
