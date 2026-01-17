@@ -19,6 +19,7 @@ function BoardProvider({ children }: BoardProviderProps) {
     const [userList, setUserList] = useState<User[]>([]);
     const [darkMode, setDarkMode] = useState<boolean>(false);
     const [encodeEmoji, setEncodeEmoji] = useState<boolean>(false);
+
     return (
         <BoardContext.Provider
             value={{

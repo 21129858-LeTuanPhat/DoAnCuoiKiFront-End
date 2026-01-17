@@ -1,30 +1,31 @@
-import { Camera, Phone } from 'lucide-react'
-import React, { useContext, useEffect, useRef, useState } from 'react'
-import { ChatMessage, TypeMess } from '../../../model/ChatMessage'
+import { Camera, Phone } from 'lucide-react';
+import React, { useContext, useEffect, useRef, useState } from 'react';
+import { ChatMessage, TypeMess } from '../../../model/ChatMessage';
 import { useBoardContext } from '../../../hooks/useBoardContext';
 import { CallStatus } from '../../../model/CallProps';
 import WebSocketManager from '../../../socket/WebSocketManager';
 import { CallContext, ICallContext } from '../../../pages/ChatAppPage';
+import { avatarDefault } from '../../../config/utils';
 interface CallHistoryState {
     roomID: string;
-    callMode: number,
+    callMode: number;
     caller: string;
     lastStatus: string;
-    duration?: number
+    duration?: number;
 }
 interface LastHistory {
-    status: string,
-    duration?: string
+    status: string;
+    duration?: string;
 }
-export default function ContentItemCall({ message, history }: { message: ChatMessage, history: any }) {
+export default function ContentItemCall({ message, history }: { message: ChatMessage; history: any }) {
     const { selectedUser, type } = useBoardContext();
-    const username = localStorage.getItem('username')
-    const context = useContext(CallContext)
+    const username = localStorage.getItem('username');
+    const context = useContext(CallContext);
     if (!context) {
-        throw new Error("Ko thấy context call")
+        throw new Error('Ko thấy context call');
     }
 
-    const { setModalCalling, setTypeCalling } = context
+    const { setModalCalling, setTypeCalling } = context;
     // console.log('status trong call nè', message.mes.data)
     const formatTime = (seconds: number) => {
         const hrs = Math.floor(seconds / 3600);
@@ -33,31 +34,29 @@ export default function ContentItemCall({ message, history }: { message: ChatMes
         return `${hrs.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
     };
 
-    const [lastHistory, setLastHistory] = useState<LastHistory>()
-    const status = useRef<string | undefined>(undefined)
+    const [lastHistory, setLastHistory] = useState<LastHistory>();
+    const status = useRef<string | undefined>(undefined);
     // console.log('lastHistory nè', history.lastStatus)
     useEffect(() => {
-        if (!history) return
-        console.log('lastHistory nè', history.lastStatus)
-        status.current = history.lastStatus
+        if (!history) return;
+        console.log('lastHistory nè', history.lastStatus);
+        status.current = history.lastStatus;
         if (history.lastStatus === CallStatus.CANCEL) {
-
-            setLastHistory({ status: 'Cuộc gọi nhỡ' })
+            setLastHistory({ status: 'Cuộc gọi nhỡ' });
         }
         if (history.lastStatus === CallStatus.REJECT) {
-            setLastHistory({ status: 'Cuộc gọi đã bị từ chối' })
+            setLastHistory({ status: 'Cuộc gọi đã bị từ chối' });
         }
         if (history.lastStatus === CallStatus.ENDED) {
-            setLastHistory({ status: 'Cuộc gọi thoại', duration: formatTime(Number(history.duration)) })
+            setLastHistory({ status: 'Cuộc gọi thoại', duration: formatTime(Number(history.duration)) });
         }
         if (history.lastStatus === CallStatus.TIMEOUT) {
-            setLastHistory({ status: 'Đã bỏ lỡ cuộc gọi' })
+            setLastHistory({ status: 'Đã bỏ lỡ cuộc gọi' });
         }
         //  if (history.lastStatus === CallStatus.BUSY) {
         //     setLastHistory({ status: 'Đã bỏ lỡ cuộc gọi' })
         // }
-
-    }, [history])
+    }, [history]);
 
     const hanldeVoice = () => {
         setModalCalling(true);
@@ -69,152 +68,196 @@ export default function ContentItemCall({ message, history }: { message: ChatMes
     };
     const handleCall = () => {
         if (message.mes.type === TypeMess.VOICE_CALL) {
-            hanldeVoice()
+            hanldeVoice();
         }
         if (message.mes.type === TypeMess.VIDEO_CALL) {
-            hanldeVideo()
+            hanldeVideo();
         }
-    }
+    };
 
-    return type === 'people' ? (selectedUser === message.name ? (<div className="mt-4 flex items-end w-full ">
-        <img
-            src="https://tse3.mm.bing.net/th/id/OIP.cGz8NopJvAgdkioxkugKoQHaHa?pid=Api&P=0&h=220"
-            alt="hình ảnh"
-            className="rounded-full w-8 h-8 mr-2 align-bottom   "
-        />
-        <div className="bg-white rounded-3xl shadow-lg p-4 w-1/4  ">
-            <div className="flex items-start gap-4 mb-2">
-                {(status.current === CallStatus.REJECT || status.current === CallStatus.CANCEL || status.current === CallStatus.TIMEOUT) ?
-                    (<div className=" rounded-full p-3" style={{ backgroundColor: 'rgb(243, 66, 95)' }}>
-                        {history?.callMode === TypeMess.VIDEO_CALL ? (<Camera className="w-5 h-5 text-white" />) : (<Phone className="w-5 h-5 text-white" />)}
-                    </div>) :
-                    (<div className="bg-gray-100 rounded-full p-3">
-                        {history?.callMode === TypeMess.VIDEO_CALL ? (<Camera className="w-5 h-5 text-gray-700" />) : (<Phone className="w-5 h-5 text-gray-700" />)}
-                    </div>)}
-                {/* <div className="bg-gray-100 rounded-full p-3">
+    return type === 'people' ? (
+        selectedUser === message.name ? (
+            <div className="mt-4 flex items-end w-full ">
+                <img src={avatarDefault} alt="hình ảnh" className="rounded-full w-8 h-8 mr-2 align-bottom   " />
+                <div className="bg-white rounded-3xl shadow-lg p-4 w-1/4  ">
+                    <div className="flex items-start gap-4 mb-2">
+                        {status.current === CallStatus.REJECT ||
+                        status.current === CallStatus.CANCEL ||
+                        status.current === CallStatus.TIMEOUT ? (
+                            <div className=" rounded-full p-3" style={{ backgroundColor: 'rgb(243, 66, 95)' }}>
+                                {history?.callMode === TypeMess.VIDEO_CALL ? (
+                                    <Camera className="w-5 h-5 text-white" />
+                                ) : (
+                                    <Phone className="w-5 h-5 text-white" />
+                                )}
+                            </div>
+                        ) : (
+                            <div className="bg-gray-100 rounded-full p-3">
+                                {history?.callMode === TypeMess.VIDEO_CALL ? (
+                                    <Camera className="w-5 h-5 text-gray-700" />
+                                ) : (
+                                    <Phone className="w-5 h-5 text-gray-700" />
+                                )}
+                            </div>
+                        )}
+                        {/* <div className="bg-gray-100 rounded-full p-3">
                     {history?.callMode === TypeMess.VIDEO_CALL ? (<Camera className="w-5 h-5 text-gray-700" />) : (<Phone className="w-5 h-5 text-gray-700" />)}
                 </div> */}
 
-                <div className="flex-1">
-                    <h2 className="text-sm font-semibold text-gray-900 mb-1">
-                        {
-                            lastHistory?.status || 'Cuộc gọi'
-                        }
-                    </h2>
-                    <p className="text-sm text-gray-500">
-                        {lastHistory?.duration}
-                    </p>
+                        <div className="flex-1">
+                            <h2 className="text-sm font-semibold text-gray-900 mb-1">
+                                {lastHistory?.status || 'Cuộc gọi'}
+                            </h2>
+                            <p className="text-sm text-gray-500">{lastHistory?.duration}</p>
+                        </div>
+                    </div>
+                    {/* Nút Gọi lại - Chỉ hiển thị cho cuộc gọi 1-1 */}
+                    {type === 'people' && (
+                        <button
+                            className="w-full bg-gray-100 hover:bg-gray-200 text-gray-900 font-medium py-2 px-4 rounded-xl text-sm transition-colors"
+                            onClick={handleCall}
+                        >
+                            Gọi lại
+                        </button>
+                    )}
                 </div>
             </div>
-            {/* Nút Gọi lại - Chỉ hiển thị cho cuộc gọi 1-1 */}
-            {type === 'people' && (
-                <button className="w-full bg-gray-100 hover:bg-gray-200 text-gray-900 font-medium py-2 px-4 rounded-xl text-sm transition-colors" onClick={handleCall}>
-                    Gọi lại
-                </button>
-            )}
-        </div>
-    </div>) : (<div className="mt-4 flex items-end w-full justify-end">
-
-        <div className="bg-white rounded-3xl shadow-lg p-4 w-1/4  ">
-            <div className="flex items-start gap-4 mb-2">
-                {(status.current === CallStatus.REJECT || status.current === CallStatus.CANCEL || status.current === CallStatus.TIMEOUT) ?
-                    (<div className=" rounded-full p-3" style={{ backgroundColor: 'rgb(243, 66, 95)' }}>
-                        {history?.callMode === TypeMess.VIDEO_CALL ? (<Camera className="w-5 h-5 text-white" />) : (<Phone className="w-5 h-5 text-white" />)}
-                    </div>) :
-                    (<div className="bg-gray-100 rounded-full p-3">
-                        {history?.callMode === TypeMess.VIDEO_CALL ? (<Camera className="w-5 h-5 text-gray-700" />) : (<Phone className="w-5 h-5 text-gray-700" />)}
-                    </div>)}
-                {/* <div className="bg-gray-100 rounded-full p-3">
+        ) : (
+            <div className="mt-4 flex items-end w-full justify-end">
+                <div className="bg-white rounded-3xl shadow-lg p-4 w-1/4  ">
+                    <div className="flex items-start gap-4 mb-2">
+                        {status.current === CallStatus.REJECT ||
+                        status.current === CallStatus.CANCEL ||
+                        status.current === CallStatus.TIMEOUT ? (
+                            <div className=" rounded-full p-3" style={{ backgroundColor: 'rgb(243, 66, 95)' }}>
+                                {history?.callMode === TypeMess.VIDEO_CALL ? (
+                                    <Camera className="w-5 h-5 text-white" />
+                                ) : (
+                                    <Phone className="w-5 h-5 text-white" />
+                                )}
+                            </div>
+                        ) : (
+                            <div className="bg-gray-100 rounded-full p-3">
+                                {history?.callMode === TypeMess.VIDEO_CALL ? (
+                                    <Camera className="w-5 h-5 text-gray-700" />
+                                ) : (
+                                    <Phone className="w-5 h-5 text-gray-700" />
+                                )}
+                            </div>
+                        )}
+                        {/* <div className="bg-gray-100 rounded-full p-3">
                     {history?.callMode === TypeMess.VIDEO_CALL ? (<Camera className="w-5 h-5 text-gray-700" />) : (<Phone className="w-5 h-5 text-gray-700" />)}
                 </div> */}
 
-                <div className="flex-1">
-                    <h2 className="text-sm font-semibold text-gray-900 mb-1">
-                        {
-                            lastHistory?.status || 'Cuộc gọi'
-                        }
-                    </h2>
-                    <p className="text-sm text-gray-500">
-                        {lastHistory?.duration}
-                    </p>
+                        <div className="flex-1">
+                            <h2 className="text-sm font-semibold text-gray-900 mb-1">
+                                {lastHistory?.status || 'Cuộc gọi'}
+                            </h2>
+                            <p className="text-sm text-gray-500">{lastHistory?.duration}</p>
+                        </div>
+                    </div>
+                    {/* Nút Gọi lại - Chỉ hiển thị cho cuộc gọi 1-1 */}
+                    {type === 'people' && (
+                        <button
+                            className="w-full bg-gray-100 hover:bg-gray-200 text-gray-900 font-medium py-2 px-4 rounded-xl text-sm transition-colors"
+                            onClick={handleCall}
+                        >
+                            Gọi lại
+                        </button>
+                    )}
                 </div>
             </div>
-            {/* Nút Gọi lại - Chỉ hiển thị cho cuộc gọi 1-1 */}
-            {type === 'people' && (
-                <button className="w-full bg-gray-100 hover:bg-gray-200 text-gray-900 font-medium py-2 px-4 rounded-xl text-sm transition-colors" onClick={handleCall}>
-                    Gọi lại
-                </button>
-            )}
-        </div>
-    </div>)) : (username !== message.name ? (<div className="mt-4 flex items-end w-full ">
-        <img
-            src="https://tse3.mm.bing.net/th/id/OIP.cGz8NopJvAgdkioxkugKoQHaHa?pid=Api&P=0&h=220"
-            alt="hình ảnh"
-            className="rounded-full w-8 h-8 mr-2 align-bottom   "
-        />
-        <div className="bg-white rounded-3xl shadow-lg p-4 w-1/4  ">
-            <div className="flex items-start gap-4 mb-2">
-                {(status.current === CallStatus.REJECT || status.current === CallStatus.CANCEL || status.current === CallStatus.TIMEOUT) ?
-                    (<div className=" rounded-full p-3" style={{ backgroundColor: 'rgb(243, 66, 95)' }}>
-                        {history?.callMode === TypeMess.VIDEO_CALL ? (<Camera className="w-5 h-5 text-white" />) : (<Phone className="w-5 h-5 text-white" />)}
-                    </div>) :
-                    (<div className="bg-gray-100 rounded-full p-3">
-                        {history?.callMode === TypeMess.VIDEO_CALL ? (<Camera className="w-5 h-5 text-gray-700" />) : (<Phone className="w-5 h-5 text-gray-700" />)}
-                    </div>)}
-                {/* <div className="bg-gray-100 rounded-full p-3">
+        )
+    ) : username !== message.name ? (
+        <div className="mt-4 flex items-end w-full ">
+            <img src={avatarDefault} alt="hình ảnh" className="rounded-full w-8 h-8 mr-2 align-bottom   " />
+            <div className="bg-white rounded-3xl shadow-lg p-4 w-1/4  ">
+                <div className="flex items-start gap-4 mb-2">
+                    {status.current === CallStatus.REJECT ||
+                    status.current === CallStatus.CANCEL ||
+                    status.current === CallStatus.TIMEOUT ? (
+                        <div className=" rounded-full p-3" style={{ backgroundColor: 'rgb(243, 66, 95)' }}>
+                            {history?.callMode === TypeMess.VIDEO_CALL ? (
+                                <Camera className="w-5 h-5 text-white" />
+                            ) : (
+                                <Phone className="w-5 h-5 text-white" />
+                            )}
+                        </div>
+                    ) : (
+                        <div className="bg-gray-100 rounded-full p-3">
+                            {history?.callMode === TypeMess.VIDEO_CALL ? (
+                                <Camera className="w-5 h-5 text-gray-700" />
+                            ) : (
+                                <Phone className="w-5 h-5 text-gray-700" />
+                            )}
+                        </div>
+                    )}
+                    {/* <div className="bg-gray-100 rounded-full p-3">
                     {history?.callMode === TypeMess.VIDEO_CALL ? (<Camera className="w-5 h-5 text-gray-700" />) : (<Phone className="w-5 h-5 text-gray-700" />)}
                 </div> */}
 
-                <div className="flex-1">
-                    <h2 className="text-sm font-semibold text-gray-900 mb-1">
-                        {
-                            lastHistory?.status || 'Cuộc gọi'
-                        }
-                    </h2>
-                    <p className="text-sm text-gray-500">
-                        {lastHistory?.duration}
-                    </p>
+                    <div className="flex-1">
+                        <h2 className="text-sm font-semibold text-gray-900 mb-1">
+                            {lastHistory?.status || 'Cuộc gọi'}
+                        </h2>
+                        <p className="text-sm text-gray-500">{lastHistory?.duration}</p>
+                    </div>
                 </div>
+                {/* Nút Gọi lại - Chỉ hiển thị cho cuộc gọi 1-1 */}
+                {type === 'people' && (
+                    <button
+                        className="w-full bg-gray-100 hover:bg-gray-200 text-gray-900 font-medium py-2 px-4 rounded-xl text-sm transition-colors"
+                        onClick={handleCall}
+                    >
+                        Gọi lại
+                    </button>
+                )}
             </div>
-            {/* Nút Gọi lại - Chỉ hiển thị cho cuộc gọi 1-1 */}
-            {type === 'people' && (
-                <button className="w-full bg-gray-100 hover:bg-gray-200 text-gray-900 font-medium py-2 px-4 rounded-xl text-sm transition-colors" onClick={handleCall}>
-                    Gọi lại
-                </button>
-            )}
         </div>
-    </div>) : (<div className="mt-4 flex items-end w-full justify-end">
-        <div className="bg-white rounded-3xl shadow-lg p-4 w-1/4  ">
-            <div className="flex items-start gap-4 mb-2">
-                {(status.current === CallStatus.REJECT || status.current === CallStatus.CANCEL || status.current === CallStatus.TIMEOUT) ?
-                    (<div className=" rounded-full p-3" style={{ backgroundColor: 'rgb(243, 66, 95)' }}>
-                        {history?.callMode === TypeMess.VIDEO_CALL ? (<Camera className="w-5 h-5 text-white" />) : (<Phone className="w-5 h-5 text-white" />)}
-                    </div>) :
-                    (<div className="bg-gray-100 rounded-full p-3">
-                        {history?.callMode === TypeMess.VIDEO_CALL ? (<Camera className="w-5 h-5 text-gray-700" />) : (<Phone className="w-5 h-5 text-gray-700" />)}
-                    </div>)}
-                {/* <div className="bg-gray-100 rounded-full p-3">
+    ) : (
+        <div className="mt-4 flex items-end w-full justify-end">
+            <div className="bg-white rounded-3xl shadow-lg p-4 w-1/4  ">
+                <div className="flex items-start gap-4 mb-2">
+                    {status.current === CallStatus.REJECT ||
+                    status.current === CallStatus.CANCEL ||
+                    status.current === CallStatus.TIMEOUT ? (
+                        <div className=" rounded-full p-3" style={{ backgroundColor: 'rgb(243, 66, 95)' }}>
+                            {history?.callMode === TypeMess.VIDEO_CALL ? (
+                                <Camera className="w-5 h-5 text-white" />
+                            ) : (
+                                <Phone className="w-5 h-5 text-white" />
+                            )}
+                        </div>
+                    ) : (
+                        <div className="bg-gray-100 rounded-full p-3">
+                            {history?.callMode === TypeMess.VIDEO_CALL ? (
+                                <Camera className="w-5 h-5 text-gray-700" />
+                            ) : (
+                                <Phone className="w-5 h-5 text-gray-700" />
+                            )}
+                        </div>
+                    )}
+                    {/* <div className="bg-gray-100 rounded-full p-3">
                     {history?.callMode === TypeMess.VIDEO_CALL ? (<Camera className="w-5 h-5 text-gray-700" />) : (<Phone className="w-5 h-5 text-gray-700" />)}
                 </div> */}
 
-                <div className="flex-1">
-                    <h2 className="text-sm font-semibold text-gray-900 mb-1">
-                        {
-                            lastHistory?.status || 'Cuộc gọi'
-                        }
-                    </h2>
-                    <p className="text-sm text-gray-500">
-                        {lastHistory?.duration}
-                    </p>
+                    <div className="flex-1">
+                        <h2 className="text-sm font-semibold text-gray-900 mb-1">
+                            {lastHistory?.status || 'Cuộc gọi'}
+                        </h2>
+                        <p className="text-sm text-gray-500">{lastHistory?.duration}</p>
+                    </div>
                 </div>
+                {/* Nút Gọi lại - Chỉ hiển thị cho cuộc gọi 1-1 */}
+                {type === 'people' && (
+                    <button
+                        className="w-full bg-gray-100 hover:bg-gray-200 text-gray-900 font-medium py-2 px-4 rounded-xl text-sm transition-colors"
+                        onClick={handleCall}
+                    >
+                        Gọi lại
+                    </button>
+                )}
             </div>
-            {/* Nút Gọi lại - Chỉ hiển thị cho cuộc gọi 1-1 */}
-            {type === 'people' && (
-                <button className="w-full bg-gray-100 hover:bg-gray-200 text-gray-900 font-medium py-2 px-4 rounded-xl text-sm transition-colors" onClick={handleCall}>
-                    Gọi lại
-                </button>
-            )}
         </div>
-    </div>))
+    );
 }
-

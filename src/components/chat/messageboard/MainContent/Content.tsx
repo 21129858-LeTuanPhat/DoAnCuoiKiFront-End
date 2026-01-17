@@ -14,9 +14,9 @@ function Content({ darkMode, message }: { darkMode: boolean; message: ChatMessag
             <ContentItem darkMode={darkMode} message={message} color={false} />
         )
     ) : user.username !== message.name ? (
-        <ContentItem message={message} color={true} />
+        <ContentItem type={type} darkMode={darkMode} message={message} color={true} />
     ) : (
-        <ContentItem message={message} color={false} />
+        <ContentItem type={type} darkMode={darkMode} message={message} color={false} />
     );
 }
 

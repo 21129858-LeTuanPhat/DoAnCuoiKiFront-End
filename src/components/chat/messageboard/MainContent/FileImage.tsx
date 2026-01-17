@@ -1,13 +1,15 @@
 import { ArrowBigDownDash } from 'lucide-react';
 import { Forward } from 'lucide-react';
 interface DataImage {
+    name?: string | null;
+    type?: string;
     data: string;
     check: boolean;
     openShareButton: boolean;
     onClick?: () => void;
     darkMode?: boolean;
 }
-function FileImage({ data = '', check = false, openShareButton, onClick, darkMode }: DataImage) {
+function FileImage({ name, type, data = '', check = false, openShareButton, onClick, darkMode }: DataImage) {
     const filename = data.split('/').pop() ?? '';
     const parts = filename.split('-');
     const afterDash = parts.slice(1).join('-');
@@ -48,6 +50,7 @@ function FileImage({ data = '', check = false, openShareButton, onClick, darkMod
                 darkMode === false ? 'bg-white' : 'bg-[#24232a]'
             }  relative`}
         >
+            {type === 'room' && <p className="text-sm text-gray-600">{name}</p>}
             <img src={data} alt="ảnh bị lỗi" className="rounded-t-xl" />
             <div className={`flex justify-between p-4  ${darkMode === false ? 'text-black' : 'text-white'}`}>
                 <h3>{afterDash}</h3>

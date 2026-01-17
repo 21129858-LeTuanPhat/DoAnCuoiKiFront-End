@@ -19,5 +19,5 @@ export enum TypeMess {
     VIDEO_CALL = 30,
     VOICE_CALL = 40,
     LOCATION = 99,
-    PIN = 77
+    PIN = 77,
 }

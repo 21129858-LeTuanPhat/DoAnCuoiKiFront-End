@@ -8,6 +8,7 @@ import { RootState } from '../../../redux/store';
 import { LoadingProfileSkeleton } from '../../modal/LoadingSkeleton';
 import { WSMessage } from '../../../model/WSMessage';
 import { set } from 'firebase/database';
+import { avatarDefault } from '../../../config/utils';
 
 function FormCreateGroup({ onClose }: { onClose: () => void }) {
     const inputRef = useRef<HTMLInputElement>(null);
@@ -137,10 +138,7 @@ function FormCreateGroup({ onClose }: { onClose: () => void }) {
                             <div className="flex gap-3 items-center justify-center">
                                 <div className="relative select-none">
                                     <img
-                                        src={
-                                            avatarUrl ??
-                                            'https://tse3.mm.bing.net/th/id/OIP.yGZbQOjxXDG_TrUC67FWtwHaGS?pid=Api&P=0&h=220'
-                                        }
+                                        src={avatarUrl ?? avatarDefault}
                                         alt={'Avatar Group'}
                                         className="w-32 h-32 rounded-full object-cover border-4 border-gray-300"
                                     />

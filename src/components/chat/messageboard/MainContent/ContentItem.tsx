@@ -9,12 +9,14 @@ import { Forward } from 'lucide-react';
 
 import ModalShareMess from './ModalShareMess';
 import CardItem from './CardItem';
+import { avatarDefault } from '../../../../config/utils';
 interface ItemContent {
     message: ChatMessage;
     color: boolean;
     darkMode?: boolean;
+    type?: string;
 }
-function ContentItem({ darkMode, message, color }: ItemContent) {
+function ContentItem({ darkMode, message, color, type }: ItemContent) {
     const [openShareButton, setOpenShareButton] = useState(false);
     const [openModalShare, setOpenModalShare] = useState(false);
 
@@ -36,11 +38,7 @@ function ContentItem({ darkMode, message, color }: ItemContent) {
                         }
                     >
                         {color === true ? (
-                            <img
-                                src="https://tse3.mm.bing.net/th/id/OIP.cGz8NopJvAgdkioxkugKoQHaHa?pid=Api&P=0&h=220"
-                                alt="hình ảnh"
-                                className="rounded-full w-8 h-8"
-                            />
+                            <img src={avatarDefault} alt="hình ảnh" className="rounded-full w-8 h-8" />
                         ) : (
                             ''
                         )}
@@ -58,6 +56,9 @@ function ContentItem({ darkMode, message, color }: ItemContent) {
                          }
                             `}
                             >
+                                {type === 'room' && color === true && (
+                                    <p className="text-sm text-gray-600">{message.name}</p>
+                                )}
                                 <p className="break-words">{message.mes.data}</p>
                                 {openShareButton && (
                                     <Forward
@@ -73,6 +74,8 @@ function ContentItem({ darkMode, message, color }: ItemContent) {
                             </div>
                         ) : message.mes.type === 1 ? (
                             <FileImage
+                                name={message.name}
+                                type={type}
                                 darkMode={darkMode}
                                 onClick={() => setOpenModalShare(true)}
                                 openShareButton={openShareButton}
@@ -81,6 +84,8 @@ function ContentItem({ darkMode, message, color }: ItemContent) {
                             />
                         ) : message.mes.type === 2 ? (
                             <FileItem
+                                name={message.name}
+                                type={type}
                                 darkMode={darkMode}
                                 onClick={() => setOpenModalShare(true)}
                                 openShareButton={openShareButton}

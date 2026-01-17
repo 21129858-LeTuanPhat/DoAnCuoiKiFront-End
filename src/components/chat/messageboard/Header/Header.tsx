@@ -1,8 +1,6 @@
-
-import { faLocationCrosshairs, faLocationDot, faPhone, faVideo } from '@fortawesome/free-solid-svg-icons';        
-import { IdCard, PanelLeft, UserPlus,  MapPin, Pin } from 'lucide-react';
+import { faLocationCrosshairs, faLocationDot, faPhone, faVideo } from '@fortawesome/free-solid-svg-icons';
+import { IdCard, PanelLeft, UserPlus, MapPin, Pin } from 'lucide-react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faPhone, faVideo } from '@fortawesome/free-solid-svg-icons';
 import { avatarDefault, REACT_BASE_URL } from '../../../../config/utils';
 import { SetStateAction, useContext, useEffect, useState } from 'react';
 import LocationModal from '../../../modal/LocationModal';
@@ -23,14 +21,19 @@ import ModalAddUser from './ModalAddUser';
 import { ProfileContext } from '../../Context/ProfileCotext';
 import { getImageUrl } from '../../../../services/firebaseService';
 import ShareCardModal from '../../sidebar/ShareCard';
-
+interface PinnedMessage {
+    id: string;
+    title: string;
+    content: string;
+    importance: 'low' | 'medium' | 'high';
+}
 function Header({
     darkMode,
     username,
     setOpen,
     setTypeCalling,
     onReload,
-    setOpenPinModal
+    setOpenPinModal,
 }: {
     darkMode: boolean;
     username: string;
@@ -39,21 +42,28 @@ function Header({
     onReload?: () => void;
     setOpenPinModal: React.Dispatch<React.SetStateAction<boolean>>;
 }) {
+    // Pin Message State
+    const [pinnedMessages, setPinnedMessages] = useState<PinnedMessage[]>([]);
+    const [showPinListModal, setShowPinListModal] = useState(false);
     const { selectedUser, type: typeMessage } = useBoardContext();
     const { type } = useBoardContext();
-    console.log('selected user nè header', type)
+    console.log('selected user nè header', type);
     const [openPanel, setOpenPanel] = useState<boolean>(false);
     const profileInfor = useContext(ProfileContext)?.profileInfor;
     const [openAddUser, setOpenAddUser] = useState<boolean>(false);
 
-     const [openLocationModal, setOpenLocationModal] = useState<boolean>(false);    
+    const [openLocationModal, setOpenLocationModal] = useState<boolean>(false);
     const [imageUrl, setImageUrl] = useState<string | null>(null);
+
     const [openShareModal, setOpenShareModal] = useState(false);
+
     useEffect(() => {
         const fetchImage = async () => {
             const imageUrl = await getImageUrl(username);
             if (imageUrl) {
                 setImageUrl(imageUrl);
+            } else {
+                setImageUrl(null);
             }
         };
         fetchImage();
@@ -74,8 +84,13 @@ function Header({
     }, [selector.callStatus]);
     return (
         <>
-
-            {openLocationModal && <LocationModal onReload={onReload} isOpen={openLocationModal} onClose={() => setOpenLocationModal(false)} />}
+            {openLocationModal && (
+                <LocationModal
+                    onReload={onReload}
+                    isOpen={openLocationModal}
+                    onClose={() => setOpenLocationModal(false)}
+                />
+            )}
             {openAddUser && <ModalAddUser openAddUser={openAddUser} setOpenAddUser={setOpenAddUser} />}
             {openPanel && <ListUserGroup openPanel={openPanel} setOpenPanel={setOpenPanel} />}
             <div
@@ -143,7 +158,6 @@ function Header({
                         title="Chia sẻ vị trí của bạn"
                     >
                         <FontAwesomeIcon icon={faLocationDot} className="text-lg text-blue-600 text-[20px]" />
-
                     </button>
                     <button
                         className="w-10 h-10 flex items-center justify-center rounded-full hover:bg-gray-200 transition"
@@ -165,4 +179,3 @@ function Header({
 }
 
 export default React.memo(Header);
-

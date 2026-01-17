@@ -17,17 +17,17 @@ async function handleChangeProfile({ profileData }: { profileData: ProfileForm }
         fullName: profileData.fullName,
         address: profileData.address,
         introduce: profileData.introduce,
-        imageUrl: profileData.imageUrl,
+        imageUrl: profileData.imageUrl || '',
     });
 }
 
 async function getUserProfile(username: string): Promise<ProfileForm | null> {
-    // console.log('GET USER PROFILE', username);
+    console.log('GET USER PROFILE', username);
     const key = `profiles/${username}`;
 
     const profileRef = ref(db, key);
     const snapshot = await get(profileRef);
-    // console.log('snapshot value', snapshot.val());
+    console.log('snapshot value', snapshot.val());
 
     if (!snapshot.exists()) {
         return null;
@@ -37,12 +37,12 @@ async function getUserProfile(username: string): Promise<ProfileForm | null> {
 }
 
 async function getAllProfile(): Promise<ProfileForm[] | null> {
-    // console.log('GET All PROFILE');
+    console.log('GET All PROFILE');
     const key = `profiles`;
 
     const profileRef = ref(db, key);
     const snapshot = await get(profileRef);
-    // console.log('snapshot value', snapshot.val());
+    console.log('snapshot value', snapshot.val());
 
     if (!snapshot.exists()) {
         return null;
@@ -59,7 +59,7 @@ async function getInvitation(
     const key = `${category}/${type}/${username}`;
     const invitationRef = ref(db, key);
     const snapshot = await get(invitationRef);
-    // console.log('snapshot value', snapshot.val());
+    console.log('snapshot value', snapshot.val());
     if (!snapshot.exists()) {
         return [];
     }
@@ -68,7 +68,7 @@ async function getInvitation(
     const listConnect = Object.entries(data).map(([key, value]: [string, any]) => {
         return {
             username: key,
-            imageUrl: value.imageUrl,
+            imageUrl: value.imageUrl || '',
             createAt: value.createdAt,
             status: value.status,
             type: type,
@@ -159,16 +159,16 @@ async function changeStatusRoomResponse({
     await set(ref(db, key), {
         status: status,
         createdAt: request.createAt,
-        imageUrl: request.imageUrl,
+        imageUrl: request.imageUrl || '',
     });
 
     const sentKey = `sent_requests/${request.type}/${request.username}/${username}`;
     await set(ref(db, sentKey), {
         status: status,
         createdAt: request.createAt,
-        imageUrl: request.imageUrl,
+        imageUrl: request.imageUrl || '',
     });
-    // console.log('STATUS', status);
+    console.log('STATUS', status);
     if (status !== 'connected') return;
 
     if (type === 'people') {
@@ -203,7 +203,7 @@ async function getInforGroup(groupName: string): Promise<InforGroup | null> {
 }
 
 async function getAllInforGroup(): Promise<InforGroup[] | null> {
-    // console.log('GET All INFOR GROUP');
+    console.log('GET All INFOR GROUP');
     const InforGroupRef = ref(db, `groups`);
     const snapshot = await get(InforGroupRef);
     if (!snapshot.exists()) {
@@ -211,7 +211,7 @@ async function getAllInforGroup(): Promise<InforGroup[] | null> {
     }
 
     const groupsData = snapshot.val();
-    // console.log('groupsData:', groupsData);
+    console.log('groupsData:', groupsData);
     const inforGroups: InforGroup[] = [];
 
     for (const groupName in groupsData) {
@@ -370,13 +370,13 @@ async function sendConnectRequest(
         await set(sentRef, {
             status: 'pending',
             createdAt: Date.now(),
-            imageUrl: imageUrl,
+            imageUrl: imageUrl || '',
         });
 
         await set(invRef, {
             status: 'pending',
             createdAt: Date.now(),
-            imageUrl: imageUrl,
+            imageUrl: imageUrl || '',
         });
 
         webSocket.sendMessage(
@@ -422,13 +422,13 @@ async function acceptedConnectRequest(
         await set(sentRef, {
             status: 'accepted',
             createdAt: Date.now(),
-            imageUrl: imageUrl,
+            imageUrl: imageUrl || '',
         });
 
         await set(invRef, {
             status: 'accepted',
             createdAt: Date.now(),
-            imageUrl: imageUrl,
+            imageUrl: imageUrl || '',
         });
         await set(connRef, true);
 

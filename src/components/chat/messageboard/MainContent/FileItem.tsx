@@ -7,13 +7,15 @@ import pdfIcon from '../../../../assets/img/icon_file/pdf.png';
 
 import { Forward } from 'lucide-react';
 interface DataFile {
+    name?: string | null;
+    type?: string;
     data: string;
     check: boolean;
     openShareButton: boolean;
     onClick?: () => void;
     darkMode?: boolean;
 }
-function FileItem({ data = '', check = false, openShareButton, onClick, darkMode }: DataFile) {
+function FileItem({ name, type, data = '', check = false, openShareButton, onClick, darkMode }: DataFile) {
     const filename = data.split('/').pop() ?? '';
     const parts = filename.split('-');
     const afterDash = parts.slice(1).join('-');
@@ -43,6 +45,7 @@ function FileItem({ data = '', check = false, openShareButton, onClick, darkMode
         </div>
     ) : (
         <div className={`p-1 max-w-xs rounded-xl ${darkMode === false ? 'bg-white' : 'bg-[#24232a]'}  relative`}>
+            {type === 'room' && <p className="text-sm text-gray-600">{name}</p>}
             <a className=" p-2 no-underline flex gap-2 justify-between" href={data} download>
                 <div className="flex justify-center items-center">{FileItem}</div>
                 <div

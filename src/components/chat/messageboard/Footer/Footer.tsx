@@ -87,6 +87,7 @@ function Footer({ darkMode, username }: { darkMode: boolean; username: string })
                 setPopUp(false);
                 setFiles([]);
             }, 300);
+            setOpenRecommendation(false);
         } catch (err) {
             console.error(err);
             setLoading(false);

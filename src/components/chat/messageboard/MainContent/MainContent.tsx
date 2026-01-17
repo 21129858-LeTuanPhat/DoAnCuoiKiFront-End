@@ -23,32 +23,29 @@ import PinnedMessagesListModal from '../../../modal/PinnedMessagesListModal';
 import PinMessageModal from '../../../modal/PinMessageModal';
 import { set } from 'firebase/database';
 import { showMessageNotification } from '../../../../helps/notification';
-        
-        
+
 interface PinnedMessage {
     id: string;
     title: string;
     content: string;
     importance: 'low' | 'medium' | 'high';
+}
 
-}        
-        
-        
 function MainContent({
     darkMode,
     username,
     setRe,
     re,
-  showPinModal, setShowPinModal
+    showPinModal,
+    setShowPinModal,
 }: {
     darkMode: boolean;
-    username: any,
-    setRe: React.Dispatch<React.SetStateAction<number>>,
-    re: any,
-    showPinModal: boolean,
-    setShowPinModal: React.Dispatch<React.SetStateAction<boolean>>
+    username: any;
+    setRe: React.Dispatch<React.SetStateAction<number>>;
+    re: any;
+    showPinModal: boolean;
+    setShowPinModal: React.Dispatch<React.SetStateAction<boolean>>;
 }) {
-
     interface CallHistoryState {
         roomID: string;
         callMode: number;
@@ -84,10 +81,8 @@ function MainContent({
     const [callHistory, setCallHistory] = useState<Map<string, CallHistoryState>>(new Map());
     const dispatch = useDispatch();
     const [downArrow, setDownArrow] = useState<boolean>(false);
-    const [notify, setNotify] = useState<boolean>(false)
-    const context = useContext(CallContext)
-
-
+    const [notify, setNotify] = useState<boolean>(false);
+    const context = useContext(CallContext);
 
     const handleOnDown = () => {
         const div = divRef.current;
@@ -101,11 +96,11 @@ function MainContent({
     const [showPinListModal, setShowPinListModal] = useState(false);
 
     const handleUnpin = (id: string) => {
-        setPinnedMessages(prev => prev.filter(msg => msg.id !== id));
+        setPinnedMessages((prev) => prev.filter((msg) => msg.id !== id));
         const ws = WebSocketManager.getInstance();
         const msgData = {
             id,
-            status: 'unpin'
+            status: 'unpin',
         };
         ws.sendMessage(
             JSON.stringify({
@@ -115,7 +110,7 @@ function MainContent({
                     data: {
                         type: type,
                         to: selectedUser,
-                        mes: encodeURIComponent(JSON.stringify({ type: TypeMess.PIN, data: msgData }))
+                        mes: encodeURIComponent(JSON.stringify({ type: TypeMess.PIN, data: msgData })),
                     },
                 },
             }),
@@ -127,10 +122,10 @@ function MainContent({
             id,
             title,
             content,
-            importance
+            importance,
         };
         setPinnedMessages((prev) => {
-            if (prev.some(p => p.id === newPinMessage.id)) return prev;
+            if (prev.some((p) => p.id === newPinMessage.id)) return prev;
             return [...prev, newPinMessage];
         });
     };
@@ -186,7 +181,7 @@ function MainContent({
         setOpenRecommendation(false);
         divRef.current = null;
         setEncodeEmoji(false);
-    }, [username,re]);
+    }, [username, re]);
     const selectionRef = useRef<ReducerCall>({
         callStatus: CallStatus.IDLE,
         isIncoming: false,
@@ -213,16 +208,19 @@ function MainContent({
         const ws = WebSocketManager.getInstance();
         const username = localStorage.getItem('username');
 
-        const callMess = callSelection.type === 'room' ? {
-            status: CallStatus.IN_CALL,
-            roomURL: `/call?roomID=${callSelection.roomID}&call_mode=${callSelection.callMode}`,
-            roomID: callSelection.roomID,
-            from: callSelection.caller,
-        } : {
-            status: CallStatus.IN_CALL,
-            roomURL: `/call?roomID=${callSelection.roomID}&call_mode=${callSelection.callMode}`,
-            roomID: callSelection.roomID,
-        };
+        const callMess =
+            callSelection.type === 'room'
+                ? {
+                      status: CallStatus.IN_CALL,
+                      roomURL: `/call?roomID=${callSelection.roomID}&call_mode=${callSelection.callMode}`,
+                      roomID: callSelection.roomID,
+                      from: callSelection.caller,
+                  }
+                : {
+                      status: CallStatus.IN_CALL,
+                      roomURL: `/call?roomID=${callSelection.roomID}&call_mode=${callSelection.callMode}`,
+                      roomID: callSelection.roomID,
+                  };
 
         ws.sendMessage(
             JSON.stringify({
@@ -239,19 +237,20 @@ function MainContent({
                 },
             }),
         );
-        console.log('bên trong inCall của a', JSON.stringify({
-            action: 'onchat',
-            data: {
-                event: 'SEND_CHAT',
+        console.log(
+            'bên trong inCall của a',
+            JSON.stringify({
+                action: 'onchat',
                 data: {
-                    type: selectionRef.current.type,
-                    to: selectionRef.current.caller,
-                    mes:
-                        JSON.stringify({ type: selectionRef.current.callMode, data: callMess }),
-
+                    event: 'SEND_CHAT',
+                    data: {
+                        type: selectionRef.current.type,
+                        to: selectionRef.current.caller,
+                        mes: JSON.stringify({ type: selectionRef.current.callMode, data: callMess }),
+                    },
                 },
-            },
-        }),)
+            }),
+        );
     };
     useEffect(() => {
         const ws = WebSocketManager.getInstance();
@@ -262,209 +261,7 @@ function MainContent({
         }
         if (type === 'people') {
             ws.onMessage('GET_PEOPLE_CHAT_MES', (msg) => {
-                console.log('msg maincontent people', msg)
-                if (msg.status === 'success' && msg.event === 'SEND_CHAT') {
-                    console.log('Decode mes:', decodeURIComponent(msg.data.mes));
-                    const mesObj: any = JSON.parse(decodeURIComponent(msg.data.mes));
-                    console.log('Parsed mesObj:', mesObj);
-                    if (mesObj.type === TypeMess.VIDEO_CALL || mesObj.type === TypeMess.VOICE_CALL) {
-
-                        if (msg.data.type === 0) {
-
-                            console.log('Parsed mesObj:', mesObj);
-                            switch (mesObj.data.status) {
-                                case CallStatus.CALLING:
-                                    console.log('trong switch nè', mesObj.data.status);
-                                    if (msg.data.name === localStorage.getItem('username')) {
-                                        return;
-                                    }
-                                    if (selectionRef.current.callStatus === CallStatus.IN_CALL) {
-                                        console.log('Đang trong cuộc gọi, gửi BUSY');
-                                        const ws = WebSocketManager.getInstance();
-                                        ws.sendMessage(
-                                            JSON.stringify({
-                                                action: 'onchat',
-                                                data: {
-                                                    event: 'SEND_CHAT',
-                                                    data: {
-                                                        type: 'people',
-                                                        to: msg.data.name,
-                                                        mes: encodeURIComponent(
-                                                            JSON.stringify({
-                                                                type: mesObj.type,
-                                                                data: {
-                                                                    status: CallStatus.BUSY,
-                                                                    roomID: mesObj.data.roomID
-                                                                }
-                                                            }),
-                                                        ),
-                                                    },
-                                                },
-                                            }),
-                                        );
-                                        return;
-                                    }
-
-                                    dispatch(
-                                        incomingCall({
-                                            roomURL: mesObj.data.roomURL,
-                                            roomID: mesObj.data.roomID,
-                                            caller: msg.data.name,
-                                            callMode:
-                                                mesObj.type === TypeMess.VIDEO_CALL
-                                                    ? TypeMess.VIDEO_CALL
-                                                    : TypeMess.VOICE_CALL,
-                                            type: msg.data.type === 0 ? 'people' : 'room',
-                                        }),
-                                    );
-                                    break;
-                                case CallStatus.REJECT:
-                                    console.log('trong switch  REJECT nè', mesObj.data.status);
-                                    dispatch(updateStatus({ status: CallStatus.REJECT }));
-                                    break;
-                                case CallStatus.CONNECTING:
-                                    console.log('trong switch nè', mesObj.data.status);
-                                    console.log('Nhận được CONNECTING, gửi IN_CALL');
-                                    setTimeout(() => {
-                                        sendInCall();
-                                        dispatch(updateStatus({ status: CallStatus.IN_CALL }));
-                                    }, 100);
-                                    break;
-                                case CallStatus.IN_CALL:
-                                    console.log('trong switch nè', mesObj.data.status);
-                                    dispatch(updateStatus({ status: CallStatus.IN_CALL }));
-                                    console.log('Nhận được IN_CALL từ người gửi');
-                                    break;
-                                case CallStatus.ENDED:
-                                    console.log('trong switch nè', mesObj.data.status)
-                                    console.log(JSON.parse(decodeURIComponent(msg.data.mes)))
-
-                                    dispatch(updateStatus({ status: CallStatus.ENDED }))
-                                    console.log('Nhận được end từ người gửi')
-                                    break;
-                                case CallStatus.CANCEL:
-                                    dispatch(updateStatus({ status: CallStatus.CANCEL }));
-                                    break;
-                                case CallStatus.TIMEOUT:
-                                    console.log('trong switch  TIMEOUT nè', mesObj.data.status);
-                                    dispatch(updateStatus({ status: CallStatus.TIMEOUT }));
-                                    break;
-                                case CallStatus.BUSY:
-                                    console.log('User is busy');
-                                    dispatch(updateStatus({ status: CallStatus.BUSY }));
-                                    break;
-                            }
-                        }
-                        else if (msg.data.type === 1) {
-                            switch (mesObj.data.status) {
-                                case CallStatus.CALLING:
-                                    console.log('trong switch nè', mesObj.data.status);
-                                    if (msg.data.name === localStorage.getItem('username')) {
-                                        return;
-                                    }
-                                    if (selectionRef.current.callStatus === CallStatus.IN_CALL) {
-                                        return;
-                                    }
-                                    dispatch(
-                                        incomingCall({
-                                            roomURL: mesObj.data.roomURL,
-                                            roomID: mesObj.data.roomID,
-                                            caller: msg.data.type === 1 ? msg.data.to : msg.data.name,
-                                            callMode:
-                                                mesObj.type === TypeMess.VIDEO_CALL
-                                                    ? TypeMess.VIDEO_CALL
-                                                    : TypeMess.VOICE_CALL,
-                                            type: msg.data.type === 0 ? 'people' : 'room',
-                                        }),
-                                    );
-                                    break;
-                                case CallStatus.REJECT:
-                                    console.log('Group Call: Ignored REJECT from', msg.data.name);
-                                    break;
-                                case CallStatus.CONNECTING:
-                                    console.log('Group Call: Nhận CONNECTING từ:', msg.data.name, '(người gửi), from:', mesObj.data.from, '(người gọi ban đầu), callStatus:', selectionRef.current.callStatus);
-                                    if (!context) return;
-                                    const myUsernameConnecting = localStorage.getItem('username');
-                                    if (msg.data.name === myUsernameConnecting) {
-                                        console.log('Bỏ qua CONNECTING từ chính mình');
-                                        break;
-                                    }
-
-                                    if (selectionRef.current.callStatus === CallStatus.CALLING && !context.refStatusIncall.current) {
-                                        console.log('Người gọi nhận CONNECTING, gửi IN_CALL và vào room');
-                                        setTimeout(() => {
-                                            sendInCall();
-                                            dispatch(updateStatus({ status: CallStatus.IN_CALL }));
-                                        }, 100);
-                                    }
-
-                                    else if (selectionRef.current.callStatus === CallStatus.RINGING) {
-                                        context.refStatusIncall.current = true;
-                                        console.log('Người khác đã accept, nhưng mình vẫn đang ringing - KHÔNG tự động join');
-
-                                    }
-                                    else if (selectionRef.current.callStatus === CallStatus.IDLE) {
-                                        context.refStatusIncall.current = true;
-                                        console.log('Nhận CONNECTING khi vẫn đang IDLE - Đánh dấu có người đã vào');
-
-                                    }
-                                    else if (selectionRef.current.callStatus === CallStatus.IN_CALL) {
-                                        console.log('Đã IN_CALL rồi, bỏ qua CONNECTING');
-                                    }
-                                    else {
-                                        console.log('Trường hợp khác - callStatus:', selectionRef.current.callStatus, 'refStatusIncall:', context.refStatusIncall.current);
-                                    }
-                                    break;
-                                case CallStatus.IN_CALL:
-                                    console.log('Nhận IN_CALL từ:', msg.data.name, '(người gửi), from:', mesObj.data.from, '(người gọi ban đầu), callStatus:', selectionRef.current.callStatus);
-                                    if (!context) return;
-
-
-                                    const myUsernameInCall = localStorage.getItem('username');
-                                    if (msg.data.name === myUsernameInCall) {
-                                        console.log('Bỏ qua IN_CALL từ chính mình');
-                                        break;
-                                    }
-
-                                    if (selectionRef.current.callStatus === CallStatus.CONNECTING && !context.refStatusIncall.current) {
-                                        dispatch(updateStatus({ status: CallStatus.IN_CALL }));
-                                    }
-                                    else if (selectionRef.current.callStatus === CallStatus.RINGING) {
-                                        context.refStatusIncall.current = true;
-                                        console.log('Người khác đã vào call, nhưng mình vẫn đang ringing');
-
-                                    }
-                                    else {
-                                        context.refStatusIncall.current = true;
-                                    }
-                                    break;
-                                case CallStatus.ENDED:
-                                    if (selectionRef.current.callStatus === CallStatus.IDLE) {
-                                        return
-                                    }
-                                    console.log('trong switch nè', mesObj.data.status)
-                                    console.log(JSON.parse(decodeURIComponent(msg.data.mes)))
-                                    dispatch(updateStatus({ status: CallStatus.ENDED }))
-                                    console.log('Nhận được end từ người gửi')
-                                    break;
-                                case CallStatus.CANCEL:
-                                    if (selectionRef.current.callStatus === CallStatus.RINGING) {
-                                        dispatch(updateStatus({ status: CallStatus.CANCEL }));
-                                    }
-                                    break;
-                                case CallStatus.TIMEOUT:
-                                    console.log('trong switch  TIMEOUT nè', mesObj.data.status);
-                                    dispatch(updateStatus({ status: CallStatus.TIMEOUT }));
-                                    break;
-                                case CallStatus.BUSY:
-                                    console.log('Users are busy');
-                                    dispatch(updateStatus({ status: CallStatus.BUSY }));
-                                    break;
-                            }
-                        }
-                        return;
-                    }
-                }
+                console.log('msg maincontent people', msg);
 
                 if (msg.status === 'success') {
                     if (msg.event === 'GET_PEOPLE_CHAT_MES') {
@@ -552,60 +349,221 @@ function MainContent({
                         try {
                             const mesObj = JSON.parse(decodeURIComponent(msg.data.mes));
                             if (mesObj.type === TypeMess.VIDEO_CALL || mesObj.type === TypeMess.VOICE_CALL) {
-                                switch (mesObj.data.status) {
-                                    case CallStatus.CALLING:
-                                        console.log('trong switch nè', mesObj.data.status);
-                                        dispatch(
-                                            incomingCall({
-                                                roomURL: mesObj.data.roomURL,
-                                                roomID: mesObj.data.roomID,
-                                                caller: msg.data.name,
-                                                callMode:
-                                                    mesObj.type === TypeMess.VIDEO_CALL
-                                                        ? TypeMess.VIDEO_CALL
-                                                        : TypeMess.VOICE_CALL,
-                                                type: msg.data.type === 0 ? 'people' : 'room',
-                                            }),
-                                        );
-                                        break;
-                                    case CallStatus.REJECT:
-                                        console.log('trong switch  REJECT nè', mesObj.data.status);
-                                        dispatch(updateStatus({ status: CallStatus.REJECT }));
-                                        break;
-                                    case CallStatus.CONNECTING:
-                                        console.log('trong switch nè', mesObj.data.status);
-                                        console.log('Nhận được CONNECTING, gửi IN_CALL');
-                                        setTimeout(() => {
-                                            sendInCall();
-                                            dispatch(updateStatus({ status: CallStatus.IN_CALL }));
-                                        }, 100);
-                                        break;
-                                    case CallStatus.IN_CALL:
-                                        console.log('trong switch nè', mesObj.data.status);
-                                        dispatch(updateStatus({ status: CallStatus.IN_CALL }));
-                                        console.log('Nhận được IN_CALL từ người gửi');
-                                        break;
-                                    case CallStatus.ENDED:
-                                        console.log('trong switch nè', mesObj.data.status);
-                                        console.log(JSON.parse(decodeURIComponent(msg.data.mes)));
+                                if (msg.data.type === 0) {
+                                    console.log('Parsed mesObj:', mesObj);
+                                    switch (mesObj.data.status) {
+                                        case CallStatus.CALLING:
+                                            console.log('trong switch nè', mesObj.data.status);
+                                            if (msg.data.name === localStorage.getItem('username')) {
+                                                return;
+                                            }
+                                            if (selectionRef.current.callStatus === CallStatus.IN_CALL) {
+                                                console.log('Đang trong cuộc gọi, gửi BUSY');
+                                                const ws = WebSocketManager.getInstance();
+                                                ws.sendMessage(
+                                                    JSON.stringify({
+                                                        action: 'onchat',
+                                                        data: {
+                                                            event: 'SEND_CHAT',
+                                                            data: {
+                                                                type: 'people',
+                                                                to: msg.data.name,
+                                                                mes: encodeURIComponent(
+                                                                    JSON.stringify({
+                                                                        type: mesObj.type,
+                                                                        data: {
+                                                                            status: CallStatus.BUSY,
+                                                                            roomID: mesObj.data.roomID,
+                                                                        },
+                                                                    }),
+                                                                ),
+                                                            },
+                                                        },
+                                                    }),
+                                                );
+                                                return;
+                                            }
 
-                                        dispatch(updateStatus({ status: CallStatus.ENDED }));
-                                        console.log('Nhận được end từ người gửi');
-                                        break;
-                                    case CallStatus.CANCEL:
-                                        dispatch(updateStatus({ status: CallStatus.CANCEL }));
-                                        break;
-                                    case CallStatus.TIMEOUT:
-                                        console.log('trong switch  TIMEOUT nè', mesObj.data.status);
-                                        dispatch(updateStatus({ status: CallStatus.TIMEOUT }));
-                                        break;
+                                            dispatch(
+                                                incomingCall({
+                                                    roomURL: mesObj.data.roomURL,
+                                                    roomID: mesObj.data.roomID,
+                                                    caller: msg.data.name,
+                                                    callMode:
+                                                        mesObj.type === TypeMess.VIDEO_CALL
+                                                            ? TypeMess.VIDEO_CALL
+                                                            : TypeMess.VOICE_CALL,
+                                                    type: msg.data.type === 0 ? 'people' : 'room',
+                                                }),
+                                            );
+                                            break;
+                                        case CallStatus.REJECT:
+                                            console.log('trong switch  REJECT nè', mesObj.data.status);
+                                            dispatch(updateStatus({ status: CallStatus.REJECT }));
+                                            break;
+                                        case CallStatus.CONNECTING:
+                                            console.log('trong switch nè', mesObj.data.status);
+                                            console.log('Nhận được CONNECTING, gửi IN_CALL');
+                                            setTimeout(() => {
+                                                sendInCall();
+                                                dispatch(updateStatus({ status: CallStatus.IN_CALL }));
+                                            }, 100);
+                                            break;
+                                        case CallStatus.IN_CALL:
+                                            console.log('trong switch nè', mesObj.data.status);
+                                            dispatch(updateStatus({ status: CallStatus.IN_CALL }));
+                                            console.log('Nhận được IN_CALL từ người gửi');
+                                            break;
+                                        case CallStatus.ENDED:
+                                            console.log('trong switch nè', mesObj.data.status);
+                                            console.log(JSON.parse(decodeURIComponent(msg.data.mes)));
+
+                                            dispatch(updateStatus({ status: CallStatus.ENDED }));
+                                            console.log('Nhận được end từ người gửi');
+                                            break;
+                                        case CallStatus.CANCEL:
+                                            dispatch(updateStatus({ status: CallStatus.CANCEL }));
+                                            break;
+                                        case CallStatus.TIMEOUT:
+                                            console.log('trong switch  TIMEOUT nè', mesObj.data.status);
+                                            dispatch(updateStatus({ status: CallStatus.TIMEOUT }));
+                                            break;
+                                        case CallStatus.BUSY:
+                                            console.log('User is busy');
+                                            dispatch(updateStatus({ status: CallStatus.BUSY }));
+                                            break;
+                                    }
+                                } else if (msg.data.type === 1) {
+                                    switch (mesObj.data.status) {
+                                        case CallStatus.CALLING:
+                                            console.log('trong switch nè', mesObj.data.status);
+                                            if (msg.data.name === localStorage.getItem('username')) {
+                                                return;
+                                            }
+                                            if (selectionRef.current.callStatus === CallStatus.IN_CALL) {
+                                                return;
+                                            }
+                                            dispatch(
+                                                incomingCall({
+                                                    roomURL: mesObj.data.roomURL,
+                                                    roomID: mesObj.data.roomID,
+                                                    caller: msg.data.type === 1 ? msg.data.to : msg.data.name,
+                                                    callMode:
+                                                        mesObj.type === TypeMess.VIDEO_CALL
+                                                            ? TypeMess.VIDEO_CALL
+                                                            : TypeMess.VOICE_CALL,
+                                                    type: msg.data.type === 0 ? 'people' : 'room',
+                                                }),
+                                            );
+                                            break;
+                                        case CallStatus.REJECT:
+                                            console.log('Group Call: Ignored REJECT from', msg.data.name);
+                                            break;
+                                        case CallStatus.CONNECTING:
+                                            console.log(
+                                                'Group Call: Nhận CONNECTING từ:',
+                                                msg.data.name,
+                                                '(người gửi), from:',
+                                                mesObj.data.from,
+                                                '(người gọi ban đầu), callStatus:',
+                                                selectionRef.current.callStatus,
+                                            );
+                                            if (!context) return;
+                                            const myUsernameConnecting = localStorage.getItem('username');
+                                            if (msg.data.name === myUsernameConnecting) {
+                                                console.log('Bỏ qua CONNECTING từ chính mình');
+                                                break;
+                                            }
+
+                                            if (
+                                                selectionRef.current.callStatus === CallStatus.CALLING &&
+                                                !context.refStatusIncall.current
+                                            ) {
+                                                console.log('Người gọi nhận CONNECTING, gửi IN_CALL và vào room');
+                                                setTimeout(() => {
+                                                    sendInCall();
+                                                    dispatch(updateStatus({ status: CallStatus.IN_CALL }));
+                                                }, 100);
+                                            } else if (selectionRef.current.callStatus === CallStatus.RINGING) {
+                                                context.refStatusIncall.current = true;
+                                                console.log(
+                                                    'Người khác đã accept, nhưng mình vẫn đang ringing - KHÔNG tự động join',
+                                                );
+                                            } else if (selectionRef.current.callStatus === CallStatus.IDLE) {
+                                                context.refStatusIncall.current = true;
+                                                console.log(
+                                                    'Nhận CONNECTING khi vẫn đang IDLE - Đánh dấu có người đã vào',
+                                                );
+                                            } else if (selectionRef.current.callStatus === CallStatus.IN_CALL) {
+                                                console.log('Đã IN_CALL rồi, bỏ qua CONNECTING');
+                                            } else {
+                                                console.log(
+                                                    'Trường hợp khác - callStatus:',
+                                                    selectionRef.current.callStatus,
+                                                    'refStatusIncall:',
+                                                    context.refStatusIncall.current,
+                                                );
+                                            }
+                                            break;
+                                        case CallStatus.IN_CALL:
+                                            console.log(
+                                                'Nhận IN_CALL từ:',
+                                                msg.data.name,
+                                                '(người gửi), from:',
+                                                mesObj.data.from,
+                                                '(người gọi ban đầu), callStatus:',
+                                                selectionRef.current.callStatus,
+                                            );
+                                            if (!context) return;
+
+                                            const myUsernameInCall = localStorage.getItem('username');
+                                            if (msg.data.name === myUsernameInCall) {
+                                                console.log('Bỏ qua IN_CALL từ chính mình');
+                                                break;
+                                            }
+
+                                            if (
+                                                selectionRef.current.callStatus === CallStatus.CONNECTING &&
+                                                !context.refStatusIncall.current
+                                            ) {
+                                                dispatch(updateStatus({ status: CallStatus.IN_CALL }));
+                                            } else if (selectionRef.current.callStatus === CallStatus.RINGING) {
+                                                context.refStatusIncall.current = true;
+                                                console.log('Người khác đã vào call, nhưng mình vẫn đang ringing');
+                                            } else {
+                                                context.refStatusIncall.current = true;
+                                            }
+                                            break;
+                                        case CallStatus.ENDED:
+                                            if (selectionRef.current.callStatus === CallStatus.IDLE) {
+                                                return;
+                                            }
+                                            console.log('trong switch nè', mesObj.data.status);
+                                            console.log(JSON.parse(decodeURIComponent(msg.data.mes)));
+                                            dispatch(updateStatus({ status: CallStatus.ENDED }));
+                                            console.log('Nhận được end từ người gửi');
+                                            break;
+                                        case CallStatus.CANCEL:
+                                            if (selectionRef.current.callStatus === CallStatus.RINGING) {
+                                                dispatch(updateStatus({ status: CallStatus.CANCEL }));
+                                            }
+                                            break;
+                                        case CallStatus.TIMEOUT:
+                                            console.log('trong switch  TIMEOUT nè', mesObj.data.status);
+                                            dispatch(updateStatus({ status: CallStatus.TIMEOUT }));
+                                            break;
+                                        case CallStatus.BUSY:
+                                            console.log('Users are busy');
+                                            dispatch(updateStatus({ status: CallStatus.BUSY }));
+                                            break;
+                                    }
                                 }
-                                // return;
+                                return;
                             } else {
                                 const newMessage: ChatMessage = {
                                     id: msg.data.id,
                                     name: msg.data.name,
-                                    type: msg.data.tpye,
+                                    type: msg.data.type,
                                     to: msg.data.to,
                                     mes: {
                                         type: mesObj.type,
@@ -613,24 +571,31 @@ function MainContent({
                                     },
                                     createAt: new Date().toISOString(),
                                 };
+                                console.log('ma so khung dien' + msg.data.to);
                                 if (mesObj.type === -1) {
                                     return;
                                 }
-                                fetch('http://127.0.0.1:8000/suggest', {
-                                    method: 'POST',
-                                    headers: {
-                                        'Content-Type': 'application/json',
-                                    },
-                                    body: JSON.stringify({ message: mesObj.data }),
-                                })
-                                    .then((response) => response.json())
-                                    .then((data) => {
-                                        setRecommended({ input: data.input, reply: data.suggestions });
-                                        setOpenRecommendation(true);
+                                if (mesObj.type === 0) {
+                                    fetch('http://127.0.0.1:8000/suggest', {
+                                        method: 'POST',
+                                        headers: {
+                                            'Content-Type': 'application/json',
+                                        },
+                                        body: JSON.stringify({ message: mesObj.data }),
                                     })
-                                    .catch((error) => {
-                                        setOpenRecommendation(false);
-                                    });
+                                        .then((response) => response.json())
+                                        .then((data) => {
+                                            if (selectedUser === msg.data.name && msg.data.type === 0) {
+                                                setRecommended({ input: data.input, reply: data.suggestions });
+                                                setOpenRecommendation(true);
+                                            }
+                                        })
+                                        .catch((error) => {
+                                            setRecommended({ input: '', reply: [] });
+                                            setOpenRecommendation(false);
+                                        });
+                                }
+
                                 if (mesObj.type === 0) {
                                     showMessageNotification(
                                         'Webchat',
@@ -649,7 +614,9 @@ function MainContent({
 
                                 setNotify(true);
                                 noTransfromRef.current = false;
-                                setListMessage((prev) => [...prev, newMessage]);
+                                if (selectedUser === msg.data.name && msg.data.type === 0) {
+                                    setListMessage((prev) => [...prev, newMessage]);
+                                }
                             }
                         } catch {
                             let type = 0;
@@ -667,7 +634,7 @@ function MainContent({
                             let newMessage: ChatMessage = {
                                 id: msg.data.id,
                                 name: msg.data.name,
-                                type: msg.data.tpye,
+                                type: msg.data.type,
                                 to: msg.data.to,
                                 mes: {
                                     type,
@@ -675,21 +642,27 @@ function MainContent({
                                 },
                                 createAt: new Date().toISOString(),
                             };
-                            fetch('http://127.0.0.1:8000/suggest', {
-                                method: 'POST',
-                                headers: {
-                                    'Content-Type': 'application/json',
-                                },
-                                body: JSON.stringify({ message: msg.data.mes }),
-                            })
-                                .then((response) => response.json())
-                                .then((data) => {
-                                    setRecommended({ input: data.input, reply: data.suggestions });
-                                    setOpenRecommendation(true);
+                            if (type === 0) {
+                                fetch('http://127.0.0.1:8000/suggest', {
+                                    method: 'POST',
+                                    headers: {
+                                        'Content-Type': 'application/json',
+                                    },
+                                    body: JSON.stringify({ message: msg.data.mes }),
                                 })
-                                .catch((error) => {
-                                    setOpenRecommendation(false);
-                                });
+                                    .then((response) => response.json())
+                                    .then((data) => {
+                                        if (selectedUser === msg.data.name && msg.data.type === 0) {
+                                            setRecommended({ input: data.input, reply: data.suggestions });
+                                            setOpenRecommendation(true);
+                                        }
+                                    })
+                                    .catch((error) => {
+                                        setOpenRecommendation(false);
+                                        setRecommended({ input: '', reply: [] });
+                                    });
+                            }
+
                             if (true) {
                                 showMessageNotification(
                                     'Webchat',
@@ -697,19 +670,13 @@ function MainContent({
                                     'chat-message',
                                     {},
                                 );
-                            } else {
-                                showMessageNotification(
-                                    'Webchat',
-                                    msg.data.name + ':' + ' gửi file ',
-                                    'chat-message',
-                                    {},
-                                );
                             }
                             setNotify(true);
                             noTransfromRef.current = false;
-                            setListMessage((prev) => [...prev, newMessage]);
+                            if (selectedUser === msg.data.name && msg.data.type === 0) {
+                                setListMessage((prev) => [...prev, newMessage]);
+                            }
                         }
-
                     }
                 }
             });
@@ -727,223 +694,7 @@ function MainContent({
             );
         } else if (type === 'room') {
             ws.onMessage('GET_ROOM_CHAT_MES', (msg) => {
-                console.log('msg maincontent room', msg)
-                if (msg.status === 'success' && msg.event === 'SEND_CHAT') {
-                    const mesObj: any = JSON.parse(decodeURIComponent(msg.data.mes));
-                    console.log('mesObj', mesObj)
-                    if (mesObj.type === TypeMess.PIN) {
-                        console.log('tin nhắn pin nè', mesObj)
-                        if (mesObj.data.status === 'unpin') {
-                            setPinnedMessages((prev) => prev.filter(msg => msg.id !== mesObj.data.id));
-                        } else {
-                            const newPinMessage: PinnedMessage = {
-                                id: mesObj.data.id || msg.data.id,
-                                title: mesObj.data.title,
-                                content: mesObj.data.content,
-                                importance: mesObj.data.importance,
-                            };
-                            setPinnedMessages((prev) => {
-                                if (prev.some(p => p.id === newPinMessage.id)) return prev;
-                                return [...prev, newPinMessage];
-                            });
-                        }
-                    }
-                    if (mesObj.type === TypeMess.VIDEO_CALL || mesObj.type === TypeMess.VOICE_CALL) {
-                        if (msg.data.type === 0) {
-                            switch (mesObj.data.status) {
-                                case CallStatus.CALLING:
-                                    console.log('trong switch nè', mesObj.data.status);
-                                    if (msg.data.name === localStorage.getItem('username')) {
-                                        return;
-                                    }
-                                    if (selectionRef.current.callStatus === CallStatus.IN_CALL) {
-                                        console.log('Đang trong cuộc gọi, gửi BUSY');
-                                        const ws = WebSocketManager.getInstance();
-                                        ws.sendMessage(
-                                            JSON.stringify({
-                                                action: 'onchat',
-                                                data: {
-                                                    event: 'SEND_CHAT',
-                                                    data: {
-                                                        type: 'people',
-                                                        to: msg.data.name,
-                                                        mes: encodeURIComponent(
-                                                            JSON.stringify({
-                                                                type: mesObj.type,
-                                                                data: {
-                                                                    status: CallStatus.BUSY,
-                                                                    roomID: mesObj.data.roomID
-                                                                }
-                                                            }),
-                                                        ),
-                                                    },
-                                                },
-                                            }),
-                                        );
-                                        return;
-                                    }
-
-                                    dispatch(
-                                        incomingCall({
-                                            roomURL: mesObj.data.roomURL,
-                                            roomID: mesObj.data.roomID,
-                                            caller: msg.data.name,
-                                            callMode:
-                                                mesObj.type === TypeMess.VIDEO_CALL
-                                                    ? TypeMess.VIDEO_CALL
-                                                    : TypeMess.VOICE_CALL,
-                                            type: msg.data.type === 0 ? 'people' : 'room',
-                                        }),
-                                    );
-                                    break;
-                                case CallStatus.REJECT:
-                                    console.log('trong switch  REJECT nè', mesObj.data.status);
-                                    dispatch(updateStatus({ status: CallStatus.REJECT }));
-                                    break;
-                                case CallStatus.CONNECTING:
-                                    console.log('trong switch nè', mesObj.data.status);
-                                    console.log('Nhận được CONNECTING, gửi IN_CALL');
-                                    setTimeout(() => {
-                                        sendInCall();
-                                        dispatch(updateStatus({ status: CallStatus.IN_CALL }));
-                                    }, 100);
-                                    break;
-                                case CallStatus.IN_CALL:
-                                    console.log('trong switch nè', mesObj.data.status);
-                                    dispatch(updateStatus({ status: CallStatus.IN_CALL }));
-                                    console.log('Nhận được IN_CALL từ người gửi');
-                                    break;
-                                case CallStatus.ENDED:
-                                    console.log('trong switch nè', mesObj.data.status)
-                                    console.log(JSON.parse(decodeURIComponent(msg.data.mes)))
-
-                                    dispatch(updateStatus({ status: CallStatus.ENDED }))
-                                    console.log('Nhận được end từ người gửi')
-                                    break;
-                                case CallStatus.CANCEL:
-                                    dispatch(updateStatus({ status: CallStatus.CANCEL }));
-                                    break;
-                                case CallStatus.TIMEOUT:
-                                    console.log('trong switch  TIMEOUT nè', mesObj.data.status);
-                                    dispatch(updateStatus({ status: CallStatus.TIMEOUT }));
-                                    break;
-                                case CallStatus.BUSY:
-                                    console.log('User is busy');
-                                    dispatch(updateStatus({ status: CallStatus.BUSY }));
-                                    break;
-                            }
-                        }
-                        else
-                            if (msg.data.type === 1) {
-                                switch (mesObj.data.status) {
-                                    case CallStatus.CALLING:
-                                        console.log('trong switch nè', mesObj.data.status);
-                                        if (msg.data.name === localStorage.getItem('username')) {
-                                            return;
-                                        }
-                                        if (selectionRef.current.callStatus === CallStatus.IN_CALL) {
-                                            return;
-                                        }
-                                        dispatch(
-                                            incomingCall({
-                                                roomURL: mesObj.data.roomURL,
-                                                roomID: mesObj.data.roomID,
-                                                caller: msg.data.type === 1 ? msg.data.to : msg.data.name,
-                                                callMode:
-                                                    mesObj.type === TypeMess.VIDEO_CALL
-                                                        ? TypeMess.VIDEO_CALL
-                                                        : TypeMess.VOICE_CALL,
-                                                type: msg.data.type === 0 ? 'people' : 'room',
-                                            }),
-                                        );
-                                        break;
-                                    case CallStatus.REJECT:
-                                        console.log('Group Call: Ignored REJECT from', msg.data.name);
-                                        break;
-                                    case CallStatus.CONNECTING:
-                                        console.log('Group Call: Nhận CONNECTING từ:', msg.data.name, '(người gửi), from:', mesObj.data.from, '(người gọi ban đầu), callStatus:', selectionRef.current.callStatus);
-                                        if (!context) return;
-                                        const myUsernameConnecting = localStorage.getItem('username');
-                                        if (msg.data.name === myUsernameConnecting) {
-                                            console.log('Bỏ qua CONNECTING từ chính mình');
-                                            break;
-                                        }
-
-                                        if (selectionRef.current.callStatus === CallStatus.CALLING && !context.refStatusIncall.current) {
-                                            console.log('Người gọi nhận CONNECTING, gửi IN_CALL và vào room');
-                                            setTimeout(() => {
-                                                sendInCall();
-                                                dispatch(updateStatus({ status: CallStatus.IN_CALL }));
-                                            }, 100);
-                                        }
-
-                                        else if (selectionRef.current.callStatus === CallStatus.RINGING) {
-                                            context.refStatusIncall.current = true;
-                                            console.log('Người khác đã accept, nhưng mình vẫn đang ringing - KHÔNG tự động join');
-
-                                        }
-                                        else if (selectionRef.current.callStatus === CallStatus.IDLE) {
-                                            context.refStatusIncall.current = true;
-                                            console.log('Nhận CONNECTING khi vẫn đang IDLE - Đánh dấu có người đã vào');
-
-                                        }
-                                        else if (selectionRef.current.callStatus === CallStatus.IN_CALL) {
-                                            console.log('Đã IN_CALL rồi, bỏ qua CONNECTING');
-                                        }
-                                        else {
-                                            console.log('Trường hợp khác - callStatus:', selectionRef.current.callStatus, 'refStatusIncall:', context.refStatusIncall.current);
-                                        }
-                                        break;
-                                    case CallStatus.IN_CALL:
-                                        console.log('Nhận IN_CALL từ:', msg.data.name, '(người gửi), from:', mesObj.data.from, '(người gọi ban đầu), callStatus:', selectionRef.current.callStatus);
-                                        if (!context) return;
-
-
-                                        const myUsernameInCall = localStorage.getItem('username');
-                                        if (msg.data.name === myUsernameInCall) {
-                                            console.log('Bỏ qua IN_CALL từ chính mình');
-                                            break;
-                                        }
-
-                                        if (selectionRef.current.callStatus === CallStatus.CONNECTING && !context.refStatusIncall.current) {
-                                            dispatch(updateStatus({ status: CallStatus.IN_CALL }));
-                                        }
-                                        else if (selectionRef.current.callStatus === CallStatus.RINGING) {
-                                            context.refStatusIncall.current = true;
-                                            console.log('Người khác đã vào call, nhưng mình vẫn đang ringing');
-
-                                        }
-                                        else {
-                                            context.refStatusIncall.current = true;
-                                        }
-                                        break;
-                                    case CallStatus.ENDED:
-                                        if (selectionRef.current.callStatus === CallStatus.IDLE) {
-                                            return
-                                        }
-                                        console.log('trong switch nè', mesObj.data.status)
-                                        console.log(JSON.parse(decodeURIComponent(msg.data.mes)))
-                                        dispatch(updateStatus({ status: CallStatus.ENDED }))
-                                        console.log('Nhận được end từ người gửi')
-                                        break;
-                                    case CallStatus.CANCEL:
-                                        if (selectionRef.current.callStatus === CallStatus.RINGING) {
-                                            dispatch(updateStatus({ status: CallStatus.CANCEL }));
-                                        }
-                                        break;
-                                    case CallStatus.TIMEOUT:
-                                        console.log('trong switch  TIMEOUT nè', mesObj.data.status);
-                                        dispatch(updateStatus({ status: CallStatus.TIMEOUT }));
-                                        break;
-                                    case CallStatus.BUSY:
-                                        console.log('Users are busy');
-                                        dispatch(updateStatus({ status: CallStatus.BUSY }));
-                                        break;
-                                }
-                            }
-                        return;
-                    }
-                }
+                console.log('msg maincontent room', msg);
                 if (msg.status === 'success') {
                     if (msg.event === 'GET_ROOM_CHAT_MES') {
                         oldScrollHeightRef.current = divRef.current?.scrollHeight || 0;
@@ -1032,54 +783,291 @@ function MainContent({
                         oldScrollHeightRef.current = divRef.current?.scrollHeight || 0;
                         try {
                             const mesObj = JSON.parse(decodeURIComponent(msg.data.mes));
-                            let newMessage = {
-                                id: msg.data.id,
-                                name: msg.data.name,
-                                type: msg.data.tpye,
-                                to: msg.data.to,
-                                mes: {
-                                    type: mesObj.type,
-                                    data: mesObj.data,
-                                },
-                                createAt: new Date().toISOString(),
-                            };
-                            if (mesObj.type === -1) {
-                                return;
+                            if (mesObj.type === TypeMess.PIN) {
+                                console.log('tin nhắn pin nè', mesObj);
+                                if (mesObj.data.status === 'unpin') {
+                                    setPinnedMessages((prev) => prev.filter((msg) => msg.id !== mesObj.data.id));
+                                } else {
+                                    const newPinMessage: PinnedMessage = {
+                                        id: mesObj.data.id || msg.data.id,
+                                        title: mesObj.data.title,
+                                        content: mesObj.data.content,
+                                        importance: mesObj.data.importance,
+                                    };
+                                    setPinnedMessages((prev) => {
+                                        if (prev.some((p) => p.id === newPinMessage.id)) return prev;
+                                        return [...prev, newPinMessage];
+                                    });
+                                }
                             }
-                            fetch('http://127.0.0.1:8000/suggest', {
-                                method: 'POST',
-                                headers: {
-                                    'Content-Type': 'application/json',
-                                },
-                                body: JSON.stringify({ message: mesObj.data }),
-                            })
-                                .then((response) => response.json())
-                                .then((data) => {
-                                    setRecommended({ input: data.input, reply: data.suggestions });
-                                    setOpenRecommendation(true);
-                                })
-                                .catch((error) => {
-                                    setOpenRecommendation(false);
-                                });
-                            if (mesObj.type === 0) {
-                                showMessageNotification(
-                                    'Webchat',
-                                    msg.data.name + ':' + mesObj.data,
-                                    'chat-message',
-                                    {},
-                                );
-                            } else {
-                                showMessageNotification(
-                                    'Webchat',
-                                    msg.data.name + ':' + ' gửi file ',
-                                    'chat-message',
-                                    {},
-                                );
-                            }
+                            if (mesObj.type === TypeMess.VIDEO_CALL || mesObj.type === TypeMess.VOICE_CALL) {
+                                if (msg.data.type === 0) {
+                                    switch (mesObj.data.status) {
+                                        case CallStatus.CALLING:
+                                            console.log('trong switch nè', mesObj.data.status);
+                                            if (msg.data.name === localStorage.getItem('username')) {
+                                                return;
+                                            }
+                                            if (selectionRef.current.callStatus === CallStatus.IN_CALL) {
+                                                console.log('Đang trong cuộc gọi, gửi BUSY');
+                                                const ws = WebSocketManager.getInstance();
+                                                ws.sendMessage(
+                                                    JSON.stringify({
+                                                        action: 'onchat',
+                                                        data: {
+                                                            event: 'SEND_CHAT',
+                                                            data: {
+                                                                type: 'people',
+                                                                to: msg.data.name,
+                                                                mes: encodeURIComponent(
+                                                                    JSON.stringify({
+                                                                        type: mesObj.type,
+                                                                        data: {
+                                                                            status: CallStatus.BUSY,
+                                                                            roomID: mesObj.data.roomID,
+                                                                        },
+                                                                    }),
+                                                                ),
+                                                            },
+                                                        },
+                                                    }),
+                                                );
+                                                return;
+                                            }
 
-                            setNotify(true);
-                            noTransfromRef.current = false;
-                            setListMessage((prev) => [...prev, newMessage]);
+                                            dispatch(
+                                                incomingCall({
+                                                    roomURL: mesObj.data.roomURL,
+                                                    roomID: mesObj.data.roomID,
+                                                    caller: msg.data.name,
+                                                    callMode:
+                                                        mesObj.type === TypeMess.VIDEO_CALL
+                                                            ? TypeMess.VIDEO_CALL
+                                                            : TypeMess.VOICE_CALL,
+                                                    type: msg.data.type === 0 ? 'people' : 'room',
+                                                }),
+                                            );
+                                            break;
+                                        case CallStatus.REJECT:
+                                            console.log('trong switch  REJECT nè', mesObj.data.status);
+                                            dispatch(updateStatus({ status: CallStatus.REJECT }));
+                                            break;
+                                        case CallStatus.CONNECTING:
+                                            console.log('trong switch nè', mesObj.data.status);
+                                            console.log('Nhận được CONNECTING, gửi IN_CALL');
+                                            setTimeout(() => {
+                                                sendInCall();
+                                                dispatch(updateStatus({ status: CallStatus.IN_CALL }));
+                                            }, 100);
+                                            break;
+                                        case CallStatus.IN_CALL:
+                                            console.log('trong switch nè', mesObj.data.status);
+                                            dispatch(updateStatus({ status: CallStatus.IN_CALL }));
+                                            console.log('Nhận được IN_CALL từ người gửi');
+                                            break;
+                                        case CallStatus.ENDED:
+                                            console.log('trong switch nè', mesObj.data.status);
+                                            console.log(JSON.parse(decodeURIComponent(msg.data.mes)));
+
+                                            dispatch(updateStatus({ status: CallStatus.ENDED }));
+                                            console.log('Nhận được end từ người gửi');
+                                            break;
+                                        case CallStatus.CANCEL:
+                                            dispatch(updateStatus({ status: CallStatus.CANCEL }));
+                                            break;
+                                        case CallStatus.TIMEOUT:
+                                            console.log('trong switch  TIMEOUT nè', mesObj.data.status);
+                                            dispatch(updateStatus({ status: CallStatus.TIMEOUT }));
+                                            break;
+                                        case CallStatus.BUSY:
+                                            console.log('User is busy');
+                                            dispatch(updateStatus({ status: CallStatus.BUSY }));
+                                            break;
+                                    }
+                                } else if (msg.data.type === 1) {
+                                    switch (mesObj.data.status) {
+                                        case CallStatus.CALLING:
+                                            console.log('trong switch nè', mesObj.data.status);
+                                            if (msg.data.name === localStorage.getItem('username')) {
+                                                return;
+                                            }
+                                            if (selectionRef.current.callStatus === CallStatus.IN_CALL) {
+                                                return;
+                                            }
+                                            dispatch(
+                                                incomingCall({
+                                                    roomURL: mesObj.data.roomURL,
+                                                    roomID: mesObj.data.roomID,
+                                                    caller: msg.data.type === 1 ? msg.data.to : msg.data.name,
+                                                    callMode:
+                                                        mesObj.type === TypeMess.VIDEO_CALL
+                                                            ? TypeMess.VIDEO_CALL
+                                                            : TypeMess.VOICE_CALL,
+                                                    type: msg.data.type === 0 ? 'people' : 'room',
+                                                }),
+                                            );
+                                            break;
+                                        case CallStatus.REJECT:
+                                            console.log('Group Call: Ignored REJECT from', msg.data.name);
+                                            break;
+                                        case CallStatus.CONNECTING:
+                                            console.log(
+                                                'Group Call: Nhận CONNECTING từ:',
+                                                msg.data.name,
+                                                '(người gửi), from:',
+                                                mesObj.data.from,
+                                                '(người gọi ban đầu), callStatus:',
+                                                selectionRef.current.callStatus,
+                                            );
+                                            if (!context) return;
+                                            const myUsernameConnecting = localStorage.getItem('username');
+                                            if (msg.data.name === myUsernameConnecting) {
+                                                console.log('Bỏ qua CONNECTING từ chính mình');
+                                                break;
+                                            }
+
+                                            if (
+                                                selectionRef.current.callStatus === CallStatus.CALLING &&
+                                                !context.refStatusIncall.current
+                                            ) {
+                                                console.log('Người gọi nhận CONNECTING, gửi IN_CALL và vào room');
+                                                setTimeout(() => {
+                                                    sendInCall();
+                                                    dispatch(updateStatus({ status: CallStatus.IN_CALL }));
+                                                }, 100);
+                                            } else if (selectionRef.current.callStatus === CallStatus.RINGING) {
+                                                context.refStatusIncall.current = true;
+                                                console.log(
+                                                    'Người khác đã accept, nhưng mình vẫn đang ringing - KHÔNG tự động join',
+                                                );
+                                            } else if (selectionRef.current.callStatus === CallStatus.IDLE) {
+                                                context.refStatusIncall.current = true;
+                                                console.log(
+                                                    'Nhận CONNECTING khi vẫn đang IDLE - Đánh dấu có người đã vào',
+                                                );
+                                            } else if (selectionRef.current.callStatus === CallStatus.IN_CALL) {
+                                                console.log('Đã IN_CALL rồi, bỏ qua CONNECTING');
+                                            } else {
+                                                console.log(
+                                                    'Trường hợp khác - callStatus:',
+                                                    selectionRef.current.callStatus,
+                                                    'refStatusIncall:',
+                                                    context.refStatusIncall.current,
+                                                );
+                                            }
+                                            break;
+                                        case CallStatus.IN_CALL:
+                                            console.log(
+                                                'Nhận IN_CALL từ:',
+                                                msg.data.name,
+                                                '(người gửi), from:',
+                                                mesObj.data.from,
+                                                '(người gọi ban đầu), callStatus:',
+                                                selectionRef.current.callStatus,
+                                            );
+                                            if (!context) return;
+
+                                            const myUsernameInCall = localStorage.getItem('username');
+                                            if (msg.data.name === myUsernameInCall) {
+                                                console.log('Bỏ qua IN_CALL từ chính mình');
+                                                break;
+                                            }
+
+                                            if (
+                                                selectionRef.current.callStatus === CallStatus.CONNECTING &&
+                                                !context.refStatusIncall.current
+                                            ) {
+                                                dispatch(updateStatus({ status: CallStatus.IN_CALL }));
+                                            } else if (selectionRef.current.callStatus === CallStatus.RINGING) {
+                                                context.refStatusIncall.current = true;
+                                                console.log('Người khác đã vào call, nhưng mình vẫn đang ringing');
+                                            } else {
+                                                context.refStatusIncall.current = true;
+                                            }
+                                            break;
+                                        case CallStatus.ENDED:
+                                            if (selectionRef.current.callStatus === CallStatus.IDLE) {
+                                                return;
+                                            }
+                                            console.log('trong switch nè', mesObj.data.status);
+                                            console.log(JSON.parse(decodeURIComponent(msg.data.mes)));
+                                            dispatch(updateStatus({ status: CallStatus.ENDED }));
+                                            console.log('Nhận được end từ người gửi');
+                                            break;
+                                        case CallStatus.CANCEL:
+                                            if (selectionRef.current.callStatus === CallStatus.RINGING) {
+                                                dispatch(updateStatus({ status: CallStatus.CANCEL }));
+                                            }
+                                            break;
+                                        case CallStatus.TIMEOUT:
+                                            console.log('trong switch  TIMEOUT nè', mesObj.data.status);
+                                            dispatch(updateStatus({ status: CallStatus.TIMEOUT }));
+                                            break;
+                                        case CallStatus.BUSY:
+                                            console.log('Users are busy');
+                                            dispatch(updateStatus({ status: CallStatus.BUSY }));
+                                            break;
+                                    }
+                                }
+                                return;
+                            } else {
+                                let newMessage = {
+                                    id: msg.data.id,
+                                    name: msg.data.name,
+                                    type: msg.data.type,
+                                    to: msg.data.to,
+                                    mes: {
+                                        type: mesObj.type,
+                                        data: mesObj.data,
+                                    },
+                                    createAt: new Date().toISOString(),
+                                };
+                                if (mesObj.type === -1) {
+                                    return;
+                                }
+                                if (mesObj.type === 0) {
+                                    fetch('http://127.0.0.1:8000/suggest', {
+                                        method: 'POST',
+                                        headers: {
+                                            'Content-Type': 'application/json',
+                                        },
+                                        body: JSON.stringify({ message: mesObj.data }),
+                                    })
+                                        .then((response) => response.json())
+                                        .then((data) => {
+                                            if (selectedUser === msg.data.to && msg.data.type === 1) {
+                                                setRecommended({ input: data.input, reply: data.suggestions });
+                                                setOpenRecommendation(true);
+                                            }
+                                        })
+                                        .catch((error) => {
+                                            setRecommended({ input: '', reply: [] });
+                                            setOpenRecommendation(false);
+                                        });
+                                }
+
+                                if (mesObj.type === 0) {
+                                    showMessageNotification(
+                                        'Webchat',
+                                        msg.data.name + ':' + mesObj.data,
+                                        'chat-message',
+                                        {},
+                                    );
+                                } else {
+                                    showMessageNotification(
+                                        'Webchat',
+                                        msg.data.name + ':' + ' gửi file ',
+                                        'chat-message',
+                                        {},
+                                    );
+                                }
+
+                                setNotify(true);
+                                noTransfromRef.current = false;
+                                if (selectedUser === msg.data.to && msg.data.type === 1) {
+                                    setListMessage((prev) => [...prev, newMessage]);
+                                }
+                            }
                         } catch {
                             let type = 0;
                             if (msg.data.mes.endsWith('.png')) {
@@ -1096,7 +1084,7 @@ function MainContent({
                             let newMessage: ChatMessage = {
                                 id: msg.data.id,
                                 name: msg.data.name,
-                                type: msg.data.tpye,
+                                type: msg.data.type,
                                 to: msg.data.to,
                                 mes: {
                                     type,
@@ -1104,21 +1092,27 @@ function MainContent({
                                 },
                                 createAt: new Date().toISOString(),
                             };
-                            fetch('http://127.0.0.1:8000/suggest', {
-                                method: 'POST',
-                                headers: {
-                                    'Content-Type': 'application/json',
-                                },
-                                body: JSON.stringify({ message: msg.data.mes }),
-                            })
-                                .then((response) => response.json())
-                                .then((data) => {
-                                    setRecommended({ input: data.input, reply: data.suggestions });
-                                    setOpenRecommendation(true);
+                            if (type === 0) {
+                                fetch('http://127.0.0.1:8000/suggest', {
+                                    method: 'POST',
+                                    headers: {
+                                        'Content-Type': 'application/json',
+                                    },
+                                    body: JSON.stringify({ message: msg.data.mes }),
                                 })
-                                .catch((error) => {
-                                    setOpenRecommendation(false);
-                                });
+                                    .then((response) => response.json())
+                                    .then((data) => {
+                                        if (selectedUser === msg.data.to && msg.data.type === 1) {
+                                            setRecommended({ input: data.input, reply: data.suggestions });
+                                            setOpenRecommendation(true);
+                                        }
+                                    })
+                                    .catch((error) => {
+                                        setOpenRecommendation(false);
+                                        setRecommended({ input: '', reply: [] });
+                                    });
+                            }
+
                             if (true) {
                                 showMessageNotification(
                                     'Webchat',
@@ -1130,7 +1124,9 @@ function MainContent({
 
                             setNotify(true);
                             noTransfromRef.current = false;
-                            setListMessage((prev) => [...prev, newMessage]);
+                            if (selectedUser === msg.data.to && msg.data.type === 1) {
+                                setListMessage((prev) => [...prev, newMessage]);
+                            }
                         }
                     }
                 }
@@ -1197,33 +1193,31 @@ function MainContent({
         if (page > 1 && noTransfromRef.current === true) {
             const div = divRef.current;
             if (!div) return;
-
             div.scrollTop = div.scrollHeight - oldScrollHeightRef.current;
+            noTransfromRef.current = false;
         }
     }, [listMessage]);
-    console.error('đây là trang main content', selectedUser)
+    console.error('đây là trang main content', selectedUser);
 
     return (
         <>
-
-             <PinnedMessagesListModal
+            <PinnedMessagesListModal
                 isOpen={showPinListModal}
                 onClose={() => setShowPinListModal(false)}
                 messages={pinnedMessages}
                 onUnpin={handleUnpin}
             />
-            <PinMessageModal
-                isOpen={showPinModal}
-                onClose={() => setShowPinModal(false)}
-                onPin={handlePin}
-            />
+
             <section
                 className={
                     darkMode === false
-                        ? 'bg-[#f0f4fa] h-[calc(737.6px-72px-65px)]'
-                        : 'bg-[#111116] h-[calc(737.6px-72px-65px)]'
+                        ? 'bg-[#f0f4fa] h-[calc(737.6px-72px-65px)] relative'
+                        : 'bg-[#111116] h-[calc(737.6px-72px-65px)] relative'
                 }
             >
+                <div className="absolute bottom-2">
+                    <PinMessageModal isOpen={showPinModal} onClose={() => setShowPinModal(false)} onPin={handlePin} />
+                </div>
                 {initialLoading ? (
                     <div className="h-full flex items-center justify-center">
                         <div className="w-10 h-10 border-4 border-gray-300 border-t-blue-500 rounded-full animate-spin" />
@@ -1261,18 +1255,18 @@ function MainContent({
                                 <ChevronsDown color="gray" size="30" />
                             </div>
                         )}
-                        {pinnedMessages.length > 0 && (
-                            console.log('pinnedMessages', pinnedMessages),
-                            <div className="absolute top-0 left-0 right-0 z-10 shadow-md">
-                                <PinMessageDisplay
-                                    messages={pinnedMessages}
-                                    onOpenList={() => setShowPinListModal(true)}
-                                />
-                            </div>
-                        )}
+                        {pinnedMessages.length > 0 &&
+                            (console.log('pinnedMessages', pinnedMessages),
+                            (
+                                <div className="absolute top-0 left-0 right-0 z-10 shadow-md">
+                                    <PinMessageDisplay
+                                        messages={pinnedMessages}
+                                        onOpenList={() => setShowPinListModal(true)}
+                                    />
+                                </div>
+                            ))}
                         <ul className="p-2">
                             {listMessage.map((message, index) => {
-
                                 try {
                                     const objectMess: { type: number; data: any } = message.mes;
                                     if (
@@ -1287,9 +1281,9 @@ function MainContent({
                                             );
                                         }
                                     }
-                                  if (objectMess.type === 99) {
-                                    return <LocationItem message={message} key={index} />;
-                                }
+                                    if (objectMess.type === 99) {
+                                        return <LocationItem message={message} key={index} />;
+                                    }
                                     if (objectMess.type < 10) {
                                         return <Content darkMode={darkMode} message={message} key={index} />;
                                     }

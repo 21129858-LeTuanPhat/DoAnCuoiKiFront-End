@@ -65,7 +65,7 @@ class WebSocketManager {
     public reCode() {
         // this.unSubcribe('RE_LOGIN');
         console.log('dis connet rồi');
-        this.unSubcribe('RE_LOGIN');
+        this.unSubcribe('RE_LOGIN_MANGAGER');
         this.onMessage('RE_LOGIN', (mes: any) => {
             console.log('re code trong ws', mes);
             const objReCode: ReCodeInterface = mes.data;
@@ -79,8 +79,8 @@ class WebSocketManager {
                 window.location.href = '/login';
             }
         });
-        const us = localStorage.getItem('username')
-        const reC = localStorage.getItem('reCode')
+        const us = localStorage.getItem('username');
+        const reC = localStorage.getItem('reCode');
         if (!us || !reC) return;
         this.sendMessage(
             JSON.stringify({
@@ -114,7 +114,6 @@ class WebSocketManager {
                             console.log('Gửi message sau khi auth thành công');
                         }
                     }, 1000);
-
                 }
             } catch (err) {
                 console.error('Reconnect thất bại, không gửi được message', err);
