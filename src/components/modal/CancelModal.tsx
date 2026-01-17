@@ -35,10 +35,10 @@ export default function CancelModal({ open, onReload }: { open: boolean, onReloa
                         sx={{ fontSize: 100, color: 'red', mb: 2 }}
                     />
                     <Typography variant="h6" component="h2" fontWeight={700}>
-                        Hủy!
+                        {callStore.caller}!
                     </Typography>
                     <Typography sx={{ mt: 3 }}>
-                        {callStore.isIncoming ? `Cuộc gọi đã bị hủy bởi ${callStore.caller}` : `Đã hủy cuộc gọi`}
+                        {callStore.isIncoming ? `Cuộc gọi đã bị hủy` : `Đã hủy cuộc gọi`}
                     </Typography>
                     <Button
                         variant="contained"

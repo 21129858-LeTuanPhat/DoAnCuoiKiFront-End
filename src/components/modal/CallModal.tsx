@@ -22,6 +22,7 @@ export default function CallModal({
     const { type } = useBoardContext();
     const callStore = useSelector((state: RootState) => state.call)
     const dispatch = useDispatch()
+
     const refSendMess = useRef<ReducerCall>({
         callStatus: CallStatus.IDLE,
         isIncoming: false,
@@ -85,25 +86,27 @@ export default function CallModal({
                 sendTimeout()
                 dispatch(updateStatus({ status: CallStatus.TIMEOUT }))
                 setOpen(false)
-            }, 45000)
+            }, 1500000)
             return () => clearTimeout(timer)
         }
     }, [open])
-    // const openModal = useState<boolean>(open)
-    useEffect(() => {
-        if (callStore.callStatus === CallStatus.IN_CALL) {
-            setOpen(false)
-        }
-    }, [callStore.callStatus])
+
     const roomID = randomRoomID();
     const { selectedUser } = useBoardContext();
     const username = localStorage.getItem('username');
     console.log('room id:', roomID, ' name', username, 'selected user', selectedUser, ' type: ', type);
-    const callMess = {
+
+    const callMess = type === 'room' ? {
+        status: CallStatus.CALLING,
+        roomURL: `/call?roomID=${roomID}&call_mode=${typeCall}`,
+        roomID: roomID,
+        from: username,
+    } : {
         status: CallStatus.CALLING,
         roomURL: `/call?roomID=${roomID}&call_mode=${typeCall}`,
         roomID: roomID,
     };
+
     const audioRef = useRef<HTMLAudioElement | null>(null);
     useEffect(() => {
         audioRef.current = new Audio(nokiaSound);
@@ -134,24 +137,17 @@ export default function CallModal({
             }),
         );
     };
-
-
     useEffect(() => {
         if (open) {
             sendMessage()
         }
     }, [open])
 
-    // useEffect(() => {
-
-    // }, [open])
     const handleClose = () => {
         sendEnd()
         dispatch(updateStatus({ status: CallStatus.CANCEL }));
         setOpen(false);
     };
-
-    //className='min-h-screen bg-black flex flex-col items-center justify-between p-8'
 
     return (
         <>
@@ -165,7 +161,6 @@ export default function CallModal({
                         width: 400,
                         height: 500,
                         bgcolor: 'background.paper',
-                        // background: 'linear-gradient(to right, #9333ea, #ec4899)',
                         boxShadow: 24,
                         borderRadius: 2,
                         outline: 'none',
@@ -178,9 +173,8 @@ export default function CallModal({
                     <div className="flex-1 flex items-center justify-center">
                         <div className="text-center">
                             <div className="w-32 h-32 mx-auto mb-6 rounded-full bg-gradient-to-br from-gray-400 to-gray-500 flex items-center justify-center">
-
                             </div>
-                            <h1 className="text-gray-900 text-2xl font-semibold mb-2">{type}</h1>
+                            <h1 className="text-gray-900 text-2xl font-semibold mb-2">{type === 'room' ? `Nhóm ${selectedUser}` : ` ${selectedUser}`}</h1>
                             <p className="text-gray-500 text-sm">Đang gọi...</p>
                         </div>
                     </div>

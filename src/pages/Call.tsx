@@ -22,17 +22,19 @@ export default function Call({ setModal }: { setModal: React.Dispatch<React.SetS
     const containerRef = useRef<HTMLDivElement>(null);
 
     const [userCount, setUserCount] = useState(0);
+    const userCountRef = useRef(0); // Ref to track user count for closure access
     const refDuration = useRef<number>(0)
     const [callDuration, setCallDuration] = useState(0);
     const callStartTimeRef = useRef<number | null>(null);
     const [isWaiting, setIsWaiting] = useState(true);
-    console.log('call Duration nè', callDuration)
+    // console.log('call Duration nè', callDuration)
+    // console.log('số user hiện tại:', userCount)
     useEffect(() => {
 
         refDuration.current = callDuration
     }, [callDuration])
     const dispatch = useDispatch();
-    console.log('ref duration nè', refDuration)
+    // console.log('ref duration nè', refDuration)
 
     const startTimer = () => {
         if (!callStartTimeRef.current) {
@@ -54,14 +56,23 @@ export default function Call({ setModal }: { setModal: React.Dispatch<React.SetS
     };
 
     const sendEnd = () => {
-        console.log('gửi kết thúc cuộc gọi nè')
+        console.log('gửi kết thúc cuộc gọi nè');
         const ws = WebSocketManager.getInstance();
-        const callMess = {
+
+        // Thêm field 'from' nếu là room call
+        const callMess = callStore.type === 'room' ? {
             status: CallStatus.ENDED,
             roomURL: `/call?roomID=${callStore.roomID}&call_mode=${callStore.callMode}`,
             roomID: callStore.roomID,
-            duration: refDuration.current
+            duration: refDuration.current,
+            from: callStore.caller, // Người gọi ban đầu
+        } : {
+            status: CallStatus.ENDED,
+            roomURL: `/call?roomID=${callStore.roomID}&call_mode=${callStore.callMode}`,
+            roomID: callStore.roomID,
+            duration: refDuration.current,
         };
+
         ws.sendMessage(
             JSON.stringify({
                 action: 'onchat',
@@ -102,8 +113,6 @@ export default function Call({ setModal }: { setModal: React.Dispatch<React.SetS
                     randomRoomID(5),
                     localStorage.getItem('username') || 'haha',
                 );
-
-                // TRICK: Check global instance and destroy if exists before creating new one
                 if ((window as any).zegoCurrentInstance) {
                     console.log('Found zombie Zego instance, destroying...');
                     try {
@@ -130,11 +139,14 @@ export default function Call({ setModal }: { setModal: React.Dispatch<React.SetS
                         mode: ZegoUIKitPrebuilt.OneONoneCall,
                     },
                     showPreJoinView: false,
-                    maxUsers: 2,
+                    ...(callStore.type === 'people' && { maxUsers: 2 }),
+                    // maxUsers: 2,
                     ...(callStore.callMode === TypeMess.VOICE_CALL ? VOICE_CONFIG : VIDEO_CONFIG),
                     onUserJoin: (users: any[]) => {
                         console.log('Users joined:', users);
-                        const currentUserCount = users.length + 1;
+                        // Update ref properly
+                        userCountRef.current += users.length;
+                        const currentUserCount = userCountRef.current;
                         setUserCount(currentUserCount);
 
                         if (currentUserCount >= 2) {
@@ -145,7 +157,9 @@ export default function Call({ setModal }: { setModal: React.Dispatch<React.SetS
 
                     onUserLeave: (users: any[]) => {
                         console.log('Users left:', users);
-                        const currentUserCount = users.length;
+                        // Update ref properly
+                        userCountRef.current = Math.max(0, userCountRef.current - users.length);
+                        const currentUserCount = userCountRef.current;
                         console.log('current user count:', currentUserCount);
                         setUserCount(currentUserCount);
 
@@ -164,20 +178,19 @@ export default function Call({ setModal }: { setModal: React.Dispatch<React.SetS
                             }, 500);
                         }
                     },
-
                     onJoinRoom: () => {
-                        console.log('Joined room successfully');
+                        // console.log('Joined room successfully');
+                        // Reset count to 1 (self) when joining
                         setUserCount(1);
+                        userCountRef.current = 1;
                         userLeftFirstRef.current = false;
                     },
 
                     onLeaveRoom: () => {
-                        console.log('Left room');
                         hasLeftRoomRef.current = true;
                         console.log('userLeftFirstRef:', userLeftFirstRef.current);
-
                         stopTimer();
-                        // setModal(false);
+
                         // Lazy Cleanup Strategy: Just HangUp and Close
                         setTimeout(() => {
                             if (zpRef.current && typeof zpRef.current.hangUp === 'function') {
@@ -185,17 +198,38 @@ export default function Call({ setModal }: { setModal: React.Dispatch<React.SetS
                             }
                             setModal(false);
                         }, 300);
-                        if (!userLeftFirstRef.current) {
-                            sendEnd();
-                            console.log('thằng rời nè');
+
+                        // Phân biệt logic theo type
+                        if (callStore.type === 'room') {
+                            // ROOM CALL: Chỉ gửi ENDED khi còn <= 2 người
+                            const currentCount = userCountRef.current;
+                            console.log('Room call ending. User count:', currentCount);
+
+                            if (currentCount <= 2 && !userLeftFirstRef.current) {
+                                // Còn 2 người (mình + 1 người khác), mình rời → Gửi ENDED
+                                sendEnd();
+                                console.log('Room còn <= 2 người, gửi ENDED');
+                            } else if (currentCount > 2) {
+                                // Còn > 2 người → Không gửi ENDED
+                                console.log('Room còn', currentCount, 'người, KHÔNG gửi ENDED');
+                            } else {
+                                console.log('Room: Người bị động, không gửi ENDED');
+                            }
                         } else {
-                            console.log('thằng bị động');
+                            // PEOPLE CALL: Logic cũ (luôn gửi ENDED nếu là người chủ động rời)
+                            if (!userLeftFirstRef.current) {
+                                sendEnd();
+                                console.log('People call: Gửi ENDED');
+                            } else {
+                                console.log('People call: Người bị động, không gửi');
+                            }
                         }
 
                         console.log('Call duration:', callDuration, 'seconds');
                         userLeftFirstRef.current = false;
                         dispatch(updateStatus({ status: CallStatus.ENDED }));
                     },
+
                 });
             } catch (error) {
                 console.error('Error joining room:', error);

@@ -9,7 +9,7 @@ import { LocalPhone } from '@mui/icons-material';
 import { RootState } from '../../redux/store';
 import { TypeMess } from '../../model/ChatMessage';
 import { CallContext } from '../../pages/ChatAppPage';
-export default function EndCallModal({ open, onReload }: { open: boolean, onReload?: () => void }) {
+export default function BusyModal({ open, onReload }: { open: boolean, onReload?: () => void }) {
     const [openModal, setModal] = useState<boolean>(open)
     const callStore = useSelector((state: RootState) => state.call)
     const dispatch = useDispatch()
@@ -39,10 +39,10 @@ export default function EndCallModal({ open, onReload }: { open: boolean, onRelo
                         sx={{ fontSize: 100, color: 'red', mb: 2 }}
                     />) : (<VideoCameraFrontIcon sx={{ fontSize: 100, color: 'red', mb: 2 }}></VideoCameraFrontIcon>)}
                     <Typography variant="h6" component="h2" fontWeight={700}>
-                        Kết thúc!
+                        Bận!
                     </Typography>
                     <Typography sx={{ mt: 3 }}>
-                        Cuộc gọi đã kết thúc
+                        Người nhận hiện đang bận
                     </Typography>
                     <Button
                         variant="contained"

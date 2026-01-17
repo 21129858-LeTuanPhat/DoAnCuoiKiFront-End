@@ -1,5 +1,4 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit"
-import { stat } from "fs"
 
 interface UserInterface {
     username: string | null
@@ -8,8 +7,10 @@ interface UserInterface {
 
 const initialUser: UserInterface = {
     username: null,
-    reCode: null
+    reCode: null,
+
 }
+
 const userReducer = createSlice({
     name: 'auth',
     initialState: initialUser,
@@ -18,6 +19,7 @@ const userReducer = createSlice({
             state.username = action.payload.username
             state.reCode = action.payload.reCode
             console.log('recode login:', action.payload.reCode)
+
             localStorage.setItem('username', action.payload.username)
             localStorage.setItem('reCode', action.payload.reCode)
         },
@@ -32,12 +34,11 @@ const userReducer = createSlice({
         },
         logOut(state) {
             state.username = null
+            state.reCode = null
+
         }
     }
 })
 
 export const { userAction, logOut, setReCode } = userReducer.actions
 export default userReducer.reducer
-
-
-

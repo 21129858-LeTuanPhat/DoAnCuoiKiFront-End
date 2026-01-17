@@ -22,7 +22,8 @@ export enum CallStatus {
     ENDED = 'ended',
     CANCEL = 'cancel',
     REJECT = 'reject',
-    TIMEOUT = 'timeout'
+    TIMEOUT = 'timeout',
+    BUSY = 'busy'
 }
 
 export interface CallInterface {

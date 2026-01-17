@@ -5,6 +5,8 @@ import WebSocketManager from "./socket/WebSocketManager"
 import { RootState } from "./redux/store"
 import { setReCode } from "./redux/userReducer"
 import { SOCKET_BASE_URL } from "./config/utils"
+import { LoadingProfileSkeleton } from "./components/modal/LoadingSkeleton"
+import LoadingModal from "./components/modal/LoadingModal"
 export default
     function AuthGate() {
     const user = useSelector((s: RootState) => s.user)
@@ -21,33 +23,26 @@ export default
         const reCode = localStorage.getItem('reCode')
         const ws = WebSocketManager.getInstance()
 
-        // Nếu đã có user trong Redux, bỏ qua kiểm tra
         if (user.username) {
             setCheckingAuth(false)
             return
         }
 
-        // Nếu không có thông tin trong localStorage, chuyển về login
         if (!username || !reCode) {
             navigate('/login', { replace: true })
             setCheckingAuth(false)
             return
         }
 
-        // Xử lý response từ RE_LOGIN
         const handler = (msg: any) => {
-            console.log('=== RE_LOGIN RESPONSE ===')
-            console.log('Full message:', JSON.stringify(msg, null, 2))
+            // console.log('Full message:', JSON.stringify(msg, null, 2))
 
-            // Server có thể trả về event: "LOGIN" hoặc "RE_LOGIN" tùy trường hợp
-            // Chỉ xử lý message có event là LOGIN hoặc RE_LOGIN
             if (msg.event && msg.event !== 'LOGIN' && msg.event !== 'RE_LOGIN') {
                 console.log('Skipping event:', msg.event)
                 return
             }
 
             if (msg.status === 'error') {
-                // RE_LOGIN thất bại, xóa localStorage và chuyển về login
                 console.error('RE_LOGIN failed:', msg)
                 localStorage.clear()
                 navigate('/login', { replace: true })
@@ -56,7 +51,6 @@ export default
             }
 
             if (msg.status === 'success') {
-                // Lấy reCode từ response
                 const newReCode = msg.data?.RE_LOGIN_CODE
                 console.log('Extracted reCode:', newReCode)
 
@@ -69,8 +63,7 @@ export default
                     return
                 }
 
-                // RE_LOGIN thành công, cập nhật Redux state với username và reCode mới
-                console.log('RE_LOGIN success, updating state with:', {
+                console.log('RE_LOGIN success:', {
                     reCode: newReCode,
                     username: username
                 })
@@ -81,15 +74,12 @@ export default
                 setCheckingAuth(false)
             }
         }
-        ws.onMessage('RE_LOGIN', handler)
+        ws.onMessage('RE_LOGIN1', handler)
 
-        // Đảm bảo WebSocket đã kết nối trước khi gửi RE_LOGIN
         const performReLogin = async () => {
             try {
-                // Kết nối WebSocket nếu chưa kết nối
                 await ws.connect2(SOCKET_BASE_URL)
 
-                // Gửi request RE_LOGIN
                 ws.sendMessage(JSON.stringify({
                     action: 'onchat',
                     data: {
@@ -99,7 +89,6 @@ export default
                 }))
             } catch (error) {
                 console.error('Lỗi khi kết nối WebSocket:', error)
-                // Nếu không kết nối được, chuyển về login
                 localStorage.clear()
                 navigate('/login', { replace: true })
                 setCheckingAuth(false)
@@ -107,10 +96,12 @@ export default
         }
         performReLogin()
 
-        return () => ws.unSubcribe('RE_LOGIN')
+        return () => ws.unSubcribe('RE_LOGIN1')
     }, [])
     if (checkingAuth) {
-        return <div>Đang kiểm tra xác thực...</div>
+        return <div>
+            <LoadingModal open={true}></LoadingModal>
+        </div>
     }
     return <Outlet />
 }

@@ -26,11 +26,11 @@ export default function LoadingModal({ open }: { open: boolean }) {
                         content: '"..."',
                         animation: 'dots 1.5s steps(3, end) infinite',
                     },
-                    '@keyframes dots': {
-                        '0%': { content: '"."' },
-                        '33%': { content: '".."' },
-                        '66%': { content: '"..."' },
-                    },
+                    // '@keyframes dots': {
+                    //     '0%': { content: '"."' },
+                    //     '33%': { content: '".."' },
+                    //     '66%': { content: '"..."' },
+                    // },
                 }}>
                     Vui lòng chờ
                 </Typography>

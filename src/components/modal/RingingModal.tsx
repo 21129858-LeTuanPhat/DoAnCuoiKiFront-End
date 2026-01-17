@@ -1,7 +1,7 @@
 import { Phone, VideoCall } from '@mui/icons-material'
 import { Avatar, Box, Button, Modal, Typography } from '@mui/material'
 import CloseIcon from '@mui/icons-material/Close';
-import React, { useEffect, useRef, useState } from 'react'
+import React, { useContext, useEffect, useRef, useState } from 'react'
 import { deepOrange } from '@mui/material/colors';
 import nokiaSound from '../../assets/sound/mew_meo.mp3'
 import { useDispatch, useSelector } from 'react-redux';
@@ -12,6 +12,7 @@ import WebSocketManager from '../../socket/WebSocketManager';
 import { TypeMess } from '../../model/ChatMessage';
 import { useBoardContext } from '../../hooks/useBoardContext';
 import { updateStatus, resetCall } from '../../redux/callReducer'
+import { CallContext } from '../../pages/ChatAppPage';
 
 export default function RingingModal({ open, onReload }: { open: boolean, onReload?: () => void }) {
     const [openModal, setModal] = useState<boolean>(open)
@@ -21,24 +22,35 @@ export default function RingingModal({ open, onReload }: { open: boolean, onRelo
     const callStore = useSelector((state: RootState) => state.call)
     console.log('type trong ringing nè', type)
     const selection = useSelector((state: RootState) => state.call)
+    const context = useContext(CallContext)
+    console.log('context trong ring ring', context?.refStatusIncall)
 
     useEffect(() => {
         audioRef.current = new Audio(nokiaSound)
         audioRef.current.volume = 0.7
-        audioRef.current.play()
+        audioRef.current.play().catch(error => {
+            console.warn("lỗi sound", error);
+        })
         audioRef.current.loop = true
         return () => {
             audioRef.current?.pause()
         }
     }, [])
-    const callMess = {
+
+    const username = localStorage.getItem('username');
+    const callMess = callStore.type === 'room' ? {
+        status: CallStatus.CONNECTING,
+        roomURL: `/call?roomID=${selection.roomID}&call_mode=${selection.callMode}`,
+        roomID: selection.roomID,
+        from: callStore.caller,
+    } : {
         status: CallStatus.CONNECTING,
         roomURL: `/call?roomID=${selection.roomID}&call_mode=${selection.callMode}`,
         roomID: selection.roomID,
     };
 
     useEffect(() => {
-        if (callStore.callStatus === CallStatus.TIMEOUT) {
+        if (callStore.callStatus === CallStatus.TIMEOUT || callStore.callStatus === CallStatus.ENDED || callStore.callStatus === CallStatus.BUSY) {
             setModal(false)
         }
     }, [callStore.callStatus])
@@ -48,12 +60,7 @@ export default function RingingModal({ open, onReload }: { open: boolean, onRelo
         roomID: selection.roomID,
     };
 
-    const handleAccept = () => {
-        // dispatch(inCall())
-        dispatch(updateStatus({ status: CallStatus.CONNECTING }))
-        sendMessAccept()
-        // sendSignal(callStore.caller as string, { type: callStore.callMode as string, roomID: callStore.roomID as string, status: CallStatus.ACCEPTED })
-    }
+
     const sendMessAccept = () => {
         const ws = WebSocketManager.getInstance();
         ws.sendMessage(
@@ -69,6 +76,33 @@ export default function RingingModal({ open, onReload }: { open: boolean, onRelo
                 },
             }),
         );
+        console.log('send mess trong ring ring modal', JSON.stringify({
+            action: 'onchat',
+            data: {
+                event: 'SEND_CHAT',
+                data: {
+                    type: callStore.type,
+                    to: callStore.caller,
+                    mes: (JSON.stringify({ type: selection.callMode, data: callMess }))
+                },
+            },
+        }),)
+    }
+    const handleAccept = () => {
+        if (!context) return;
+        console.log('nhấn accept')
+        // dispatch(inCall())
+        // else {
+        if (!context.refStatusIncall.current) {
+            dispatch(updateStatus({ status: CallStatus.CONNECTING }))
+            console.error('chuyển sendMessAccept')
+            sendMessAccept()
+            return
+        }
+        else {
+            console.error('nhấn accept nhưng refStatusIncall = true ')
+            dispatch(updateStatus({ status: CallStatus.IN_CALL }))
+        }
     }
     const handleClose = () => {
         const ws = WebSocketManager.getInstance();
@@ -85,20 +119,9 @@ export default function RingingModal({ open, onReload }: { open: boolean, onRelo
                 },
             }),
         );
-        console.log('reject nè', {
-            type: selection.callMode, data: JSON.stringify({
-                action: 'onchat',
-                data: {
-                    event: 'SEND_CHAT',
-                    data: {
-                        type: callStore.type,
-                        to: selection.caller,
-                        mes: (JSON.stringify({ type: selection.callMode, data: messReject })),
-                    },
-                },
-            })
-        })
+
         dispatch(resetCall())
+        if (context) context.refStatusIncall.current = false;
         if (onReload) onReload()
         setModal(false)
     }
@@ -132,8 +155,12 @@ export default function RingingModal({ open, onReload }: { open: boolean, onRelo
                         <Typography variant="h6" component="h2" fontWeight={700} paddingBottom={3}>
                             Cuộc gọi đến                    </Typography>
                         <Avatar sx={{ bgcolor: deepOrange[500], width: 70, height: 70 }}>Oke</Avatar>
-                        <Typography fontWeight={700} fontSize={20} paddingTop={3} >{callStore.caller}</Typography>
-                        <Typography fontSize={15} marginBottom={3} >đang gọi cho bạn</Typography>
+                        <Typography fontWeight={700} fontSize={20} paddingTop={3} >
+                            {callStore.type === 'room' ? `Nhóm ${callStore.caller}` : callStore.caller}
+                        </Typography>
+                        <Typography fontSize={15} marginBottom={3} >
+                            {callStore.type === 'room' ? 'Đang có cuộc gọi' : 'đang gọi cho bạn'}
+                        </Typography>
                         <Box sx={{ display: 'flex', justifyContent: 'space-around', width: '100%' }}>
                             <Button onClick={handleAccept}
                                 variant="contained"

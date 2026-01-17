@@ -7,7 +7,7 @@ import { useBoardContext } from '../hooks/useBoardContext';
 import { useDispatch, useSelector } from 'react-redux';
 import { RootState } from '../redux/store';
 import { Navigate, useNavigate } from 'react-router-dom';
-import { useEffect, useLayoutEffect, useState } from 'react';
+import { MutableRefObject, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { incomingCall } from '../redux/callReducer';
 import WebSocketManager from '../socket/WebSocketManager';
 import { ChatMessage, ISendMessage, TypeMess } from '../model/ChatMessage';
@@ -18,16 +18,28 @@ import EndCallModal from '../components/modal/EndCallModal';
 import CancelModal from '../components/modal/CancelModal';
 import TimeOutModal from '../components/modal/TimeOutModal';
 import RejectModal from '../components/modal/RejectModal';
+import BusyModal from '../components/modal/BusyModal';
 import CallModal from '../components/modal/CallModal';
 import { createContext } from 'react';
+import { useCurrentLocation } from '../components/Location/CurrentLocation';
+import PinMessageModal from '../components/modal/PinMessageModal';
 import { ListConversationProvider } from '../components/chat/Context/ListConversation';
 import { initMessageNotification } from '../helps/notification';
 
 export interface ICallContext {
     setModalCalling: React.Dispatch<React.SetStateAction<boolean>>;
     setTypeCalling: React.Dispatch<React.SetStateAction<number>>;
+    refStatusIncall: MutableRefObject<boolean>;
 }
 export const CallContext = createContext<ICallContext | null>(null);
+
+interface PinnedMessage {
+    id: number;
+    title: string;
+    content: string;
+    importance: 'low' | 'medium' | 'high';
+    timestamp: Date;
+}
 
 function Home() {
     const [re, setRe] = useState<number>(0);
@@ -37,15 +49,27 @@ function Home() {
     const [modalCalling, setModalCalling] = useState(false);
     const [typeCalling, setTypeCalling] = useState<number>(100);
 
+    const [showPinModal, setShowPinModal] = useState(false);
+
+
+
     const user = useSelector((state: RootState) => state.user);
     const navigate = useNavigate();
+    const refStatusIncall = useRef<boolean>(false)
+    useEffect(() => {
+        console.log('refStatusIncall trong chat app', refStatusIncall)
+
+    }, [refStatusIncall])
+    useEffect(() => {
+        if (callStore.callStatus === CallStatus.BUSY ||
+            callStore.callStatus === CallStatus.REJECT ||
+            callStore.callStatus === CallStatus.ENDED ||
+            callStore.callStatus === CallStatus.TIMEOUT ||
+            callStore.callStatus === CallStatus.IN_CALL) {
+            setModalCalling(false)
+        }
+    }, [callStore.callStatus])
     console.log('selected user home' + selectedUser);
-    // useLayoutEffect(() => {
-    //     if (!user.username) {
-    //         // navigate('/login', { replace: true });
-    //         return <Navigate to="/login" replace />;
-    //     }
-    // }, [user.username, navigate]);
     const dispatch = useDispatch();
     const selection = useSelector((state: RootState) => state.call);
 
@@ -58,54 +82,54 @@ function Home() {
 
     return (
         <>
-            {callStore.callStatus === CallStatus.RINGING && (
-                <RingingModal open={true} onReload={() => setRe((prev) => prev + 1)} />
-            )}
-            {selection.callStatus === CallStatus.IN_CALL && <CallModalPage></CallModalPage>}
-            {selection.callStatus === CallStatus.ENDED && (
-                <EndCallModal open={true} onReload={() => setRe((prev) => prev + 1)}></EndCallModal>
-            )}
-            {selection.callStatus === CallStatus.CANCEL && (
-                <CancelModal open={true} onReload={() => setRe((prev) => prev + 1)}></CancelModal>
-            )}
-            {selection.callStatus === CallStatus.REJECT && (
-                <RejectModal open={true} onReload={() => setRe((prev) => prev + 1)}></RejectModal>
-            )}
-            {selection.callStatus === CallStatus.TIMEOUT && (
-                <TimeOutModal open={true} onReload={() => setRe((prev) => prev + 1)}></TimeOutModal>
-            )}
 
-            {modalCalling && <CallModal open={modalCalling} setOpen={setModalCalling} typeCall={typeCalling} />}
-            <div className="flex h-screen trasition-all duration-300">
-                <aside className="hidden md:block w-[25%] relative">
-                    <SideBar />
-                </aside>
-                <main className="w-[75%]  md:block flex flex-col bg-[#f0f4fa] shadow-[0_4px_6px_-1px_rgba(0,0,0,0.2)]">
-                    {selectedUser === '' ? (
-                        <Welcome darkMode={darkMode} />
-                    ) : (
-                        <div>
-                            <CallContext.Provider value={{ setModalCalling, setTypeCalling }}>
+            <CallContext.Provider value={{ setModalCalling, setTypeCalling, refStatusIncall }}>
+                {callStore.callStatus === CallStatus.RINGING && <RingingModal open={true} onReload={() => setRe(prev => prev + 1)} />}
+                {selection.callStatus === CallStatus.IN_CALL && <CallModalPage></CallModalPage>}
+                {selection.callStatus === CallStatus.ENDED && <EndCallModal open={true} onReload={() => setRe(prev => prev + 1)}></EndCallModal>}
+                {selection.callStatus === CallStatus.CANCEL && <CancelModal open={true} onReload={() => setRe(prev => prev + 1)}></CancelModal>}
+                {selection.callStatus === CallStatus.REJECT && (<RejectModal open={true} onReload={() => setRe(prev => prev + 1)}></RejectModal>)}
+                {selection.callStatus === CallStatus.BUSY && (<BusyModal open={true} onReload={() => setRe(prev => prev + 1)}></BusyModal>)}
+                {(selection.callStatus === CallStatus.TIMEOUT) && <TimeOutModal open={true} onReload={() => setRe(prev => prev + 1)}></TimeOutModal>}
+
+                {modalCalling && <CallModal open={modalCalling} setOpen={setModalCalling} typeCall={typeCalling} />}
+
+                <div className="flex h-screen ">
+                    <aside className="hidden md:block w-[25%] relative">
+                        <SideBar />
+                    </aside>
+                    <main className="w-[75%]  md:block flex flex-col bg-[#f0f4fa] shadow-[0_4px_6px_-1px_rgba(0,0,0,0.2)]">
+                        {selectedUser === '' ? (
+                            <Welcome darkMode={darkMode}/>
+                        ) : (
+                            <div>
+
                                 <Header
                                     darkMode={darkMode}
                                     username={selectedUser}
                                     setOpen={setModalCalling}
                                     setTypeCalling={setTypeCalling}
+                                    onReload={() => setRe(prev => prev + 1)}
+                                    setOpenPinModal={setShowPinModal}
                                 />
-
                                 <MainContent
-                                    darkMode={darkMode}
+                                   darkMode={darkMode}
                                     key={selectedUser}
                                     re={re}
                                     username={selectedUser}
                                     setRe={setRe}
+                                    showPinModal={showPinModal}
+                                    setShowPinModal={setShowPinModal}
                                 />
+
+                           
                                 <Footer darkMode={darkMode} username={selectedUser} />
-                            </CallContext.Provider>
+                           
                         </div>
                     )}
                 </main>
             </div>
+         </CallContext.Provider>
         </>
     );
 }

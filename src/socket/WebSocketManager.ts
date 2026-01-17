@@ -79,6 +79,9 @@ class WebSocketManager {
                 window.location.href = '/login';
             }
         });
+        const us = localStorage.getItem('username')
+        const reC = localStorage.getItem('reCode')
+        if (!us || !reC) return;
         this.sendMessage(
             JSON.stringify({
                 action: 'onchat',
@@ -112,7 +115,6 @@ class WebSocketManager {
                         }
                     }, 1000);
 
-                    // this.handleReconnect();
                 }
             } catch (err) {
                 console.error('Reconnect thất bại, không gửi được message', err);
