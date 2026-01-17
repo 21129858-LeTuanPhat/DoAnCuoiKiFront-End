@@ -15,21 +15,33 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import CallModal from '../../../modal/CallModal';
 import ContentItem from './ContentItem';
 import { ChevronsDown } from 'lucide-react';
+
 import { CallContext } from '../../../../pages/ChatAppPage';
 import LocationItem from './LocationItem';
 import PinMessageDisplay from '../Header/PinMessageDisplay';
 import PinnedMessagesListModal from '../../../modal/PinnedMessagesListModal';
 import PinMessageModal from '../../../modal/PinMessageModal';
-
+import { set } from 'firebase/database';
+import { showMessageNotification } from '../../../../helps/notification';
+        
+        
 interface PinnedMessage {
     id: string;
     title: string;
     content: string;
     importance: 'low' | 'medium' | 'high';
 
-}
-
-function MainContent({ username, setRe, re, showPinModal, setShowPinModal }: {
+}        
+        
+        
+function MainContent({
+    darkMode,
+    username,
+    setRe,
+    re,
+  showPinModal, setShowPinModal
+}: {
+    darkMode: boolean;
     username: any,
     setRe: React.Dispatch<React.SetStateAction<number>>,
     re: any,
@@ -48,7 +60,20 @@ function MainContent({ username, setRe, re, showPinModal, setShowPinModal }: {
     const selection = useSelector((state: RootState) => state.call);
     const [page, setPage] = useState<number>(1);
     const divRef = useRef<HTMLDivElement>(null);
-    const { listMessage, setListMessage, type, right, setRight, setOwner, setListMember, selectedUser } = useBoardContext();
+
+    const {
+        listMessage,
+        setListMessage,
+        type,
+        right,
+        setRight,
+        setOwner,
+        setListMember,
+        setRecommended,
+        setOpenRecommendation,
+        setEncodeEmoji,
+        selectedUser,
+    } = useBoardContext();
     const [initialLoading, setInitialLoading] = useState(false);
     const [fetchingMore, setFetchingMore] = useState(false);
     const oldScrollHeightRef = useRef(0);
@@ -157,7 +182,11 @@ function MainContent({ username, setRe, re, showPinModal, setShowPinModal }: {
         setListMessage([]);
         setPinnedMessages([]);
         setPage(1);
-    }, [username, re]);
+        setRecommended({ input: '', reply: [] });
+        setOpenRecommendation(false);
+        divRef.current = null;
+        setEncodeEmoji(false);
+    }, [username,re]);
     const selectionRef = useRef<ReducerCall>({
         callStatus: CallStatus.IDLE,
         isIncoming: false,
@@ -224,7 +253,7 @@ function MainContent({ username, setRe, re, showPinModal, setShowPinModal }: {
             },
         }),)
     };
-    useLayoutEffect(() => {
+    useEffect(() => {
         const ws = WebSocketManager.getInstance();
         if (page === 1) {
             setInitialLoading(true);
@@ -436,6 +465,7 @@ function MainContent({ username, setRe, re, showPinModal, setShowPinModal }: {
                         return;
                     }
                 }
+
                 if (msg.status === 'success') {
                     if (msg.event === 'GET_PEOPLE_CHAT_MES') {
                         oldScrollHeightRef.current = divRef.current?.scrollHeight || 0;
@@ -483,7 +513,29 @@ function MainContent({ username, setRe, re, showPinModal, setShowPinModal }: {
                                     createAt: item.createAt,
                                 };
                             } catch {
-                                console.log('lỗi catch', item);
+                                let type = 0;
+                                if (item.mes.endsWith('.png')) {
+                                    type = 1;
+                                } else if (
+                                    item.mes.endsWith('.docx') ||
+                                    item.mes.endsWith('.doc') ||
+                                    item.mes.endsWith('xlsx') ||
+                                    item.mes.endsWith('.xls') ||
+                                    item.mes.endsWith('.pdf')
+                                ) {
+                                    type = 2;
+                                }
+                                return {
+                                    id: item.id,
+                                    name: item.name,
+                                    type: item.type,
+                                    to: item.to,
+                                    mes: {
+                                        type,
+                                        data: item.mes,
+                                    },
+                                    createAt: item.createAt,
+                                };
                             }
                         });
                         if (parsedList.length < 50) {
@@ -497,38 +549,167 @@ function MainContent({ username, setRe, re, showPinModal, setShowPinModal }: {
                         setFetchingMore(false);
                     } else if (msg.event === 'SEND_CHAT') {
                         oldScrollHeightRef.current = divRef.current?.scrollHeight || 0;
-                        const mesObj = JSON.parse(decodeURIComponent(msg.data.mes));
+                        try {
+                            const mesObj = JSON.parse(decodeURIComponent(msg.data.mes));
+                            if (mesObj.type === TypeMess.VIDEO_CALL || mesObj.type === TypeMess.VOICE_CALL) {
+                                switch (mesObj.data.status) {
+                                    case CallStatus.CALLING:
+                                        console.log('trong switch nè', mesObj.data.status);
+                                        dispatch(
+                                            incomingCall({
+                                                roomURL: mesObj.data.roomURL,
+                                                roomID: mesObj.data.roomID,
+                                                caller: msg.data.name,
+                                                callMode:
+                                                    mesObj.type === TypeMess.VIDEO_CALL
+                                                        ? TypeMess.VIDEO_CALL
+                                                        : TypeMess.VOICE_CALL,
+                                                type: msg.data.type === 0 ? 'people' : 'room',
+                                            }),
+                                        );
+                                        break;
+                                    case CallStatus.REJECT:
+                                        console.log('trong switch  REJECT nè', mesObj.data.status);
+                                        dispatch(updateStatus({ status: CallStatus.REJECT }));
+                                        break;
+                                    case CallStatus.CONNECTING:
+                                        console.log('trong switch nè', mesObj.data.status);
+                                        console.log('Nhận được CONNECTING, gửi IN_CALL');
+                                        setTimeout(() => {
+                                            sendInCall();
+                                            dispatch(updateStatus({ status: CallStatus.IN_CALL }));
+                                        }, 100);
+                                        break;
+                                    case CallStatus.IN_CALL:
+                                        console.log('trong switch nè', mesObj.data.status);
+                                        dispatch(updateStatus({ status: CallStatus.IN_CALL }));
+                                        console.log('Nhận được IN_CALL từ người gửi');
+                                        break;
+                                    case CallStatus.ENDED:
+                                        console.log('trong switch nè', mesObj.data.status);
+                                        console.log(JSON.parse(decodeURIComponent(msg.data.mes)));
 
-                        if (mesObj.type === TypeMess.PIN) {
-                            if (mesObj.data.status === 'unpin') {
-                                setPinnedMessages((prev) => prev.filter(msg => msg.id !== mesObj.data.id));
+                                        dispatch(updateStatus({ status: CallStatus.ENDED }));
+                                        console.log('Nhận được end từ người gửi');
+                                        break;
+                                    case CallStatus.CANCEL:
+                                        dispatch(updateStatus({ status: CallStatus.CANCEL }));
+                                        break;
+                                    case CallStatus.TIMEOUT:
+                                        console.log('trong switch  TIMEOUT nè', mesObj.data.status);
+                                        dispatch(updateStatus({ status: CallStatus.TIMEOUT }));
+                                        break;
+                                }
+                                // return;
                             } else {
-                                const newPinMessage: PinnedMessage = {
-                                    id: mesObj.data.id || msg.data.id,
-                                    title: mesObj.data.title,
-                                    content: mesObj.data.content,
-                                    importance: mesObj.data.importance,
+                                const newMessage: ChatMessage = {
+                                    id: msg.data.id,
+                                    name: msg.data.name,
+                                    type: msg.data.tpye,
+                                    to: msg.data.to,
+                                    mes: {
+                                        type: mesObj.type,
+                                        data: mesObj.data,
+                                    },
+                                    createAt: new Date().toISOString(),
                                 };
-                                setPinnedMessages((prev) => {
-                                    if (prev.some(p => p.id === newPinMessage.id)) return prev;
-                                    return [...prev, newPinMessage];
-                                });
+                                if (mesObj.type === -1) {
+                                    return;
+                                }
+                                fetch('http://127.0.0.1:8000/suggest', {
+                                    method: 'POST',
+                                    headers: {
+                                        'Content-Type': 'application/json',
+                                    },
+                                    body: JSON.stringify({ message: mesObj.data }),
+                                })
+                                    .then((response) => response.json())
+                                    .then((data) => {
+                                        setRecommended({ input: data.input, reply: data.suggestions });
+                                        setOpenRecommendation(true);
+                                    })
+                                    .catch((error) => {
+                                        setOpenRecommendation(false);
+                                    });
+                                if (mesObj.type === 0) {
+                                    showMessageNotification(
+                                        'Webchat',
+                                        msg.data.name + ':' + mesObj.data,
+                                        'chat-message',
+                                        {},
+                                    );
+                                } else {
+                                    showMessageNotification(
+                                        'Webchat',
+                                        msg.data.name + ':' + ' gửi file ',
+                                        'chat-message',
+                                        {},
+                                    );
+                                }
+
+                                setNotify(true);
+                                noTransfromRef.current = false;
+                                setListMessage((prev) => [...prev, newMessage]);
                             }
+                        } catch {
+                            let type = 0;
+                            if (msg.data.mes.endsWith('.png')) {
+                                type = 1;
+                            } else if (
+                                msg.data.mes.endsWith('.docx') ||
+                                msg.data.mes.endsWith('.doc') ||
+                                msg.data.mes.endsWith('xlsx') ||
+                                msg.data.mes.endsWith('.xls') ||
+                                msg.data.mes.endsWith('.pdf')
+                            ) {
+                                type = 2;
+                            }
+                            let newMessage: ChatMessage = {
+                                id: msg.data.id,
+                                name: msg.data.name,
+                                type: msg.data.tpye,
+                                to: msg.data.to,
+                                mes: {
+                                    type,
+                                    data: msg.data.mes,
+                                },
+                                createAt: new Date().toISOString(),
+                            };
+                            fetch('http://127.0.0.1:8000/suggest', {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                },
+                                body: JSON.stringify({ message: msg.data.mes }),
+                            })
+                                .then((response) => response.json())
+                                .then((data) => {
+                                    setRecommended({ input: data.input, reply: data.suggestions });
+                                    setOpenRecommendation(true);
+                                })
+                                .catch((error) => {
+                                    setOpenRecommendation(false);
+                                });
+                            if (true) {
+                                showMessageNotification(
+                                    'Webchat',
+                                    msg.data.name + ':' + msg.data.mes,
+                                    'chat-message',
+                                    {},
+                                );
+                            } else {
+                                showMessageNotification(
+                                    'Webchat',
+                                    msg.data.name + ':' + ' gửi file ',
+                                    'chat-message',
+                                    {},
+                                );
+                            }
+                            setNotify(true);
+                            noTransfromRef.current = false;
+                            setListMessage((prev) => [...prev, newMessage]);
                         }
-                        const newMessage: ChatMessage = {
-                            id: msg.data.id,
-                            name: msg.data.name,
-                            type: msg.data.tpye,
-                            to: msg.data.to,
-                            mes: {
-                                type: mesObj.type,
-                                data: mesObj.data,
-                            },
-                            createAt: new Date().toISOString(),
-                        };
-                        setNotify(true);
-                        noTransfromRef.current = false;
-                        setListMessage((prev) => [...prev, newMessage]);
+
                     }
                 }
             });
@@ -798,18 +979,44 @@ function MainContent({ username, setRe, re, showPinModal, setShowPinModal }: {
                         }
 
                         const parsedList: ChatMessage[] = msg.data.chatData.map((item: any) => {
-                            const mesObj = JSON.parse(decodeURIComponent(item.mes));
-                            return {
-                                id: item.id,
-                                name: item.name,
-                                type: item.type,
-                                to: item.to,
-                                mes: {
-                                    type: mesObj.type,
-                                    data: mesObj.data,
-                                },
-                                createAt: item.createAt,
-                            };
+                            try {
+                                const mesObj = JSON.parse(decodeURIComponent(item.mes));
+                                return {
+                                    id: item.id,
+                                    name: item.name,
+                                    type: item.type,
+                                    to: item.to,
+                                    mes: {
+                                        type: mesObj.type,
+                                        data: mesObj.data,
+                                    },
+                                    createAt: item.createAt,
+                                };
+                            } catch {
+                                let type = 0;
+                                if (item.mes.endsWith('.png')) {
+                                    type = 1;
+                                } else if (
+                                    item.mes.endsWith('.docx') ||
+                                    item.mes.endsWith('.doc') ||
+                                    item.mes.endsWith('xlsx') ||
+                                    item.mes.endsWith('.xls') ||
+                                    item.mes.endsWith('.pdf')
+                                ) {
+                                    type = 2;
+                                }
+                                return {
+                                    id: item.id,
+                                    name: item.name,
+                                    type: item.type,
+                                    to: item.to,
+                                    mes: {
+                                        type,
+                                        data: item.mes,
+                                    },
+                                    createAt: item.createAt,
+                                };
+                            }
                         });
                         if (parsedList.length < 50) {
                             setHasMore(false);
@@ -823,21 +1030,108 @@ function MainContent({ username, setRe, re, showPinModal, setShowPinModal }: {
                         setFetchingMore(false);
                     } else if (msg.event === 'SEND_CHAT') {
                         oldScrollHeightRef.current = divRef.current?.scrollHeight || 0;
-                        const mesObj = JSON.parse(decodeURIComponent(msg.data.mes));
-                        const newMessage: ChatMessage = {
-                            id: msg.data.id,
-                            name: msg.data.name,
-                            type: msg.data.tpye,
-                            to: msg.data.to,
-                            mes: {
-                                type: mesObj.type,
-                                data: mesObj.data,
-                            },
-                            createAt: new Date().toISOString(),
-                        };
-                        setNotify(true);
-                        noTransfromRef.current = false;
-                        setListMessage((prev) => [...prev, newMessage]);
+                        try {
+                            const mesObj = JSON.parse(decodeURIComponent(msg.data.mes));
+                            let newMessage = {
+                                id: msg.data.id,
+                                name: msg.data.name,
+                                type: msg.data.tpye,
+                                to: msg.data.to,
+                                mes: {
+                                    type: mesObj.type,
+                                    data: mesObj.data,
+                                },
+                                createAt: new Date().toISOString(),
+                            };
+                            if (mesObj.type === -1) {
+                                return;
+                            }
+                            fetch('http://127.0.0.1:8000/suggest', {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                },
+                                body: JSON.stringify({ message: mesObj.data }),
+                            })
+                                .then((response) => response.json())
+                                .then((data) => {
+                                    setRecommended({ input: data.input, reply: data.suggestions });
+                                    setOpenRecommendation(true);
+                                })
+                                .catch((error) => {
+                                    setOpenRecommendation(false);
+                                });
+                            if (mesObj.type === 0) {
+                                showMessageNotification(
+                                    'Webchat',
+                                    msg.data.name + ':' + mesObj.data,
+                                    'chat-message',
+                                    {},
+                                );
+                            } else {
+                                showMessageNotification(
+                                    'Webchat',
+                                    msg.data.name + ':' + ' gửi file ',
+                                    'chat-message',
+                                    {},
+                                );
+                            }
+
+                            setNotify(true);
+                            noTransfromRef.current = false;
+                            setListMessage((prev) => [...prev, newMessage]);
+                        } catch {
+                            let type = 0;
+                            if (msg.data.mes.endsWith('.png')) {
+                                type = 1;
+                            } else if (
+                                msg.data.mes.endsWith('.docx') ||
+                                msg.data.mes.endsWith('.doc') ||
+                                msg.data.mes.endsWith('xlsx') ||
+                                msg.data.mes.endsWith('.xls') ||
+                                msg.data.mes.endsWith('.pdf')
+                            ) {
+                                type = 2;
+                            }
+                            let newMessage: ChatMessage = {
+                                id: msg.data.id,
+                                name: msg.data.name,
+                                type: msg.data.tpye,
+                                to: msg.data.to,
+                                mes: {
+                                    type,
+                                    data: msg.data.mes,
+                                },
+                                createAt: new Date().toISOString(),
+                            };
+                            fetch('http://127.0.0.1:8000/suggest', {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                },
+                                body: JSON.stringify({ message: msg.data.mes }),
+                            })
+                                .then((response) => response.json())
+                                .then((data) => {
+                                    setRecommended({ input: data.input, reply: data.suggestions });
+                                    setOpenRecommendation(true);
+                                })
+                                .catch((error) => {
+                                    setOpenRecommendation(false);
+                                });
+                            if (true) {
+                                showMessageNotification(
+                                    'Webchat',
+                                    msg.data.name + ':' + msg.data.mes,
+                                    'chat-message',
+                                    {},
+                                );
+                            }
+
+                            setNotify(true);
+                            noTransfromRef.current = false;
+                            setListMessage((prev) => [...prev, newMessage]);
+                        }
                     }
                 }
             });
@@ -868,7 +1162,6 @@ function MainContent({ username, setRe, re, showPinModal, setShowPinModal }: {
         const div = divRef.current;
         if (!div) return;
         if (listMessage.length === 0) return;
-
         if (page === 1 && oneTimeRef.current === true && div.scrollHeight > div.clientHeight) {
             div.scrollTop = div.scrollHeight;
             oneTimeRef.current = false;
@@ -887,7 +1180,7 @@ function MainContent({ username, setRe, re, showPinModal, setShowPinModal }: {
                 });
                 noTransfromRef.current = true;
             }
-            if (div.scrollHeight - div.scrollTop > 2000) {
+            if (div.scrollHeight - div.scrollTop > 1000) {
                 setDownArrow(true);
             }
             if (div.scrollHeight - div.scrollTop < 700) {
@@ -899,7 +1192,7 @@ function MainContent({ username, setRe, re, showPinModal, setShowPinModal }: {
         return () => {
             div.removeEventListener('scroll', handleScroll);
         };
-    }, [listMessage, re]);
+    }, [listMessage]);
     useLayoutEffect(() => {
         if (page > 1 && noTransfromRef.current === true) {
             const div = divRef.current;
@@ -912,7 +1205,8 @@ function MainContent({ username, setRe, re, showPinModal, setShowPinModal }: {
 
     return (
         <>
-            <PinnedMessagesListModal
+
+             <PinnedMessagesListModal
                 isOpen={showPinListModal}
                 onClose={() => setShowPinListModal(false)}
                 messages={pinnedMessages}
@@ -923,8 +1217,13 @@ function MainContent({ username, setRe, re, showPinModal, setShowPinModal }: {
                 onClose={() => setShowPinModal(false)}
                 onPin={handlePin}
             />
-            <section className="bg-[#f0f4fa] h-[calc(737.6px-72px-65px)] relative">
-
+            <section
+                className={
+                    darkMode === false
+                        ? 'bg-[#f0f4fa] h-[calc(737.6px-72px-65px)]'
+                        : 'bg-[#111116] h-[calc(737.6px-72px-65px)]'
+                }
+            >
                 {initialLoading ? (
                     <div className="h-full flex items-center justify-center">
                         <div className="w-10 h-10 border-4 border-gray-300 border-t-blue-500 rounded-full animate-spin" />
@@ -941,7 +1240,11 @@ function MainContent({ username, setRe, re, showPinModal, setShowPinModal }: {
                 ) : (
                     <div
                         ref={divRef}
-                        className="h-full overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-200"
+                        className={`h-full overflow-y-auto scrollbar-thin ${
+                            darkMode === false
+                                ? 'scrollbar-thumb-gray-300 scrollbar-track-gray-200'
+                                : 'scrollbar-thumb-[#3b4a5f] scrollbar-track-black'
+                        }`}
                     >
                         {fetchingMore && (
                             <div className="text-center text-sm text-gray-500 py-2">Đang tải tin nhắn cũ...</div>
@@ -951,8 +1254,8 @@ function MainContent({ username, setRe, re, showPinModal, setShowPinModal }: {
                                 onClick={handleOnDown}
                                 className={
                                     notify === true
-                                        ? "fixed right-8 bottom-24  z-5 p-2 bg-white rounded-full cursor-pointer  before:absolute before:content-['1+'] before:text-pink-400 before:text-sm before:-bottom-2 before:left-1 before:bg-purple-300 before:px-1 before:rounded-full "
-                                        : 'fixed right-8 bottom-24  z-5 p-2 bg-white rounded-full cursor-pointer'
+                                        ? "fixed right-8 bottom-24  z-10 p-2 bg-white rounded-full cursor-pointer  before:absolute before:content-['1+'] before:text-pink-400 before:text-sm before:-bottom-2 before:left-1 before:bg-purple-300 before:px-1 before:rounded-full "
+                                        : 'fixed right-8 bottom-24  z-10 p-2 bg-white rounded-full cursor-pointer'
                                 }
                             >
                                 <ChevronsDown color="gray" size="30" />
@@ -969,22 +1272,29 @@ function MainContent({ username, setRe, re, showPinModal, setShowPinModal }: {
                         )}
                         <ul className="p-2">
                             {listMessage.map((message, index) => {
-                                const objectMess: { type: number; data: any } = message.mes;
-                                if (
-                                    objectMess.type === TypeMess.VIDEO_CALL ||
-                                    objectMess.type === TypeMess.VOICE_CALL
-                                ) {
-                                    const history: any = callHistory.get(objectMess.data.roomID);
-                                    if (objectMess.data.status === CallStatus.CALLING) {
-                                        // console.log('chỉ có calling nè', history);
-                                        return <ContentItemCall message={message} history={history}></ContentItemCall>;
+
+                                try {
+                                    const objectMess: { type: number; data: any } = message.mes;
+                                    if (
+                                        objectMess.type === TypeMess.VIDEO_CALL ||
+                                        objectMess.type === TypeMess.VOICE_CALL
+                                    ) {
+                                        const history: any = callHistory.get(objectMess.data.roomID);
+                                        if (objectMess.data.status === CallStatus.CALLING) {
+                                            console.log('chỉ có calling nè', history);
+                                            return (
+                                                <ContentItemCall message={message} history={history}></ContentItemCall>
+                                            );
+                                        }
                                     }
-                                }
-                                if (objectMess.type === 99) {
+                                  if (objectMess.type === 99) {
                                     return <LocationItem message={message} key={index} />;
                                 }
-                                if (objectMess.type < 10) {
-                                    return <Content message={message} key={index} />;
+                                    if (objectMess.type < 10) {
+                                        return <Content darkMode={darkMode} message={message} key={index} />;
+                                    }
+                                } catch {
+                                    return <Content darkMode={darkMode} message={message} key={index} />;
                                 }
                             })}
                         </ul>

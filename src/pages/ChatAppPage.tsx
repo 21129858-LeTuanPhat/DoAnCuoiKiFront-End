@@ -23,6 +23,8 @@ import CallModal from '../components/modal/CallModal';
 import { createContext } from 'react';
 import { useCurrentLocation } from '../components/Location/CurrentLocation';
 import PinMessageModal from '../components/modal/PinMessageModal';
+import { ListConversationProvider } from '../components/chat/Context/ListConversation';
+import { initMessageNotification } from '../helps/notification';
 
 export interface ICallContext {
     setModalCalling: React.Dispatch<React.SetStateAction<boolean>>;
@@ -40,9 +42,9 @@ interface PinnedMessage {
 }
 
 function Home() {
-    const [re, setRe] = useState<number>(0)
+    const [re, setRe] = useState<number>(0);
 
-    const { listMessage, setListMessage, selectedUser } = useBoardContext();
+    const { listMessage, setListMessage, selectedUser, darkMode } = useBoardContext();
     const callStore = useSelector((state: RootState) => state.call);
     const [modalCalling, setModalCalling] = useState(false);
     const [typeCalling, setTypeCalling] = useState<number>(100);
@@ -71,8 +73,16 @@ function Home() {
     const dispatch = useDispatch();
     const selection = useSelector((state: RootState) => state.call);
 
+    useEffect(() => {
+        async function init() {
+            const check = await initMessageNotification();
+        }
+        init();
+    }, []);
+
     return (
         <>
+
             <CallContext.Provider value={{ setModalCalling, setTypeCalling, refStatusIncall }}>
                 {callStore.callStatus === CallStatus.RINGING && <RingingModal open={true} onReload={() => setRe(prev => prev + 1)} />}
                 {selection.callStatus === CallStatus.IN_CALL && <CallModalPage></CallModalPage>}
@@ -90,10 +100,12 @@ function Home() {
                     </aside>
                     <main className="w-[75%]  md:block flex flex-col bg-[#f0f4fa] shadow-[0_4px_6px_-1px_rgba(0,0,0,0.2)]">
                         {selectedUser === '' ? (
-                            <Welcome />
+                            <Welcome darkMode={darkMode}/>
                         ) : (
-                            <div className="flex flex-col h-full overflow-hidden relative">
+                            <div>
+
                                 <Header
+                                    darkMode={darkMode}
                                     username={selectedUser}
                                     setOpen={setModalCalling}
                                     setTypeCalling={setTypeCalling}
@@ -101,6 +113,7 @@ function Home() {
                                     setOpenPinModal={setShowPinModal}
                                 />
                                 <MainContent
+                                   darkMode={darkMode}
                                     key={selectedUser}
                                     re={re}
                                     username={selectedUser}
@@ -108,12 +121,15 @@ function Home() {
                                     showPinModal={showPinModal}
                                     setShowPinModal={setShowPinModal}
                                 />
-                                <Footer username={selectedUser} />
-                            </div>
-                        )}
-                    </main>
-                </div>
-            </CallContext.Provider>
+
+                           
+                                <Footer darkMode={darkMode} username={selectedUser} />
+                           
+                        </div>
+                    )}
+                </main>
+            </div>
+         </CallContext.Provider>
         </>
     );
 }

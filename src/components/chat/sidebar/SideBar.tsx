@@ -1,7 +1,7 @@
 import ConversationGroup from './ConversationGroup';
 import ConversationPeople from './ConversationPeople';
 import Moji from './Moji';
-import { useEffect, useRef, useState } from 'react';
+import { useContext, useEffect, useRef, useState } from 'react';
 import WebSocketManager from '../../../socket/WebSocketManager';
 import { User } from '../../../model/User';
 import SearchBar from './SearchBar';
@@ -15,51 +15,35 @@ import FormCreateStory from './FormCreateStory';
 import ListStory from './ListStory';
 import StoryViewer from './StoryView';
 import Story from '../../../model/Story';
+import { ListConversationContext } from '../Context/ListConversation';
+import { useBoardContext } from '../../../hooks/useBoardContext';
 
 function SideBar() {
-    const [users, setUsers] = useState<User[]>([]);
     const loginname = useSelector((state: RootState) => state.user);
-    const [loading, setLoading] = useState(true);
     const [openStory, setopenStory] = useState(false);
     const [openStoryView, setOpenStoryView] = useState(false);
     const storiesRef = useRef<Story[]>([]);
     const indexRef = useRef(0);
+    const { users, setUsers, loading, setLoading } = useContext(ListConversationContext)!;
+    const { setUserList, darkMode, setDarkMode } = useBoardContext();
     useEffect(() => {
-        const ws = WebSocketManager.getInstance();
-        let isMounted = true;
-
-        ws.onMessage('GET_USER_LIST', (msg) => {
-            if (msg.status === 'success' && msg.event === 'GET_USER_LIST') {
-                console.log(' Received user list:', msg.data);
-
-                if (isMounted) {
-                    const userData = msg.data as User[];
-                    setUsers(userData);
-                    setLoading(false);
-                }
-            }
-        });
-
-        ws.sendMessage(
-            JSON.stringify({
-                action: 'onchat',
-                data: { event: 'GET_USER_LIST' },
-            }),
-        );
-
-        return () => {
-            isMounted = false;
-            ws.unSubcribe('GET_USER_LIST');
-        };
-    }, []);
-
-    if (loading) return <LoadingProfileSkeleton />;
+        const userList = users.filter((user) => user.name !== loginname.username);
+        setUserList(userList);
+    }, [users]);
 
     return (
-        <div className="flex flex-col h-full w-full *:items-start  p-3 shadow-sm ">
+        <div
+            className={
+                darkMode === false
+                    ? 'flex flex-col h-full w-full *:items-start  p-3 shadow-sm '
+                    : 'flex flex-col h-full w-full *:items-start  p-3 shadow-sm bg-black text-black'
+            }
+        >
             <Moji />
             <ProfileProvider>
                 <ListStory
+                    darkMode={darkMode}
+                    setDarkMode={setDarkMode}
                     onOpenCreateStory={() => {
                         setopenStory(true);
                     }}
@@ -71,20 +55,33 @@ function SideBar() {
                 />
             </ProfileProvider>
 
-            <div className="flex-1 w-full overflow-y-auto px-3 py-1 space-y-3">
+            <div
+                className={
+                    darkMode === false
+                        ? 'flex-1 w-full overflow-y-auto  scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-200 px-3 py-1 space-y-3'
+                        : 'flex-1 w-full overflow-y-auto  scrollbar-thin scrollbar-thumb-[#3b4a5f] scrollbar-track-black px-3 py-1 space-y-3'
+                }
+            >
                 <ConversationPeople
+                    darkMode={darkMode}
+                    setDarkMode={setDarkMode}
                     users={users.filter((user) => user.type === 0 && user.name !== loginname.username)}
                 />
-                <ConversationGroup users={users.filter((user) => user.type === 1)} />
+                <ConversationGroup
+                    darkMode={darkMode}
+                    setDarkMode={setDarkMode}
+                    users={users.filter((user) => user.type === 1)}
+                />
             </div>
 
             <ProfileProvider>
-                <Profile />
+                <Profile darkMode={darkMode} />
             </ProfileProvider>
 
             {openStory && <FormCreateStory onClose={() => setopenStory(false)} />}
             {openStoryView && (
                 <StoryViewer
+                    darkMode={darkMode}
                     stories={storiesRef.current}
                     index={indexRef.current}
                     onClose={() => setOpenStoryView(false)}

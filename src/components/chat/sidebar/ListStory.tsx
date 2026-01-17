@@ -10,7 +10,11 @@ import { avatarDefault } from '../../../config/utils';
 function ListStory({
     onOpenCreateStory,
     onOpenStoryView,
+    darkMode,
+    setDarkMode,
 }: {
+    darkMode: boolean;
+    setDarkMode: (darkMode: boolean) => void;
     onOpenCreateStory?: () => void;
     onOpenStoryView: (index: number, stories: Story[]) => void;
 }) {
@@ -23,7 +27,9 @@ function ListStory({
 
     return (
         <div className="flex flex-col  px-3 pt-1">
-            <p className="text-gray-500 select-none mb-2">Story</p>
+            <p className={darkMode === false ? 'text-gray-500  select-none mb-2' : 'text-white  select-none mb-2'}>
+                Story
+            </p>
             <div className="flex gap-3 overflow-x-auto scrollbar-hide items-center  w-full max-w-full pb-2 ">
                 <StoryUpLoad
                     avatarUrl={profileInfor?.imageUrl ?? avatarDefault}
@@ -31,6 +37,7 @@ function ListStory({
                 />
                 {stories.map((story: Story, index: number) => (
                     <StoryItem
+                        darkMode={darkMode}
                         key={story.id}
                         name={story.ownerUsername}
                         imageUrl={story.imageUrl}
@@ -42,10 +49,26 @@ function ListStory({
     );
 }
 export default ListStory;
-function StoryItem({ name, imageUrl, onClick }: { name: string; imageUrl?: string; onClick?: () => void }) {
+function StoryItem({
+    darkMode,
+    name,
+    imageUrl,
+    onClick,
+}: {
+    darkMode: boolean;
+    name: string;
+    imageUrl?: string;
+    onClick?: () => void;
+}) {
     return (
         <div className="flex flex-col items-center cursor-pointer shrink-0 select-none" onClick={onClick}>
-            <div className="w-16 h-16 rounded-full  border-2  p-0.5 border-yellow-400 ">
+            <div
+                className={
+                    darkMode === false
+                        ? 'w-16 h-16 rounded-full  border-2  p-0.5 border-yellow-400 '
+                        : 'w-16 h-16 rounded-full  border-2  p-0.5 border-blue-400 '
+                }
+            >
                 <img src={imageUrl ?? avatarDefault} alt={name} className="w-full h-full rounded-full object-cover" />
             </div>
             <p className="text-sm font-semibold mt-1 whitespace-nowrap text-gray-400">{name}</p>

@@ -4,6 +4,8 @@ import ProfileForm from '../model/ProfileForm';
 import RequestConnect, { ResponseStatus } from '../model/RequestConnect';
 import { create } from 'domain';
 import InforGroup from '../model/InforGroup';
+import { data } from 'react-router-dom';
+import WebSocketManager from '../socket/WebSocketManager';
 
 async function handleChangeProfile({ profileData }: { profileData: ProfileForm }) {
     const key = `profiles/${profileData.username}`;
@@ -233,16 +235,19 @@ async function createStory({
     imageUrl,
     content,
     username,
+    audioUrl,
 }: {
     imageUrl: string | null | undefined;
     content: string;
     username: string;
+    audioUrl: string | null | undefined;
 }) {
     const key = `${username}_${Date.now()}`;
     await set(ref(db, `stories/${key}`), {
         id: key,
         ownerUsername: username,
         imageUrl: imageUrl || '',
+        audioUrl: audioUrl || '',
         content,
         createAt: Date.now(),
         expireAt: Date.now() + 24 * 60 * 60 * 1000,
@@ -310,6 +315,159 @@ async function viewStory(storyId: string) {
     await set(storyRef, viewSnapshot.val() + 1);
 }
 
+async function getFriendName(username: string): Promise<string[] | null> {
+    console.log('GET FRIEND PROFILE', username);
+    const connectRef = ref(db, `connections/people`);
+    const connSnapshot = await get(connectRef);
+    if (!connSnapshot.exists()) {
+        return null;
+    }
+    const connData = connSnapshot.val();
+    const friends: string[] = [];
+    Object.keys(connData).forEach(async (data) => {
+        const members = data.split('_');
+        if (members.includes(username)) {
+            const friendName = members[0] === username ? members[1] : members[0];
+            friends.push(friendName);
+        }
+    });
+
+    return friends;
+}
+
+async function checkIsFriend(me: string, target: string): Promise<string> {
+    const key = [me, target].sort().join('_');
+    const connRef = ref(db, `connections/people/${key}`);
+    const snapshot = await get(connRef);
+    if (snapshot.exists()) {
+        return 'connected';
+    }
+    const sentRef = ref(db, `sent_requests/people/${me}/${target}`);
+    const sentSnapshot = await get(sentRef);
+    if (sentSnapshot.exists()) {
+        return 'pending';
+    }
+    const invRef = ref(db, `invitations/people/${me}/${target}`);
+    const invSnapshot = await get(invRef);
+    if (invSnapshot.exists()) {
+        return 'incoming';
+    }
+    return 'none';
+}
+
+async function sendConnectRequest(
+    webSocket: WebSocketManager,
+    me: string | null,
+    target: string,
+    imageUrl: string | null,
+): Promise<boolean> {
+    try {
+        const sentRef = ref(db, `sent_requests/people/${me}/${target}`);
+        const invRef = ref(db, `invitations/people/${target}/${me}`);
+
+        console.log('Sending chat invitation from', me, 'to', target);
+
+        await set(sentRef, {
+            status: 'pending',
+            createdAt: Date.now(),
+            imageUrl: imageUrl,
+        });
+
+        await set(invRef, {
+            status: 'pending',
+            createdAt: Date.now(),
+            imageUrl: imageUrl,
+        });
+
+        webSocket.sendMessage(
+            JSON.stringify({
+                action: 'onchat',
+                data: {
+                    event: 'SEND_CHAT',
+                    data: {
+                        type: 'people',
+                        to: target,
+                        mes: encodeURIComponent(
+                            JSON.stringify({
+                                type: -1,
+                                data: `${me} đã gửi lời mời kết bạn.`,
+                            }),
+                        ),
+                    },
+                },
+            }),
+        );
+
+        return true;
+    } catch (error) {
+        console.error('Send invitation failed:', error);
+        return false;
+    }
+}
+
+async function acceptedConnectRequest(
+    webSocket: WebSocketManager,
+    me: string | null,
+    target: string,
+    imageUrl: string | null,
+): Promise<boolean> {
+    try {
+        const sentRef = ref(db, `sent_requests/people/${me}/${target}`);
+        const invRef = ref(db, `invitations/people/${target}/${me}`);
+        const connectKey = [me, target].sort().join('_');
+        const connRef = ref(db, `connections/people/${connectKey}`);
+
+        console.log('Sending chat invitation from', me, 'to', target);
+
+        await set(sentRef, {
+            status: 'accepted',
+            createdAt: Date.now(),
+            imageUrl: imageUrl,
+        });
+
+        await set(invRef, {
+            status: 'accepted',
+            createdAt: Date.now(),
+            imageUrl: imageUrl,
+        });
+        await set(connRef, true);
+
+        webSocket.sendMessage(
+            JSON.stringify({
+                action: 'onchat',
+                data: {
+                    event: 'SEND_CHAT',
+                    data: {
+                        type: 'people',
+                        to: target,
+                        mes: encodeURIComponent(
+                            JSON.stringify({
+                                type: -1,
+                                data: `${me} đã chấp nhận lời mời kết bạn.`,
+                            }),
+                        ),
+                    },
+                },
+            }),
+        );
+
+        return true;
+    } catch (error) {
+        console.error('Send invitation failed:', error);
+        return false;
+    }
+}
+
+async function getImageUrl(username: string): Promise<string | null> {
+    const imageRef = ref(db, `profiles/${username}/imageUrl`);
+
+    const snapshot = await get(imageRef);
+    if (!snapshot.exists()) {
+        return null;
+    }
+    return snapshot.val();
+}
+
 export {
     handleChangeProfile,
     getUserProfile,
@@ -325,4 +483,9 @@ export {
     isLikeStory,
     viewStory,
     sendInvitation,
+    getFriendName,
+    checkIsFriend,
+    sendConnectRequest,
+    acceptedConnectRequest,
+    getImageUrl,
 };

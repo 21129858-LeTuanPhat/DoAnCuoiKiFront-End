@@ -1,12 +1,20 @@
 import { CircleX, Heart } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { use, useContext, useEffect, useState } from 'react';
 import ProfileForm from '../../../model/ProfileForm';
-import { getUserProfile, getInforGroup } from '../../../services/firebaseService';
+import { getUserProfile, getInforGroup, getFriendName } from '../../../services/firebaseService';
 import { LoadingProfileSkeleton } from '../../modal/LoadingSkeleton';
 import InforGroup from '../../../model/InforGroup';
 import { avatarDefault, formatDate } from '../../../config/utils';
 import { ResponseStatus } from '../../../model/RequestConnect';
 import { useBoardContext } from '../../../hooks/useBoardContext';
+import { useSelector } from 'react-redux';
+import { RootState } from '../../../redux/store';
+import { Web } from '@mui/icons-material';
+import WebSocketManager from '../../../socket/WebSocketManager';
+import { ListConversationContext } from '../Context/ListConversation';
+import { User } from '../../../model/User';
+import ShareCardModal from './ShareCard';
+
 export function ViewInforProfile({
     onClose,
     onCloseNotification,
@@ -30,6 +38,7 @@ export function ViewInforProfile({
         setType(type);
         onCloseNotification();
     };
+    const [openShareModal, setOpenShareModal] = useState(false);
 
     useEffect(() => {
         const fetchProfile = async () => {
@@ -57,8 +66,11 @@ export function ViewInforProfile({
     if (!profileInfor) return <div></div>;
 
     return (
-        <div className="relative bg-black/40  flex flex-col items-center justify-between">
-            <div className="flex flex-col bg-white  max-w-md max-h-lg rounded-xl shadow-lg p-4">
+        <div className="absolute inset-0 z-50 bg-black/40  flex flex-col items-center justify-center p-4">
+            <div
+                className="flex flex-col bg-white  max-w-md max-h-lg rounded-xl shadow-lg p-4         transform transition-all duration-300
+        scale-100 opacity-100"
+            >
                 <div className="flex justify-between items-center">
                     <h2 className="text-xl font-semibold">Thông tin cá nhân</h2>
                     <CircleX className="cursor-pointer" onClick={onClose} />
@@ -71,8 +83,6 @@ export function ViewInforProfile({
                             alt="avatar"
                             className="w-20 h-20 rounded-full object-cover border-4 border-white shadow-lg"
                         />
-
-                        <div className="absolute right-0 bottom-0 p-2 rounded-full bg-blue-100 cursor-pointer"></div>
                     </div>
 
                     <div className="flex flex-1 flex-col">
@@ -139,17 +149,38 @@ export function ViewInforProfile({
                             </div>
                         </>
                     )}
-                    {status === 'connected' && (
-                        <div className="w-full flex justify-center items-center">
-                            <button
-                                className="w-64 text-white font-semibold py-2 px-4 rounded-lg bg-gradient-to-r from-blue-500 to-pink-500 disabled:opacity-30 disabled:cursor-not-allowed"
-                                onClick={handleChat}
-                            >
-                                Nhắn tin
-                            </button>
-                        </div>
-                    )}
+                    <div className=" flex justify-center gap-3 mt-4">
+                        {status === 'connected' && (
+                            <>
+                                <button
+                                    className="flex-1 text-white font-semibold py-2 rounded-lg 
+                           bg-gradient-to-r from-blue-500 to-pink-500
+                           disabled:opacity-30 disabled:cursor-not-allowed"
+                                    onClick={handleChat}
+                                >
+                                    Nhắn tin
+                                </button>
+
+                                {type === 'people' && (
+                                    <button
+                                        className="flex-1 py-2 rounded-lg bg-green-500 
+                               text-white font-semibold"
+                                        onClick={() => setOpenShareModal(true)}
+                                    >
+                                        Chia sẻ
+                                    </button>
+                                )}
+                            </>
+                        )}
+                    </div>
                 </div>
+
+                {openShareModal && (
+                    <ShareCardModal
+                        onClose={() => setOpenShareModal(false)}
+                        sharedName={(profileInfor as ProfileForm).username}
+                    />
+                )}
             </div>
         </div>
     );

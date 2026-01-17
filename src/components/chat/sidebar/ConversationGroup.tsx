@@ -8,7 +8,13 @@ import { getAllInforGroup } from '../../../services/firebaseService';
 
 import GroupConversationItem from './GroupConversationItem';
 import InforGroup from '../../../model/InforGroup';
-function ConversationGroup({ users }: { users: User[] }) {
+
+interface ConversationGroupProps {
+    darkMode: boolean;
+    setDarkMode: (darkMode: boolean) => void;
+    users: User[];
+}
+function ConversationGroup({ darkMode, setDarkMode, users }: ConversationGroupProps) {
     const { selectedUser, setSelectedUser, type, setType } = useBoardContext();
     const [open, setOpen] = useState(false);
     const [listGroup, setListGroup] = useState<InforGroup[]>([]);
@@ -46,12 +52,16 @@ function ConversationGroup({ users }: { users: User[] }) {
         <>
             <div className="flex flex-col w-full">
                 <div className="flex justify-between items-center w-full">
-                    <p className="text-gray-500 select-none">Nhóm chat</p>
-                    <UserPlus className="text-gray-500 cursor-pointer" onClick={() => setOpen(!open)} />
+                    <p className={`${darkMode === false ? 'text-gray-500' : 'text-white'} select-none`}>Nhóm chat</p>
+                    <UserPlus
+                        className={`${darkMode === false ? 'text-gray-500' : 'text-white'} cursor-pointer`}
+                        onClick={() => setOpen(!open)}
+                    />
                 </div>
                 <div className="flex flex-col gap-3 mt-5">
                     {listGroup.map((group) => (
                         <GroupConversationItem
+                            darkMode={darkMode}
                             key={group.name}
                             group={group}
                             isActive={selectedUser === group.name}

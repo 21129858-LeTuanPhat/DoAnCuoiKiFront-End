@@ -10,11 +10,9 @@ export interface ChatMessage {
     createAt: string;
 }
 
-
-
 export interface ISendMessage {
-    type: number,
-    payload: any
+    type: number;
+    payload: any;
 }
 
 export enum TypeMess {

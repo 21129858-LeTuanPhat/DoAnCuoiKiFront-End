@@ -15,12 +15,23 @@ import PopUp from '../Footer/PopUp';
 import { supabaseClient } from '../../../../config/supaBaseConfig';
 import { set } from 'firebase/database';
 
-function Footer({ username }: { username: string }) {
+function Footer({ darkMode, username }: { darkMode: boolean; username: string }) {
     const MAX_SIZE = 20 * 1024;
     const MAX_LENGHT = 350;
     const [files, setFiles] = useState<any[]>([]);
     const [message, setMessage] = useState('');
-    const { listMessage, setListMessage, type, setRight } = useBoardContext();
+    const {
+        listMessage,
+        setListMessage,
+        type,
+        setRight,
+        setOpenRecommendation,
+        recommended,
+        setRecommended,
+        openRecommendation,
+        setEncodeEmoji,
+        encodeEmoji,
+    } = useBoardContext();
     const inputRef = useRef<any>(null);
     const user = useSelector((state: RootState) => state.user);
     const [popUp, setPopUp] = useState<boolean>(false);
@@ -94,7 +105,7 @@ function Footer({ username }: { username: string }) {
             setCheckLimit(true);
             return;
         }
-
+        setEncodeEmoji(true);
         setCheckLimit(false);
         setMessage(nextValue);
     };
@@ -117,6 +128,7 @@ function Footer({ username }: { username: string }) {
         setListMessage,
         inputRef,
         setMessage,
+        encodeEmoji,
     });
 
     const handleSendMessage = () => {
@@ -126,6 +138,9 @@ function Footer({ username }: { username: string }) {
         sendMessage(message);
         setRight(true);
         setCheckLimit(false);
+        setRecommended({ input: '', reply: [] });
+        setOpenRecommendation(false);
+        setEncodeEmoji(false);
     };
     const handleSendMessageKeyUp = (e: any) => {
         if (e.keyCode === 13) {
@@ -135,15 +150,53 @@ function Footer({ username }: { username: string }) {
             sendMessage(message);
             setRight(true);
             setCheckLimit(false);
+            setRecommended({ input: '', reply: [] });
+            setOpenRecommendation(false);
+            setEncodeEmoji(false);
         }
+    };
+    const handleSendRecommendation = (item: string) => {
+        sendMessage(item);
+        setRight(true);
+        setOpenRecommendation(false);
+        setRecommended({ input: '', reply: [] });
+        setEncodeEmoji(false);
     };
 
     return (
-        <footer className="bg-white h-[65px] rounded-bl-lg ">
-            <div className="flex items-center h-full ">
+        <footer className={`${darkMode === false ? 'bg-white' : 'bg-[#232230]'} relative  h-[73px] `}>
+            {openRecommendation === true && (
+                <div className=" absolute -top-9 left-0 w-full ">
+                    <ul className="flex justify-center gap-4 text-base">
+                        {recommended.reply.map((item, index) => (
+                            <li
+                                onClick={() => handleSendRecommendation(item)}
+                                key={index}
+                                className="bg-purple-400 px-5 text-white  rounded-lg cursor-pointer 
+                                            flex items-center justify-center
+                                            hover:opacity-90 transition"
+                            >
+                                {item}
+                            </li>
+                        ))}
+                    </ul>
+                </div>
+            )}
+
+            <div className={openRecommendation === true ? 'flex items-center h-full ' : 'flex items-center h-full '}>
                 <div className="flex">
-                    <ImagePlus onClick={handlePopUpImage} className="cursor-pointer mt-2 mb-2 ml-4 mr-1 h-[21.5px]" />
-                    <FolderUp onClick={handlePopUpFile} className="cursor-pointer mt-2 mb-2 ml-4 mr-4 h-[21.5px]" />
+                    <ImagePlus
+                        onClick={handlePopUpImage}
+                        className={`cursor-pointer mt-2 mb-2 ml-4 mr-1 h-[21.5px] ${
+                            darkMode === false ? 'text-black' : 'text-white'
+                        }`}
+                    />
+                    <FolderUp
+                        onClick={handlePopUpFile}
+                        className={`cursor-pointer mt-2 mb-2 ml-4 mr-4 h-[21.5px] ${
+                            darkMode === false ? 'text-black' : 'text-white'
+                        }`}
+                    />
                     {popUp && (
                         <PopUp
                             checkFile={checkFile}
@@ -169,14 +222,13 @@ function Footer({ username }: { username: string }) {
                         value={message}
                         placeholder="Soạn tin nhắn ..."
                         rows={1}
-                        className="flex-[8]
+                        className={`flex-[8]
                                 p-2
                                 border-none outline-none
                                 bg-transparent
                                 resize-none
                                 whitespace-pre-wrap
-                                break-words
-                                 "
+                                break-words ${darkMode === false ? 'text-black' : 'text-white'}`}
                         onChange={handleMessage}
                         onKeyUp={handleSendMessageKeyUp}
                     />
@@ -191,7 +243,11 @@ function Footer({ username }: { username: string }) {
                                 );
                             }}
                         >
-                            <Smile className="cursor-pointer rounded-full hover:bg-purple-400 hover:text-white" />
+                            <Smile
+                                className={`cursor-pointer rounded-full hover:bg-purple-400 hover:text-white ${
+                                    darkMode === false ? 'text-black' : 'text-white'
+                                }`}
+                            />
                         </HeadlessTippy>
                     </button>
                 </div>

@@ -11,7 +11,7 @@ class WebSocketManager {
 
     private listeners: Map<string, (msg: WSMessage) => void> = new Map();
     private intentionalClose = false;
-    private constructor() { }
+    private constructor() {}
 
     public static getInstance(): WebSocketManager {
         if (!WebSocketManager.webSocketManager) {

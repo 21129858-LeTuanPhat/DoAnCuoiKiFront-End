@@ -1,9 +1,12 @@
-import { PanelLeft, UserPlus, MapPin, Pin } from 'lucide-react';
-import LocationModal from '../../../modal/LocationModal';
+
+import { faLocationCrosshairs, faLocationDot, faPhone, faVideo } from '@fortawesome/free-solid-svg-icons';        
+import { IdCard, PanelLeft, UserPlus,  MapPin, Pin } from 'lucide-react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faLocationCrosshairs, faLocationDot, faPhone, faVideo } from '@fortawesome/free-solid-svg-icons';
-import { REACT_BASE_URL } from '../../../../config/utils';
-import { SetStateAction, useEffect, useState } from 'react';
+import { faPhone, faVideo } from '@fortawesome/free-solid-svg-icons';
+import { avatarDefault, REACT_BASE_URL } from '../../../../config/utils';
+import { SetStateAction, useContext, useEffect, useState } from 'react';
+import LocationModal from '../../../modal/LocationModal';
+
 import CallModal from '../../../modal/CallModal';
 import { useBoardContext } from '../../../../hooks/useBoardContext';
 import { TypeMess } from '../../../../model/ChatMessage';
@@ -17,14 +20,19 @@ import { memo } from 'react';
 import React from 'react';
 
 import ModalAddUser from './ModalAddUser';
+import { ProfileContext } from '../../Context/ProfileCotext';
+import { getImageUrl } from '../../../../services/firebaseService';
+import ShareCardModal from '../../sidebar/ShareCard';
 
 function Header({
+    darkMode,
     username,
     setOpen,
     setTypeCalling,
     onReload,
     setOpenPinModal
 }: {
+    darkMode: boolean;
     username: string;
     setOpen: React.Dispatch<React.SetStateAction<boolean>>;
     setTypeCalling: React.Dispatch<React.SetStateAction<number>>;
@@ -35,9 +43,21 @@ function Header({
     const { type } = useBoardContext();
     console.log('selected user nè header', type)
     const [openPanel, setOpenPanel] = useState<boolean>(false);
+    const profileInfor = useContext(ProfileContext)?.profileInfor;
     const [openAddUser, setOpenAddUser] = useState<boolean>(false);
-    const [openLocationModal, setOpenLocationModal] = useState<boolean>(false);
 
+     const [openLocationModal, setOpenLocationModal] = useState<boolean>(false);    
+    const [imageUrl, setImageUrl] = useState<string | null>(null);
+    const [openShareModal, setOpenShareModal] = useState(false);
+    useEffect(() => {
+        const fetchImage = async () => {
+            const imageUrl = await getImageUrl(username);
+            if (imageUrl) {
+                setImageUrl(imageUrl);
+            }
+        };
+        fetchImage();
+    }, [username]);
     const hanldeVoice = () => {
         setOpen(true);
         setTypeCalling(TypeMess.VOICE_CALL);
@@ -58,25 +78,40 @@ function Header({
             {openLocationModal && <LocationModal onReload={onReload} isOpen={openLocationModal} onClose={() => setOpenLocationModal(false)} />}
             {openAddUser && <ModalAddUser openAddUser={openAddUser} setOpenAddUser={setOpenAddUser} />}
             {openPanel && <ListUserGroup openPanel={openPanel} setOpenPanel={setOpenPanel} />}
-            <div className="flex items-center h-full justify-between px-4 py-3 bg-white overflow-auto">
+            <div
+                className={`flex items-center h-full justify-between px-4 py-3  ${
+                    darkMode === false ? 'bg-white' : 'bg-[#232230]'
+                } overflow-auto`}
+            >
                 <div className="flex items-center">
                     {typeMessage === 'room' && (
                         <div
-                            className="relative before:content-[''] before:h-[24px] before:border-l-2 before:absolute before:top-1/2 before:left-14 before:bg-red-500 before:-translate-y-1/2
-                        hover:bg-gray-300 rounded-full transition"
+                            className={`relative before:content-[''] before:h-[24px] before:border-l-2 before:absolute before:top-1/2 before:left-14 before:bg-red-500 before:-translate-y-1/2
+                         ${darkMode === false ? 'hover:bg-gray-300' : 'hover:bg-neutral-100'} rounded-full transition`}
                         >
                             <PanelLeft
                                 onClick={() => setOpenPanel(true)}
-                                className="ml-4 mr-8 h-[36px] cursor-pointer"
+                                className={
+                                    darkMode === false
+                                        ? 'ml-4 mr-8 h-[36px] cursor-pointer'
+                                        : 'ml-4 mr-8 h-[36px] cursor-pointer text-blue-600'
+                                }
                             />
                         </div>
                     )}
                     <img
-                        src="https://tse3.mm.bing.net/th/id/OIP.cGz8NopJvAgdkioxkugKoQHaHa?pid=Api&P=0&h=220"
-                        alt="hình ảnh"
-                        className="rounded-full object-cover w-10 mx-2 h-[36px]"
+                        src={imageUrl ? imageUrl : avatarDefault}
+                        className={'rounded-full object-cover w-10 h-10 mx-2'}
                     />
-                    <h3 className="mx-2 text-[23px] font-semibold">{username}</h3>
+                    <h3
+                        className={
+                            darkMode === false
+                                ? 'mx-2 text-[23px] font-semibold'
+                                : 'mx-2 text-[23px] font-semibold text-slate-300'
+                        }
+                    >
+                        {username}
+                    </h3>
                 </div>
                 <div className="flex items-center gap-4">
                     {typeMessage === 'room' && (
@@ -86,6 +121,14 @@ function Header({
                         >
                             <UserPlus className="text-lg text-blue-600 text-[20px]" />
                         </button>
+                    )}
+                    {typeMessage === 'people' && (
+                        <IdCard
+                            color="blue"
+                            size={20}
+                            className="cursor-pointer"
+                            onClick={() => setOpenShareModal(true)}
+                        />
                     )}
                     <button
                         className="w-10 h-10 flex items-center justify-center rounded-full hover:bg-gray-200 transition"
@@ -115,6 +158,7 @@ function Header({
                         <FontAwesomeIcon icon={faVideo} className="text-lg text-blue-600 text-[20px]" />
                     </button>
                 </div>
+                {openShareModal && <ShareCardModal onClose={() => setOpenShareModal(false)} sharedName={username} />}
             </div>{' '}
         </>
     );

@@ -8,6 +8,10 @@ import { ResponseStatus } from '../../../model/RequestConnect';
 import RequestConnect from '../../../model/RequestConnect';
 import { ViewInforProfile } from './ViewInforProfile';
 import { avatarDefault } from '../../../config/utils';
+import { ListConversationContext } from '../Context/ListConversation';
+import { set } from 'firebase/database';
+import { useBoardContext } from '../../../hooks/useBoardContext';
+import { Member } from '../../../model/Member';
 
 function Notification({ onClose, onCloseProfile }: { onClose: () => void; onCloseProfile: () => void }) {
     const [tab, setTab] = useState<'sent' | 'received'>('sent');
@@ -17,6 +21,8 @@ function Notification({ onClose, onCloseProfile }: { onClose: () => void; onClos
     const usernameSelectedRef = useRef<string | null>(null);
     const typeRef = useRef<string | null>(null);
     const statusRef = useRef<ResponseStatus | null>(null);
+    const { setUsers } = useContext(ListConversationContext)!;
+    const { setSelectedUser, setType, setListMember } = useBoardContext();
 
     const handleViewProfile = (username: string, type: string, status: ResponseStatus) => {
         usernameSelectedRef.current = username;
@@ -61,23 +67,60 @@ function Notification({ onClose, onCloseProfile }: { onClose: () => void; onClos
         };
         fetchNotifications();
     }, [tab]);
-    const handleResponed = async (changeStatus: ResponseStatus, type: string, request: RequestConnect) => {
+    const webSocket = WebSocketManager.getInstance();
+    const handleResponed = async (
+        changeStatus: ResponseStatus,
+        type: string,
+        request: RequestConnect,
+        groupName?: string,
+    ) => {
+        console.log('Responding to request:', request, 'with status:', changeStatus);
         if (request.status !== 'pending') return;
+        if (type === 'room') {
+            if (changeStatus === 'connected') {
+                const ws = WebSocketManager.getInstance();
 
-        if (changeStatus === 'connected') {
-            const ws = WebSocketManager.getInstance();
-
-            ws.sendMessage(
-                JSON.stringify({
-                    action: 'onchat',
-                    data: {
-                        event: 'JOIN_ROOM',
+                ws.sendMessage(
+                    JSON.stringify({
+                        action: 'onchat',
                         data: {
-                            name: profileInfor?.username!,
+                            event: 'JOIN_ROOM',
+                            data: {
+                                name: groupName,
+                            },
                         },
-                    },
-                }),
-            );
+                    }),
+                );
+            }
+            setUsers((prev) => [...prev, { id: request.username, name: request.username, type: 1 }]);
+            const member: Member = { id: Date.now(), name: request.username };
+            console.log('member added to group:', member);
+            setSelectedUser(request.username);
+            setType('room');
+            setListMember((prev) => [...prev, member]);
+        } else {
+            if (changeStatus === 'connected') {
+                webSocket.sendMessage(
+                    JSON.stringify({
+                        action: 'onchat',
+                        data: {
+                            event: 'SEND_CHAT',
+                            data: {
+                                type: 'people',
+                                to: request.username,
+                                mes: encodeURIComponent(
+                                    JSON.stringify({
+                                        type: -1,
+                                        data: `${profileInfor?.username!} đã chấp nhận lời mời kết bạn.`,
+                                    }),
+                                ),
+                            },
+                        },
+                    }),
+                );
+
+                setUsers((prev) => [...prev, { id: request.username, name: request.username, type: 0 }]);
+            }
         }
 
         await changeStatusRoomResponse({
@@ -188,7 +231,7 @@ function Notification({ onClose, onCloseProfile }: { onClose: () => void; onClos
                                             connect.status !== 'pending' ? 'opacity-50 cursor-not-allowed' : ''
                                         }`}
                                         disabled={connect.status !== 'pending'}
-                                        onClick={() => handleResponed('connected', 'room', connect)}
+                                        onClick={() => handleResponed('connected', 'room', connect, connect.username)}
                                     >
                                         {getStatus(connect.status, 'room')}
                                     </button>

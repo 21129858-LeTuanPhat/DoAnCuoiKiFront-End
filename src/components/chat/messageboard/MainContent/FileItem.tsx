@@ -4,11 +4,16 @@ import wordIcon from '../../../../assets/img/icon_file/word.png';
 import txtIcon from '../../../../assets/img/icon_file/txt.png';
 import excelIcon from '../../../../assets/img/icon_file/excel.png';
 import pdfIcon from '../../../../assets/img/icon_file/pdf.png';
+
+import { Forward } from 'lucide-react';
 interface DataFile {
     data: string;
     check: boolean;
+    openShareButton: boolean;
+    onClick?: () => void;
+    darkMode?: boolean;
 }
-function FileItem({ data = '', check = false }: DataFile) {
+function FileItem({ data = '', check = false, openShareButton, onClick, darkMode }: DataFile) {
     const filename = data.split('/').pop() ?? '';
     const parts = filename.split('-');
     const afterDash = parts.slice(1).join('-');
@@ -21,22 +26,38 @@ function FileItem({ data = '', check = false }: DataFile) {
         FileItem = <img src={pdfIcon} alt="Word file" className="w-12 h-12" />;
     }
     return check === true ? (
-        <div className="p-1 max-w-xs rounded-xl bg-purple-400">
+        <div className="p-1 max-w-xs rounded-xl bg-purple-400 relative">
             <a className=" p-2 no-underline flex gap-2 justify-between" href={data} download>
                 <div className="flex justify-center items-center">{FileItem}</div>
                 <div className="flex justify-center items-center text-white">
                     <h3 className=" justify-center">{afterDash}</h3>
                 </div>
             </a>
+            {openShareButton && (
+                <Forward
+                    onClick={onClick}
+                    className="absolute top-2 -left-6 bg-[#ccc] rounded-full hover:text-blue-400 cursor-pointer"
+                    size={15}
+                />
+            )}
         </div>
     ) : (
-        <div className="p-1 max-w-xs rounded-xl bg-white">
+        <div className={`p-1 max-w-xs rounded-xl ${darkMode === false ? 'bg-white' : 'bg-[#24232a]'}  relative`}>
             <a className=" p-2 no-underline flex gap-2 justify-between" href={data} download>
                 <div className="flex justify-center items-center">{FileItem}</div>
-                <div className="flex justify-center items-center text-black">
+                <div
+                    className={`flex justify-center items-center ${darkMode === false ? 'text-black' : 'text-white'} `}
+                >
                     <h3 className=" justify-center">{afterDash}</h3>
                 </div>
             </a>
+            {openShareButton && (
+                <Forward
+                    onClick={onClick}
+                    className={'absolute top-2 -right-6 bg-[#ccc] rounded-full hover:text-blue-400 cursor-pointer'}
+                    size={15}
+                />
+            )}
         </div>
     );
 }

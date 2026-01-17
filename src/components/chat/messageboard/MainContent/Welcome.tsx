@@ -7,8 +7,9 @@ import { useDispatch, useSelector } from 'react-redux';
 import { incomingCall, ReducerCall, updateStatus } from '../../../../redux/callReducer';
 import { RootState } from '../../../../redux/store';
 import { REACT_BASE_URL } from '../../../../config/utils';
+
 import { CallContext } from '../../../../pages/ChatAppPage';
-function Welcome() {
+function Welcome({ darkMode }: { darkMode: boolean }) {
     const dispatch = useDispatch()
     const context = useContext(CallContext)
     const selection = useSelector((state: RootState) => state.call)
@@ -46,8 +47,10 @@ function Welcome() {
                 data: {
                     event: 'SEND_CHAT',
                     data: {
+
                         type: selectionRef.current.type,
                         to: selectionRef.current.caller,
+
                         mes: encodeURIComponent(
                             JSON.stringify({ type: selectionRef.current.callMode, data: callMess }),
                         ),
@@ -55,19 +58,7 @@ function Welcome() {
                 },
             }),
         );
-        console.log('bên trong inCall của a', JSON.stringify({
-            action: 'onchat',
-            data: {
-                event: 'SEND_CHAT',
-                data: {
-                    type: selectionRef.current.type,
-                    to: selectionRef.current.caller,
-                    mes:
-                        JSON.stringify({ type: selectionRef.current.callMode, data: callMess }),
 
-                },
-            },
-        }),)
     };
     useEffect(() => {
         const ws = WebSocketManager.getInstance();
@@ -136,6 +127,7 @@ function Welcome() {
                                 console.log('Nhận được IN_CALL từ người gửi');
                                 break;
                             case CallStatus.ENDED:
+
                                 console.log('trong switch nè', mesObj.data.status)
                                 console.log(JSON.parse(decodeURIComponent(msg.data.mes)))
 
@@ -251,6 +243,7 @@ function Welcome() {
                                 if (selectionRef.current.callStatus === CallStatus.RINGING) {
                                     dispatch(updateStatus({ status: CallStatus.CANCEL }));
                                 }
+
                                 break;
                             case CallStatus.TIMEOUT:
                                 console.log('trong switch  TIMEOUT nè', mesObj.data.status);
@@ -261,9 +254,12 @@ function Welcome() {
                                 dispatch(updateStatus({ status: CallStatus.BUSY }));
                                 break;
                         }
+                        }
+                        return;
                     }
-                    return;
                 }
+            } catch {
+                return;
             }
         })
         return () => {
@@ -273,7 +269,13 @@ function Welcome() {
     console.error('đây là trang welcome')
 
     return (
-        <div className="flex flex-col justify-center items-center h-full">
+        <div
+            className={
+                darkMode === false
+                    ? 'flex flex-col justify-center items-center h-full'
+                    : 'flex flex-col justify-center items-center h-full bg-[#111116]'
+            }
+        >
             <div>
                 <div className="relative w-full max-w-[250px] aspect-square flex items-center justify-center m-auto">
                     <svg
@@ -285,25 +287,32 @@ function Welcome() {
                             cx="250"
                             cy="250"
                             r="160"
-                            className="fill-purple-200 origin-center animate-scale-pulse"
+                            className={
+                                darkMode === false
+                                    ? 'fill-purple-200 origin-center animate-scale-pulse'
+                                    : 'fill-blue-200 origin-center animate-scale-pulse'
+                            }
                         ></circle>
                     </svg>
                     <div
-                        className="absolute 
+                        className={`absolute 
                                     w-[100px] h-[100px]
                                     rounded-full object-cover
                                     top-1/2 left-1/2 
                                     -translate-x-1/2 -translate-y-1/2
-                                    bg-gradient-to-br from-purple-500 to-pink-500 
-                                    flex justify-center items-center
-                                    "
+                                    bg-gradient-to-br 
+                                    ${darkMode === false ? 'from-purple-500 to-pink-500' : 'from-blue-500 to-pink-500'}
+                                    flex justify-center items-center `}
                     >
                         <MessageCircleMore className="text-white w-[30px] h-[30px]" />
                     </div>
                 </div>
                 <h2
-                    className=" p-2 text-center text-3xl font-bold bg-gradient-to-r from-purple-500 to-pink-500 
-                        bg-clip-text text-transparent"
+                    className={
+                        darkMode === false
+                            ? ' p-2 text-center text-3xl font-bold bg-gradient-to-r from-purple-500 to-pink-500 bg-clip-text text-transparent'
+                            : ' p-2 text-center text-3xl font-bold bg-gradient-to-r from-blue-500 to-pink-500 bg-clip-text text-transparent'
+                    }
                 >
                     Chào mừng bạn đến với Moji!
                 </h2>

@@ -1,7 +1,7 @@
 import WebSocketManager from '../socket/WebSocketManager';
 import { ChatMessage } from '../model/ChatMessage';
 
-export function useChatSender({ type, username, user, setListMessage, inputRef, setMessage }: any) {
+export function useChatSender({ type, username, user, setListMessage, inputRef, setMessage, encodeEmoji }: any) {
     const sendMessage = (message: string, image: number = 0) => {
         if (message.trim() === '') return;
 
@@ -12,25 +12,40 @@ export function useChatSender({ type, username, user, setListMessage, inputRef, 
                 ws.unSubcribe('SEND_CHAT');
             }
         });
-
-        ws.sendMessage(
-            JSON.stringify({
-                action: 'onchat',
-                data: {
-                    event: 'SEND_CHAT',
+        if (encodeEmoji) {
+            ws.sendMessage(
+                JSON.stringify({
+                    action: 'onchat',
                     data: {
-                        type,
-                        to: username,
-                        mes: encodeURIComponent(
-                            JSON.stringify({
-                                type: image,
-                                data: message,
-                            }),
-                        ),
+                        event: 'SEND_CHAT',
+                        data: {
+                            type,
+                            to: username,
+                            mes: encodeURIComponent(
+                                JSON.stringify({
+                                    type: image,
+                                    data: message,
+                                }),
+                            ),
+                        },
                     },
-                },
-            }),
-        );
+                }),
+            );
+        } else {
+            ws.sendMessage(
+                JSON.stringify({
+                    action: 'onchat',
+                    data: {
+                        event: 'SEND_CHAT',
+                        data: {
+                            type,
+                            to: username,
+                            mes: message,
+                        },
+                    },
+                }),
+            );
+        }
 
         setMessage('');
         inputRef.current?.focus();

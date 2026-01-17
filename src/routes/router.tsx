@@ -6,7 +6,8 @@ import SignInPage from '../pages/SignInPage';
 import Call from '../pages/Call';
 import RootLayout from '../RootLayout';
 import CallModalPage from '../components/modal/CallModalPage';
-import AuthGate from '../AuthGate'
+import AuthGate from '../AuthGate';
+import { ListConversationProvider } from '../components/chat/Context/ListConversation';
 export const routers = createBrowserRouter([
     {
         element: <AuthGate />,
@@ -14,12 +15,19 @@ export const routers = createBrowserRouter([
             {
                 element: <RootLayout />,
                 children: [
-                    { path: '/', element: <Home /> },
-                    { path: '/call-modal', element: <CallModalPage /> }
-                ]
-            }
-        ]
+                    {
+                        path: '/',
+                        element: (
+                            <ListConversationProvider>
+                                <Home />
+                            </ListConversationProvider>
+                        ),
+                    },
+                    { path: '/call-modal', element: <CallModalPage /> },
+                ],
+            },
+        ],
     },
     { path: '/login', element: <SignInPage /> },
-    { path: '/register', element: <SignUpPage /> }
-])
+    { path: '/register', element: <SignUpPage /> },
+]);

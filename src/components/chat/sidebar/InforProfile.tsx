@@ -19,7 +19,6 @@ export function InforProfile({ onClose, username }: { onClose: () => void; usern
     const handleChangeAvatar = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if (!file) return;
-
         setImageFile(file);
         setPreviewUrl(URL.createObjectURL(file));
     };
@@ -32,7 +31,6 @@ export function InforProfile({ onClose, username }: { onClose: () => void; usern
                     <CircleX className="cursor-pointer" onClick={onClose} />
                 </div>
 
-                {/* Profile Header */}
                 <div className="flex items-center mt-6 p-10 bg-gradient-to-r from-blue-700 to-pink-400 rounded-xl gap-4">
                     <div className="relative">
                         <img
@@ -59,7 +57,7 @@ export function InforProfile({ onClose, username }: { onClose: () => void; usern
 
                     <div className="flex flex-1 flex-col">
                         <p className="text-white font-semibold text-2xl">{username}</p>
-                        <p className="text-gray-300 text-md opacity-70">Xin chào! Đây là trang cá nhân của tôi.</p>
+                        <p className="text-gray-300 text-md opacity-70">{profileInfor?.introduce}</p>
                     </div>
 
                     <div className="flex items-center">
@@ -108,14 +106,7 @@ function InforProfileDetail({
         originalProfileRef.current = data;
     }, [profileInfor, username]);
 
-    const isChangeData = () => {
-        if (!formProfile || !originalProfileRef.current) return false;
-        return JSON.stringify(formProfile) !== JSON.stringify(originalProfileRef.current);
-    };
-
     const handleSaveChangeProfile = async () => {
-        if (!isChangeData()) return;
-
         setLoading(true);
         try {
             let imageUrl = formProfile?.imageUrl;
@@ -183,7 +174,6 @@ function InforProfileDetail({
 
             <div className="flex justify-center mt-4">
                 <button
-                    disabled={!isChangeData()}
                     onClick={handleSaveChangeProfile}
                     className="w-64 text-white font-semibold py-2 px-4 rounded-lg bg-gradient-to-r from-blue-500 to-pink-500 disabled:opacity-30 disabled:cursor-not-allowed"
                 >
